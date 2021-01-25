@@ -4,17 +4,16 @@
 
 #ifndef RM_BASE_RM_DECISION_INCLUDE_FSM_CONTROL_FSM_DATA_H_
 #define RM_BASE_RM_DECISION_INCLUDE_FSM_CONTROL_FSM_DATA_H_
-#include "../../../../../../../../opt/ros/noetic/include/ros/ros.h"
-
-#include "../../../../devel/include/rm_msgs/DbusData.h"
-#include "../../../../../../../../opt/ros/noetic/include/geometry_msgs/Twist.h"
-#include "../../../../devel/include/rm_msgs/ChassisCmd.h"
-#include "../../../../devel/include/rm_msgs/GimbalCmd.h"
-#include "../../../../devel/include/rm_msgs/ShootCmd.h"
-#include "../../../../devel/include/rm_msgs/Joint.h"
-#include "../../../../../../../../opt/ros/noetic/include/sensor_msgs/Imu.h"
-#include "../../../../../../../../opt/ros/noetic/include/geometry_msgs/Vector3.h"
-#include "referee.h"
+#include <ros/ros.h>
+#include <rm_msgs/DbusData.h>
+#include <geometry_msgs/Twist.h>
+#include <rm_msgs/ChassisCmd.h>
+#include <rm_msgs/GimbalCmd.h>
+#include <rm_msgs/ShootCmd.h>
+#include <rm_msgs/Joint.h>
+#include <sensor_msgs/Imu.h>
+#include <geometry_msgs/Vector3.h>
+#include <rm_fsm/referee.h>
 
 template<typename T>
 class FsmData {

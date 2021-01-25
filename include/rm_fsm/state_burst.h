@@ -4,7 +4,7 @@
 
 #ifndef SRC_RM_SOFTWARE_RM_DECISION_SRC_FSM_STATE_BURST_H_
 #define SRC_RM_SOFTWARE_RM_DECISION_SRC_FSM_STATE_BURST_H_
-#include "fsm_common.h"
+#include <rm_fsm/fsm_common.h>
 
 template<typename T>
 class StateBurst : public State<T> {

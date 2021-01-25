@@ -5,7 +5,7 @@
 #ifndef SRC_RM_BRIDGE_INCLUDE_RT_PROTOCOL_H_
 #define SRC_RM_BRIDGE_INCLUDE_RT_PROTOCOL_H_
 
-#include "../../../../../../../../usr/include/c++/9/cstdint"
+#include <cstdint>
 
 // Interface Protocol
 typedef enum {
