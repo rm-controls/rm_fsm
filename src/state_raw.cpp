@@ -46,7 +46,7 @@ void StateRaw<T>::run() {
     else shoot_num = 0;
   }
 
-  this->setChassis(this->data_->chassis_cmd_.GYRO, linear_x, linear_y, angular_z);
+  this->setChassis(this->data_->chassis_cmd_.RAW, linear_x, linear_y, angular_z);
   this->setGimbal(this->data_->gimbal_cmd_.RATE, rate_yaw, rate_pitch);
   this->setShoot(this->data_->shoot_cmd_.READY, shoot_num, now);
 }

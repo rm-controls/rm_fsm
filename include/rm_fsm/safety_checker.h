@@ -4,7 +4,7 @@
 
 #ifndef RM_BASE_RM_DECISION_SRC_FSM_SAFETY_CHECKER_H_
 #define RM_BASE_RM_DECISION_SRC_FSM_SAFETY_CHECKER_H_
-#include <rm_fsm/fsm_data.h>
+#include "rm_fsm/fsm_data.h"
 
 template<typename T>
 class SafetyChecker {

@@ -5,15 +5,15 @@
 #ifndef RM_BASE_RM_DECISION_INCLUDE_FSM_CONTROL_FSM_DATA_H_
 #define RM_BASE_RM_DECISION_INCLUDE_FSM_CONTROL_FSM_DATA_H_
 #include <ros/ros.h>
-#include <rm_msgs/DbusData.h>
+#include "rm_msgs/DbusData.h"
 #include <geometry_msgs/Twist.h>
-#include <rm_msgs/ChassisCmd.h>
-#include <rm_msgs/GimbalCmd.h>
-#include <rm_msgs/ShootCmd.h>
-#include <rm_msgs/Joint.h>
+#include "rm_msgs/ChassisCmd.h"
+#include "rm_msgs/GimbalCmd.h"
+#include "rm_msgs/ShootCmd.h"
+#include "rm_msgs/Joint.h"
 #include <sensor_msgs/Imu.h>
 #include <geometry_msgs/Vector3.h>
-#include <rm_fsm/referee.h>
+#include "rm_fsm/referee.h"
 
 template<typename T>
 class FsmData {
@@ -52,7 +52,7 @@ class FsmData {
   referee::Referee referee_;
 
   void rosInit() {
-    referee_.init();
+    //referee_.init();
     /////sub/////
     dbus_sub_ = nh_.subscribe<rm_msgs::DbusData>(
         "/dbus_data", 10, &FsmData::dbusDataCallback, this);
@@ -64,9 +64,9 @@ class FsmData {
         "/rm_base/euler", 10, &FsmData::eulerCallback, this);
     /////pub/////
     vel_cmd_pub_ = nh_.advertise<geometry_msgs::Twist>("/cmd_vel", 1);
-    chassis_cmd_pub_ = nh_.advertise<rm_msgs::ChassisCmd>("/chassis_cmd", 1);
-    gimbal_cmd_pub_ = nh_.advertise<rm_msgs::GimbalCmd>("/gimbal_cmd", 1);
-    shooter_cmd_pub_ = nh_.advertise<rm_msgs::ShootCmd>("/shoot_cmd", 1);
+    chassis_cmd_pub_ = nh_.advertise<rm_msgs::ChassisCmd>("/cmd_chassis", 1);
+    gimbal_cmd_pub_ = nh_.advertise<rm_msgs::GimbalCmd>("/cmd_gimbal", 1);
+    shooter_cmd_pub_ = nh_.advertise<rm_msgs::ShootCmd>("/cmd_shoot", 1);
 
   }
 
