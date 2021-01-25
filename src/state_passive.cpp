@@ -23,12 +23,13 @@ template<typename T>
 void StatePassive<T>::run() {
   double linear_x = 0, linear_y = 0, angular_z = 0;
   double rate_yaw = 0, rate_pitch = 0;
-  double shoot_num = 0;
+  int shoot_speed = 0;
+  double shoot_hz = 0;
   ros::Time now = ros::Time::now();
 
   this->setChassis(this->data_->chassis_cmd_.PASSIVE, linear_x, linear_y, angular_z);
   this->setGimbal(this->data_->gimbal_cmd_.PASSIVE, rate_yaw, rate_pitch);
-  this->setShoot(this->data_->shoot_cmd_.PASSIVE, shoot_num, now);
+  this->setShoot(this->data_->shoot_cmd_.PASSIVE, shoot_speed, shoot_hz, now);
 }
 
 template<typename T>

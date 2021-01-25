@@ -22,7 +22,8 @@ template<typename T>
 void StateBurst<T>::run() {
   double linear_x = 0, linear_y = 0, angular_z = 0;
   double rate_yaw = 0, rate_pitch = 0;
-  double shoot_num = 0;
+  int shoot_speed = 0;
+  double shoot_hz = 0;
   ros::Time now = ros::Time::now();
 
   if (this->pc_control_) { // pc control
@@ -33,7 +34,8 @@ void StateBurst<T>::run() {
     rate_yaw = -this->data_->dbus_data_.m_x * M_PI * 4;
     rate_pitch = -this->data_->dbus_data_.m_y * M_PI * 4;
 
-    shoot_num = this->data_->dbus_data_.p_l;
+    if (this->data_->dbus_data_.p_l) this->setShoot(this->data_->shoot_cmd_.PUSH, shoot_speed, shoot_hz, now);
+    else this->setShoot(this->data_->shoot_cmd_.READY, shoot_speed, shoot_hz, now);
   } else { // rc control
     linear_x = this->data_->dbus_data_.ch_r_y * 3.5;
     linear_y = -this->data_->dbus_data_.ch_r_x * 3.5;
@@ -42,13 +44,13 @@ void StateBurst<T>::run() {
     rate_yaw = -this->data_->dbus_data_.ch_l_x * M_PI * 4;
     rate_pitch = -this->data_->dbus_data_.ch_l_y * M_PI * 4;
 
-    if (this->data_->dbus_data_.s_l == this->data_->dbus_data_.MID) shoot_num = 1;
-    else shoot_num = 0;
+    if (this->data_->dbus_data_.s_l == this->data_->dbus_data_.MID) this->setShoot(this->data_->shoot_cmd_.PUSH, shoot_speed, shoot_hz, now);
+    else this->setShoot(this->data_->shoot_cmd_.READY, shoot_speed, shoot_hz, now);
   }
 
   this->setChassis(this->data_->chassis_cmd_.GYRO, linear_x, linear_y, angular_z);
   this->setGimbal(this->data_->gimbal_cmd_.RATE, rate_yaw, rate_pitch);
-  this->setShoot(this->data_->shoot_cmd_.READY, shoot_num, now);
+  this->setShoot(this->data_->shoot_cmd_.READY, shoot_speed, shoot_hz, now);
 }
 
 template<typename T>

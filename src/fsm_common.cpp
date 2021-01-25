@@ -81,12 +81,10 @@ void State<T>::setGimbal(uint8_t gimbal_mode, double rate_yaw, double rate_pitch
  * @param now
  */
 template<typename T>
-void State<T>::setShoot(uint8_t shoot_mode, uint8_t shoot_num, ros::Time now) {
+void State<T>::setShoot(uint8_t shoot_mode, uint8_t shoot_speed, double shoot_hz, ros::Time now) {
   this->data_->shoot_cmd_.mode = shoot_mode;
-
-  this->data_->shoot_cmd_.num = shoot_num;
-  this->data_->shoot_cmd_.speed = 5;
-  this->data_->shoot_cmd_.hz = 5;
+  this->data_->shoot_cmd_.speed = shoot_speed;
+  this->data_->shoot_cmd_.hz = shoot_hz;
   this->data_->shoot_cmd_.stamp = now;
 
   this->data_->shooter_cmd_pub_.publish(this->data_->shoot_cmd_);

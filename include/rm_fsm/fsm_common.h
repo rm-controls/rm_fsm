@@ -40,7 +40,7 @@ class State {
   // Base controllers.
   void setChassis(uint8_t, double, double, double);
   void setGimbal(uint8_t, double, double);
-  void setShoot(uint8_t, uint8_t, ros::Time);
+  void setShoot(uint8_t, uint8_t, double, ros::Time);
 
   // Holds all of the relevant control data
   FsmData<T> *data_;
