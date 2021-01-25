@@ -5,7 +5,7 @@
 #define SRC_RM_BRIDGE_INCLUDE_RT_RT_REFEREE_H_
 //Referee System
 #include <cstdint>
-#include <rm_fsm/protocol.h>
+#include "rm_fsm/protocol.h"
 #include <serial/serial.h>
 
 namespace referee {
@@ -48,7 +48,7 @@ class Referee {
   void init();
   void read();
   RefereeData referee_data_{};
-  bool flag = true;
+  bool flag = false;
 
  private:
   serial::Serial serial_;

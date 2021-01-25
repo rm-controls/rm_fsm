@@ -4,7 +4,7 @@
 
 #ifndef SRC_FSM_STATE_PASSIVE_H
 #define SRC_FSM_STATE_PASSIVE_H
-#include <rm_fsm/fsm_common.h>
+#include "rm_fsm/fsm_common.h"
 
 template<typename T>
 class StatePassive : public State<T> {

@@ -51,7 +51,7 @@ void State<T>::setChassis(uint8_t chassis_mode,
   this->data_->cmd_vel.linear.x = linear_x;
   this->data_->cmd_vel.linear.y = linear_y;
   this->data_->cmd_vel.angular.z = angular_z;
-
+  this->data_->chassis_cmd_.current_limit = 0.5;
   this->data_->vel_cmd_pub_.publish(this->data_->cmd_vel);
   this->data_->chassis_cmd_pub_.publish(this->data_->chassis_cmd_);
 }
@@ -122,7 +122,7 @@ void Fsm<T>::init() {
 
   // Initialize a new FSM State with the control data
   current_state_ = string2state["invalid"];
-
+  pc_control_ = 0;
   // Enter the new current state cleanly
   ROS_INFO("[FSM] Current state is invalid.");
 

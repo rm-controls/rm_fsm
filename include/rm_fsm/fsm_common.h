@@ -8,7 +8,7 @@
 #include <rm_fsm/fsm_data.h>
 
 #include <iostream>
-#include <rm_fsm/safety_checker.h>
+#include "rm_fsm/safety_checker.h"
 #include <tf/transform_listener.h>
 #include <queue>
 #include <ros_utilities.h>
