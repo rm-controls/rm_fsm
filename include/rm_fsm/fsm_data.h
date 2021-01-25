@@ -52,7 +52,7 @@ class FsmData {
   referee::Referee referee_;
 
   void rosInit() {
-    //referee_.init();
+    referee_.init();
     /////sub/////
     dbus_sub_ = nh_.subscribe<rm_msgs::DbusData>(
         "/dbus_data", 10, &FsmData::dbusDataCallback, this);
