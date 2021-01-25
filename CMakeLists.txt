@@ -117,14 +117,14 @@ install(
 ## Testing ##
 #############
 
-if (${CATKIN_ENABLE_TESTING})
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread")
-  ## Add gtest based cpp test target and link libraries
-  catkin_add_gtest(${PROJECT_NAME}-test
-      test/test_ros_package_template.cpp
-      test/AlgorithmTest.cpp)
-  target_link_libraries(${PROJECT_NAME}-test ${PROJECT_NAME}_core)
-endif ()
+#if (${CATKIN_ENABLE_TESTING})
+#  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread")
+#  ## Add gtest based cpp test target and link libraries
+#  catkin_add_gtest(${PROJECT_NAME}-test
+#      test/test_ros_package_template.cpp
+#      test/AlgorithmTest.cpp)
+#  target_link_libraries(${PROJECT_NAME}-test ${PROJECT_NAME}_core)
+#endif ()
 
 ##########################
 ## Static code analysis ##

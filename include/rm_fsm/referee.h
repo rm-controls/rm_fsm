@@ -48,6 +48,7 @@ class Referee {
   void init();
   void read();
   RefereeData referee_data_{};
+  bool flag = true;
 
  private:
   serial::Serial serial_;

@@ -10,6 +10,7 @@ void Referee::init() {
   serial_.setPort("/dev/ttyUSB0");
   serial_.setBaudrate(115200);
   serial_.setTimeout(timeout);
+  int count = 0;
 
   while (!serial_.isOpen()) {
     try {
@@ -18,10 +19,18 @@ void Referee::init() {
       ROS_WARN("Referee system serial cannot open [%s]", e.what());
     }
     ros::Duration(0.5).sleep();
+    if (count++ >= 1) {
+      this->flag = false;
+      break;
+    }
   }
-  ROS_INFO("serial open successfully.\n");
-  referee_unpack_obj.index = 0;
-  referee_unpack_obj.unpack_step = kStepHeaderSof;
+  if (this->flag) {
+    ROS_INFO("serial open successfully.\n");
+    referee_unpack_obj.index = 0;
+    referee_unpack_obj.unpack_step = kStepHeaderSof;
+  } else {
+    ROS_INFO("Run fsm without referee system");
+  }
 }
 
 void Referee::read() {
