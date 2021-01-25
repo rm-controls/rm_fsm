@@ -42,6 +42,9 @@ class State {
   void setGimbal(uint8_t, double, double);
   void setShoot(uint8_t, uint8_t, ros::Time);
 
+  void ChassisPowerCoefficient();
+  double danger_surplus = 10;
+
   // Holds all of the relevant control data
   FsmData<T> *data_;
 

@@ -21,11 +21,10 @@ void Referee::init() {
     ros::Duration(0.5).sleep();
     if (count++ >= 1) {
       break;
-    }
+    } else this->flag = true;
   }
   if (this->flag) {
     ROS_INFO("serial open successfully.\n");
-    this->flag = true;
     referee_unpack_obj.index = 0;
     referee_unpack_obj.unpack_step = kStepHeaderSof;
   } else {

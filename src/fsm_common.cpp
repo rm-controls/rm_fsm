@@ -42,6 +42,14 @@ void State<T>::setChassis(uint8_t chassis_mode,
                           double linear_x,
                           double linear_y,
                           double angular_z) {
+  if (this->data_->referee_.flag) {
+    this->ChassisPowerCoefficient();
+    ROS_INFO("Can read referee system data,begin to use power limit function");
+  } else {
+    this->data_->chassis_cmd_.current_limit = 1.0;
+    ROS_INFO("Can't read referee system data,don't use power limit function");
+  }
+
   this->data_->chassis_cmd_.mode = chassis_mode;
 
   this->data_->chassis_cmd_.accel.linear.x = 10;
@@ -51,7 +59,7 @@ void State<T>::setChassis(uint8_t chassis_mode,
   this->data_->cmd_vel.linear.x = linear_x;
   this->data_->cmd_vel.linear.y = linear_y;
   this->data_->cmd_vel.angular.z = angular_z;
-  this->data_->chassis_cmd_.current_limit = 0.5;
+
   this->data_->vel_cmd_pub_.publish(this->data_->cmd_vel);
   this->data_->chassis_cmd_pub_.publish(this->data_->chassis_cmd_);
 }
@@ -90,6 +98,72 @@ void State<T>::setShoot(uint8_t shoot_mode, uint8_t shoot_num, ros::Time now) {
   this->data_->shoot_cmd_.stamp = now;
 
   this->data_->shooter_cmd_pub_.publish(this->data_->shoot_cmd_);
+}
+
+/**
+ * Chassis power limit function.This function will predict
+ * the buffer power of 200ms later,and if it is less than 10J,
+ * then begin to calculate a total current for the chassis which
+ * can make robot safe.
+ * */
+template<typename T>
+void State<T>::ChassisPowerCoefficient() {
+  float chassis_power = this->data_->referee_.referee_data_.power_heat_data_.chassis_power;
+  float chassis_voltage = this->data_->referee_.referee_data_.power_heat_data_.chassis_volt;
+  double chassis_current_need;
+  double chassis_current_limit;
+  uint16_t w0 = this->data_->referee_.referee_data_.power_heat_data_.chassis_power_buffer; //chassis power buffer now
+  uint16_t w1, w2;              //chassis power buffer 100ms&200ms later
+
+  float limit_power;
+  // Change limit power of different level and robot
+  if ((this->data_->referee_.referee_data_.game_robot_status_.robot_id >= 3
+      && this->data_->referee_.referee_data_.game_robot_status_.robot_id <= 5)
+      || (this->data_->referee_.referee_data_.game_robot_status_.robot_id >= 103
+          && this->data_->referee_.referee_data_.game_robot_status_.robot_id <= 105)) { // Standard robot
+    if (this->data_->referee_.referee_data_.performance_system_ == 0) // Power first
+      limit_power = 40 + 20 * this->data_->referee_.referee_data_.game_robot_status_.robot_level;
+    else // Hp first
+      limit_power = 40 + 5 * this->data_->referee_.referee_data_.game_robot_status_.robot_level;
+  } else if (this->data_->referee_.referee_data_.game_robot_status_.robot_id == 1
+      || this->data_->referee_.referee_data_.game_robot_status_.robot_id == 101) { // Hero robot
+    if (this->data_->referee_.referee_data_.performance_system_ == 0) // Power first
+      if (this->data_->referee_.referee_data_.game_robot_status_.robot_level == 3)
+        limit_power = 120;
+      else
+        limit_power = 50 + 20 * this->data_->referee_.referee_data_.game_robot_status_.robot_level;
+    else { // Hp first
+      limit_power = 50 + 5 * this->data_->referee_.referee_data_.game_robot_status_.robot_level;
+    }
+  } else if (this->data_->referee_.referee_data_.game_robot_status_.robot_id == 7
+      || this->data_->referee_.referee_data_.game_robot_status_.robot_id == 107) { // Sentry robot
+    limit_power = 30;
+  } else { // Other robots
+    limit_power = 280;
+  }
+
+  chassis_current_limit = limit_power / chassis_voltage;
+  //this->openCapacity();        //check the super capacity button open or not
+  //limit_power = limit_power + this->getCapacity();
+
+  if (chassis_power <= limit_power) {
+    ROS_INFO("Didn't use buffer power.");
+
+  } else {
+    w1 = w0 - 0.1 * (chassis_power - limit_power);
+    w2 = w1 - 0.1 * (chassis_power - limit_power);
+    if (w2 < danger_surplus) {
+      ROS_INFO("After 200ms later,buffer power less than 10J,begin to limit.");
+      // GUET plan
+      chassis_current_need = (chassis_current_limit + 5 * w0 / chassis_voltage);
+
+      this->data_->chassis_cmd_.current_limit = chassis_current_need;
+
+    } else {
+      this->data_->chassis_cmd_.current_limit = 1;
+      ROS_INFO("After 200ms later,buffer power more than 10J,safe.");
+    }
+  }
 }
 
 /**
@@ -146,6 +220,7 @@ void Fsm<T>::run() {
 
   // run referee system
   if (this->data_.referee_.flag) {
+    ROS_INFO("Read referee system data");
     data_.referee_.read();
   }
 
