@@ -13,9 +13,9 @@ StateAutomatic<T>::StateAutomatic(FsmData<T> *fsm_data,
   gimbal_position_ =1;
   auto_move_chassis_speed_ = getParam(this->state_nh_,"auto_move_chassis_speed",1);
   auto_move_chassis_accel_ = getParam(this->state_nh_,"auto_move_chassis_accel",1);
-  auto_move_pitch_speed_ = getParam(this->state_nh_,"auto_move_pitch_speed",1);
+  auto_move_pitch_speed_ = getParam(this->state_nh_,"auto_move_pitch_speed",0.5);
   auto_move_yaw_speed_ = getParam(this->state_nh_,"auto_move_yaw_speed",3.14);
-  auto_move_distance_ = getParam(this->state_nh_,"auto_move_distance",2.9);
+  auto_move_distance_ = getParam(this->state_nh_,"auto_move_distance",3.0);
 }
 
 template<typename T>
@@ -25,7 +25,7 @@ void StateAutomatic<T>::onEnter() {
 
 template<typename T>
 void StateAutomatic<T>::run() {
-
+  geometry_msgs::TransformStamped gimbal_transformStamped;
   geometry_msgs::TransformStamped chassis_transformStamped;
   double move_end,move_start;
   int shoot_speed = 0;
@@ -40,6 +40,14 @@ void StateAutomatic<T>::run() {
 
   //this->setChassis(this->data_->chassis_cmd_.RAW, linear_x, linear_y, angular_z);
   //this->setShoot(this->data_->shoot_cmd_.READY, shoot_speed, shoot_hz, now);
+  double roll{}, pitch{}, yaw{};
+  try{
+    gimbal_transformStamped = this->tf_.lookupTransform("odom", "link_pitch",ros::Time(0));
+  }
+  catch (tf2::TransformException &ex) {
+    //ROS_ERROR("%s",ex.what());
+  }
+  quatToRPY(gimbal_transformStamped.transform.rotation, roll, pitch, yaw);
 
   try {
     chassis_transformStamped = this->tf_.lookupTransform("odom", "base_link", ros::Time(0));
@@ -47,7 +55,6 @@ void StateAutomatic<T>::run() {
   catch (tf2::TransformException &ex) {
     //ROS_WARN("%s", ex.what());
   }
-  std::cout << chassis_transformStamped.transform.translation.x <<std::endl;
   //chassis control
   if(chassis_transformStamped.transform.translation.x>=move_end-0.1)
     point_side_=2;
@@ -66,6 +73,23 @@ void StateAutomatic<T>::run() {
   this->data_->chassis_cmd_.current_limit = 0.5;
   this->data_->vel_cmd_pub_.publish(this->data_->cmd_vel);
   this->data_->chassis_cmd_pub_.publish(this->data_->chassis_cmd_);
+  //gimbal control
+  if(pitch > (0.9))
+    gimbal_position_=1;
+  else if(pitch < (-0.1))
+    gimbal_position_=2;
+  if(gimbal_position_==1){
+    this->data_->gimbal_cmd_.mode = this->data_->gimbal_cmd_.RATE;
+    this->data_->gimbal_cmd_.rate_yaw =auto_move_yaw_speed_;
+    this->data_->gimbal_cmd_.rate_pitch =-auto_move_pitch_speed_;
+  }
+  else if(gimbal_position_==2){
+    this->data_->gimbal_cmd_.mode = this->data_->gimbal_cmd_.RATE;
+    this->data_->gimbal_cmd_.rate_yaw =auto_move_yaw_speed_;
+    this->data_->gimbal_cmd_.rate_pitch =auto_move_pitch_speed_;
+  }
+  this->data_->gimbal_cmd_pub_.publish(this->data_->gimbal_cmd_);
+  std::cout <<"pitch:"<< pitch << std::endl;
 }
 
 template<typename T>

@@ -5,15 +5,14 @@
 #ifndef SRC_RM_SOFTWARE_RM_DECISION_SRC_FSM_FSM_STATE_H_
 #define SRC_RM_SOFTWARE_RM_DECISION_SRC_FSM_FSM_STATE_H_
 
-#include <rm_fsm/fsm_data.h>
-
+#include <queue>
 #include <iostream>
+#include <rm_fsm/fsm_data.h>
 #include "rm_fsm/safety_checker.h"
 #include <tf/transform_listener.h>
-#include <queue>
 #include <ros_utilities.h>
 #include <utility>
-
+#include "ori_tool.h"
 /**
  * A base fsm state class for all robots.
  * @tparam T

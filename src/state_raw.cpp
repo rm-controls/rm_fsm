@@ -9,7 +9,7 @@ StateRaw<T>::StateRaw(FsmData<T> *fsm_data,
                       const std::string &state_string,
                       ros::NodeHandle &nh,
                       bool pc_control):State<T>(fsm_data, state_string, nh, pc_control) {
-
+  this->tf_listener_ = new tf2_ros::TransformListener(this->tf_);
 }
 
 template<typename T>
@@ -19,6 +19,7 @@ void StateRaw<T>::onEnter() {
 
 template<typename T>
 void StateRaw<T>::run() {
+  geometry_msgs::TransformStamped gimbal_transformStamped;
   double linear_x = 0, linear_y = 0, angular_z = 0;
   double rate_yaw = 0, rate_pitch = 0;
   int shoot_speed = 0;
@@ -51,6 +52,15 @@ void StateRaw<T>::run() {
   this->setChassis(this->data_->chassis_cmd_.RAW, linear_x, linear_y, angular_z);
   this->setGimbal(this->data_->gimbal_cmd_.RATE, rate_yaw, rate_pitch);
   this->setShoot(this->data_->shoot_cmd_.READY, shoot_speed, shoot_hz, now);
+  double roll{}, pitch{}, yaw{};
+  try{
+    gimbal_transformStamped = this->tf_.lookupTransform("odom", "link_pitch",ros::Time(0));
+  }
+  catch (tf2::TransformException &ex) {
+    //ROS_ERROR("%s",ex.what());
+  }
+  quatToRPY(gimbal_transformStamped.transform.rotation, roll, pitch, yaw);
+  std::cout <<"pitch:"<< pitch << std::endl;
 }
 
 template<typename T>
