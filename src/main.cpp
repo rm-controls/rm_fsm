@@ -4,12 +4,11 @@
 
 #include <ros/ros.h>
 #include <rm_fsm/fsm_common.h>
-#include <rm_fsm/fsm_standard.h>
-
+#include "rm_fsm/fsm_sentry.h"
 int main(int argc, char **argv) {
   ros::init(argc, argv, "fsm");
   ros::NodeHandle nh;
-  FsmStandard<float> control_fsm(nh);
+  FsmSentry<float> control_fsm(nh);
   ros::Rate loop_rate(100);
   while (ros::ok()) {
     ros::spinOnce();

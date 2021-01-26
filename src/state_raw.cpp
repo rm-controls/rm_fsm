@@ -46,6 +46,7 @@ void StateRaw<T>::run() {
 
     if (this->data_->dbus_data_.s_l == this->data_->dbus_data_.MID) this->setShoot(this->data_->shoot_cmd_.PUSH, shoot_speed, shoot_hz, now);
     else this->setShoot(this->data_->shoot_cmd_.READY, shoot_speed, shoot_hz, now);
+
   }
 
   this->setChassis(this->data_->chassis_cmd_.RAW, linear_x, linear_y, angular_z);

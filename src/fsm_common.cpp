@@ -100,7 +100,7 @@ void State<T>::setShoot(uint8_t shoot_mode, uint8_t shoot_speed, double shoot_hz
 template<typename T>
 Fsm<T>::Fsm(ros::NodeHandle &node_handle) {
   data_.nh_ = node_handle;
-
+  nh_ = node_handle;
   tf_listener_ = new tf2_ros::TransformListener(tf_);
 
   safety_checker_ = new SafetyChecker<T>(&data_);
