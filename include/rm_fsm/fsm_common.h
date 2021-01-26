@@ -5,14 +5,17 @@
 #ifndef SRC_RM_SOFTWARE_RM_DECISION_SRC_FSM_FSM_STATE_H_
 #define SRC_RM_SOFTWARE_RM_DECISION_SRC_FSM_FSM_STATE_H_
 
-#include <queue>
-#include <iostream>
 #include <rm_fsm/fsm_data.h>
+
+#include <iostream>
 #include "rm_fsm/safety_checker.h"
 #include <tf/transform_listener.h>
+#include <queue>
 #include <ros_utilities.h>
 #include <utility>
-#include "ori_tool.h"
+
+#include <control_toolbox/pid.h>
+
 /**
  * A base fsm state class for all robots.
  * @tparam T
@@ -23,6 +26,7 @@ class State {
   // Generic constructor fo all states
   State(FsmData<T> *fsm_data,
         std::string state_string,
+        tf2_ros::TransformListener *tf_listener,
         ros::NodeHandle &nh,
         bool pc_control);
 
@@ -38,7 +42,7 @@ class State {
   // Base controllers.
   void setChassis(uint8_t, double, double, double);
   void setGimbal(uint8_t, double, double);
-  void setShoot(uint8_t, uint8_t, double, ros::Time);
+  void setShoot(uint8_t, uint8_t, ros::Time);
 
   // Holds all of the relevant control data
   FsmData<T> *data_;

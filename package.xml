@@ -12,10 +12,10 @@
   <buildtool_depend>catkin</buildtool_depend>
   <!-- depend: build, export, and execution dependency -->
   <depend>roscpp</depend>
-  <depend>roslint</depend>
   <depend>sensor_msgs</depend>
+  <depend>roslint</depend>
   <depend>rm_msgs</depend>
   <depend>rm_common</depend>
   <depend>tf</depend>
-
+  <depend>control_toolbox</depend>
 </package>

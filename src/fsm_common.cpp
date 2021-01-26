@@ -14,10 +14,12 @@
 template<typename T>
 State<T>::State(FsmData<T> *fsm_data,
                 std::string state_name,
+                tf2_ros::TransformListener *tf_listener,
                 ros::NodeHandle &nh,
                 bool pc_control)
     : data_(fsm_data),
       state_name_(std::move(state_name)),
+      tf_listener_(tf_listener),
       state_nh_(nh),
       pc_control_(pc_control) {
   std::cout << "[FSM_State] Initialized FSM state: " << state_name_
@@ -49,7 +51,7 @@ void State<T>::setChassis(uint8_t chassis_mode,
   this->data_->cmd_vel.linear.x = linear_x;
   this->data_->cmd_vel.linear.y = linear_y;
   this->data_->cmd_vel.angular.z = angular_z;
-  this->data_->chassis_cmd_.effort_limit = 0.5;
+  this->data_->chassis_cmd_.current_limit = 0.5;
   this->data_->vel_cmd_pub_.publish(this->data_->cmd_vel);
   this->data_->chassis_cmd_pub_.publish(this->data_->chassis_cmd_);
 }
@@ -79,10 +81,12 @@ void State<T>::setGimbal(uint8_t gimbal_mode, double rate_yaw, double rate_pitch
  * @param now
  */
 template<typename T>
-void State<T>::setShoot(uint8_t shoot_mode, uint8_t shoot_speed, double shoot_hz, ros::Time now) {
+void State<T>::setShoot(uint8_t shoot_mode, uint8_t shoot_num, ros::Time now) {
   this->data_->shoot_cmd_.mode = shoot_mode;
-  this->data_->shoot_cmd_.speed = shoot_speed;
-  this->data_->shoot_cmd_.hz = shoot_hz;
+
+  this->data_->shoot_cmd_.num = shoot_num;
+  this->data_->shoot_cmd_.speed = 5;
+  this->data_->shoot_cmd_.hz = 5;
   this->data_->shoot_cmd_.stamp = now;
 
   this->data_->shooter_cmd_pub_.publish(this->data_->shoot_cmd_);
@@ -98,8 +102,8 @@ void State<T>::setShoot(uint8_t shoot_mode, uint8_t shoot_speed, double shoot_hz
 template<typename T>
 Fsm<T>::Fsm(ros::NodeHandle &node_handle) {
   data_.nh_ = node_handle;
-  nh_ = node_handle;
-  //tf_listener_ = new tf2_ros::TransformListener(tf_);
+
+  tf_listener_ = new tf2_ros::TransformListener(tf_);
 
   safety_checker_ = new SafetyChecker<T>(&data_);
 
@@ -200,11 +204,76 @@ void Fsm<T>::run() {
     next_state_name_ = current_state_->state_name_;
   }
 
+  // Print the current state of the FSM
+  printInfo(0);
 
   // Increase the iteration counter
   iter_++;
 }
 
+/**
+ * Prints Control FSM info at regular intervals and on important events
+ * such as transition initializations and finalizations. Separate function
+ * to not clutter the actual code.
+ *
+ * @param printing mode option for regular or an event
+ */
+template<typename T>
+void Fsm<T>::printInfo(int opt) {
+  switch (opt) {
+    case 0:  // Normal printing case at regular intervals
+      // Increment printing iteration
+      print_iter_++;
+
+      // Print at commanded frequency
+      if (print_iter_ == print_num_) {
+        std::cout << "[CONTROL FSM] Printing FSM Info...\n";
+        std::cout
+            << "---------------------------------------------------------\n";
+        std::cout << "Iteration: " << iter_ << "\n";
+        if (operating_mode_ == FsmOperatingMode::kNormal) {
+          std::cout << "Operating Mode: NORMAL in " << current_state_->state_name_
+                    << "\n";
+
+        } else if (operating_mode_ == FsmOperatingMode::kTransitioning) {
+          std::cout << "Operating Mode: TRANSITIONING from "
+                    << current_state_->state_name_ << " to "
+                    << next_state_->state_name_ << "\n";
+
+        } else if (operating_mode_ == FsmOperatingMode::kEStop) {
+          std::cout << "Operating Mode: ESTOP\n";
+        }
+        std::cout << std::endl;
+
+        // Reset iteration counter
+        print_iter_ = 0;
+      }
+
+      // Print robot info about the robot's status
+      // data._gaitScheduler->printGaitInfo();
+      // data._desiredStateCommand->printStateCommandInfo();
+
+      break;
+
+    case 1:  // Initializing FSM State transition
+      std::cout << "[CONTROL FSM] Transition initialized from "
+                << current_state_->state_name_ << " to " << next_state_->state_name_
+                << "\n"
+                << std::endl;
+
+      break;
+
+    case 2:  // Finalizing FSM State transition
+      std::cout << "[CONTROL FSM] Transition finalizing from "
+                << current_state_->state_name_ << " to " << next_state_->state_name_
+                << "\n"
+                << std::endl;
+
+      break;
+    default:break;
+  }
+
+}
 
 // RobotRunner a template
 template

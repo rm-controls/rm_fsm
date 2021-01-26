@@ -15,12 +15,12 @@ void Referee::init() {
   while (!serial_.isOpen()) {
     try {
       serial_.open();
+      this->flag = true;
     } catch (serial::IOException &e) {
       ROS_WARN("Referee system serial cannot open [%s]", e.what());
     }
     ros::Duration(0.5).sleep();
     if (count++ >= 1) {
-      this->flag = false;
       break;
     }
   }
@@ -178,6 +178,10 @@ void Referee::getData(uint8_t *frame) {
     }
     case kPowerHeatDataCmdId: {
       memcpy(&referee_data_.power_heat_data_, frame + index, sizeof(PowerHeatData));
+      this->referee_data_.power_heat_data_.chassis_volt =
+          referee_data_.power_heat_data_.chassis_volt / 1000;       //mV->V
+      this->referee_data_.power_heat_data_.chassis_current =
+          referee_data_.power_heat_data_.chassis_current / 1000;    //mA->A
       break;
     }
     case kRobotPosCmdId: {
