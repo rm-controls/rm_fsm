@@ -14,6 +14,9 @@
 #include <ros_utilities.h>
 #include <utility>
 
+#include "power_limit.h"
+#include <control_toolbox/pid.h>
+
 /**
  * A base fsm state class for all robots.
  * @tparam T
@@ -42,8 +45,8 @@ class State {
   void setGimbal(uint8_t, double, double);
   void setShoot(uint8_t, uint8_t, ros::Time);
 
-  void ChassisPowerCoefficient();
-  double danger_surplus = 40;
+  // Power limit
+  PowerLimit *power_limit_;
 
   // Holds all of the relevant control data
   FsmData<T> *data_;
