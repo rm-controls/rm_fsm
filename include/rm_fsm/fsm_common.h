@@ -43,7 +43,7 @@ class State {
   void setShoot(uint8_t, uint8_t, ros::Time);
 
   void ChassisPowerCoefficient();
-  double danger_surplus = 10;
+  double danger_surplus = 40;
 
   // Holds all of the relevant control data
   FsmData<T> *data_;

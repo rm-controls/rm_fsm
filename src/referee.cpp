@@ -7,7 +7,7 @@
 namespace referee {
 void Referee::init() {
   serial::Timeout timeout = serial::Timeout::simpleTimeout(50);
-  serial_.setPort("/dev/ttyUSB0");
+  serial_.setPort("/dev/ttyUSB2");
   serial_.setBaudrate(115200);
   serial_.setTimeout(timeout);
   int count = 0;
@@ -15,13 +15,14 @@ void Referee::init() {
   while (!serial_.isOpen()) {
     try {
       serial_.open();
+      this->flag = true;
     } catch (serial::IOException &e) {
       ROS_WARN("Referee system serial cannot open [%s]", e.what());
     }
     ros::Duration(0.5).sleep();
     if (count++ >= 1) {
       break;
-    } else this->flag = true;
+    }
   }
   if (this->flag) {
     ROS_INFO("serial open successfully.\n");

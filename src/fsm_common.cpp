@@ -113,7 +113,8 @@ void State<T>::ChassisPowerCoefficient() {
   double chassis_current_need;
   double chassis_current_limit;
   uint16_t w0 = this->data_->referee_.referee_data_.power_heat_data_.chassis_power_buffer; //chassis power buffer now
-  uint16_t w1, w2;              //chassis power buffer 100ms&200ms later
+  int16_t w1, w2;              //chassis power buffer 100ms&200ms later
+
 
   float limit_power;
   // Change limit power of different level and robot
@@ -122,7 +123,7 @@ void State<T>::ChassisPowerCoefficient() {
       || (this->data_->referee_.referee_data_.game_robot_status_.robot_id >= 103
           && this->data_->referee_.referee_data_.game_robot_status_.robot_id <= 105)) { // Standard robot
     if (this->data_->referee_.referee_data_.performance_system_ == 0) // Power first
-      limit_power = 40 + 20 * this->data_->referee_.referee_data_.game_robot_status_.robot_level;
+      limit_power = 40 + 10 * this->data_->referee_.referee_data_.game_robot_status_.robot_level;
     else // Hp first
       limit_power = 40 + 5 * this->data_->referee_.referee_data_.game_robot_status_.robot_level;
   } else if (this->data_->referee_.referee_data_.game_robot_status_.robot_id == 1
@@ -148,6 +149,7 @@ void State<T>::ChassisPowerCoefficient() {
 
   if (chassis_power <= limit_power) {
     ROS_INFO("Didn't use buffer power.");
+    this->data_->chassis_cmd_.current_limit = 99;
 
   } else {
     w1 = w0 - 0.1 * (chassis_power - limit_power);
@@ -156,11 +158,10 @@ void State<T>::ChassisPowerCoefficient() {
       ROS_INFO("After 200ms later,buffer power less than 10J,begin to limit.");
       // GUET plan
       chassis_current_need = (chassis_current_limit + 5 * w0 / chassis_voltage);
-
       this->data_->chassis_cmd_.current_limit = chassis_current_need;
 
     } else {
-      this->data_->chassis_cmd_.current_limit = 1;
+      this->data_->chassis_cmd_.current_limit = 99;
       ROS_INFO("After 200ms later,buffer power more than 10J,safe.");
     }
   }
