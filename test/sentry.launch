@@ -1,6 +1,7 @@
 <launch>
 
     <rosparam file="$(find rm_base)/config/actuator_coefficient.yaml"  command="load" ns="rm_base"/>
+    <rosparam file="$(find rm_fsm)/config/sentry_data.yaml"  command="load" ns="fsm"/>
 
     <rosparam file="$(find rm_fsm)/test/sentry.yaml" command="load"/>
     <rosparam
