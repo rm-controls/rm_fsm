@@ -7,16 +7,15 @@
 PowerLimit::PowerLimit(ros::NodeHandle &nh) {
   if (!pid_buffer_.init(nh))
     ROS_INFO("[PowerLimit] PID initialize fail!");
-
+  nh.param("des_buffer_", des_buffer_, 0.0);
 }
 
-void PowerLimit::input(referee::RefereeData referee, const ros::Duration &period) {
+void PowerLimit::input(referee::RefereeData referee) {
   double real_buffer = referee.power_heat_data_.chassis_power_buffer;
-  double des_buffer = 0.0;
-  double error_buffer = real_buffer - des_buffer;
-
-  this->pid_buffer_.computeCommand(error_buffer, period);
-
+  double error_buffer = real_buffer - des_buffer_;
+  ros::Time now = ros::Time::now();
+  this->pid_buffer_.computeCommand(error_buffer, now - last_run_);
+  last_run_ = now;
 }
 
 double PowerLimit::output() {

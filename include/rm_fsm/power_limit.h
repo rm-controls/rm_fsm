@@ -12,11 +12,13 @@
 class PowerLimit {
  public:
   PowerLimit(ros::NodeHandle &nh);
-  void input(referee::RefereeData referee, const ros::Duration &period);
+  void input(referee::RefereeData referee);
   double output();
 
  private:
+  ros::Time last_run_;
   control_toolbox::Pid pid_buffer_;
+  double des_buffer_ = 0.0;
 
 };
 

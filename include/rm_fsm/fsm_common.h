@@ -14,7 +14,6 @@
 #include <ros_utilities.h>
 #include <utility>
 
-#include "power_limit.h"
 #include <control_toolbox/pid.h>
 
 /**
@@ -44,9 +43,6 @@ class State {
   void setChassis(uint8_t, double, double, double);
   void setGimbal(uint8_t, double, double);
   void setShoot(uint8_t, uint8_t, ros::Time);
-
-  // Power limit
-  PowerLimit *power_limit_;
 
   // Holds all of the relevant control data
   FsmData<T> *data_;

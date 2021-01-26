@@ -24,8 +24,6 @@ State<T>::State(FsmData<T> *fsm_data,
       pc_control_(pc_control) {
   std::cout << "[FSM_State] Initialized FSM state: " << state_name_
             << std::endl;
-  this->power_limit_ = new PowerLimit(nh);
-
 }
 
 /**
@@ -46,7 +44,8 @@ void State<T>::setChassis(uint8_t chassis_mode,
                           double angular_z) {
   if (this->data_->referee_.flag) {
 
-    this->data_->chassis_cmd_.current_limit = this->power_limit_->output();
+    this->power_limit_->input(this->data_->referee_.referee_data_);
+    this->data_->chassis_cmd_.effort_limit = this->power_limit_->output();
     ROS_INFO("Can read referee system data,begin to use power limit function");
   } else {
     ROS_INFO("Can't read referee system data,don't use power limit function");
