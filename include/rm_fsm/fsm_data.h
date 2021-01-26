@@ -5,22 +5,22 @@
 #ifndef RM_BASE_RM_DECISION_INCLUDE_FSM_CONTROL_FSM_DATA_H_
 #define RM_BASE_RM_DECISION_INCLUDE_FSM_CONTROL_FSM_DATA_H_
 #include <ros/ros.h>
-#include "rm_msgs/DbusData.h"
 #include <geometry_msgs/Twist.h>
+#include <sensor_msgs/Imu.h>
+#include <geometry_msgs/Vector3.h>
+#include "rm_msgs/DbusData.h"
 #include "rm_msgs/ChassisCmd.h"
 #include "rm_msgs/GimbalCmd.h"
 #include "rm_msgs/ShootCmd.h"
 #include "rm_msgs/Joint.h"
-#include <sensor_msgs/Imu.h>
-#include <geometry_msgs/Vector3.h>
 #include "rm_fsm/referee.h"
+#include "rm_fsm/power_limit.h"
 
 template<typename T>
 class FsmData {
  public:
   FsmData() = default;
 
-  ros::NodeHandle nh_;
   ros::Subscriber dbus_sub_;
   ros::Subscriber joint_sub_;
   ros::Subscriber robot_status_sub_;
@@ -39,6 +39,7 @@ class FsmData {
   double max_chassis_speed_[3]{};
   ros::Publisher vel_cmd_pub_;
   ros::Publisher chassis_cmd_pub_;
+  PowerLimit *power_limit_{};
 
   //gimbal
   rm_msgs::GimbalCmd gimbal_cmd_;
@@ -51,23 +52,24 @@ class FsmData {
 
   referee::Referee referee_;
 
-  void rosInit() {
+  void init(ros::NodeHandle nh) {
     referee_.init();
-    /////sub/////
-    dbus_sub_ = nh_.subscribe<rm_msgs::DbusData>(
+    power_limit_ = new PowerLimit(nh);
+    // sub //
+    dbus_sub_ = nh.subscribe<rm_msgs::DbusData>(
         "/dbus_data", 10, &FsmData::dbusDataCallback, this);
-    joint_sub_ = nh_.subscribe<rm_msgs::Joint>(
+    joint_sub_ = nh.subscribe<rm_msgs::Joint>(
         "/rm_base/joint_data", 10, &FsmData::jointDataCallback, this);
-    imu_sub_ = nh_.subscribe<sensor_msgs::Imu>(
+    imu_sub_ = nh.subscribe<sensor_msgs::Imu>(
         "/rm_base/imu_data", 10, &FsmData::imuDataCallback, this);
-    euler_sub_ = nh_.subscribe<geometry_msgs::Vector3>(
+    euler_sub_ = nh.subscribe<geometry_msgs::Vector3>(
         "/rm_base/euler", 10, &FsmData::eulerCallback, this);
-    /////pub/////
-    vel_cmd_pub_ = nh_.advertise<geometry_msgs::Twist>("/cmd_vel", 1);
-    chassis_cmd_pub_ = nh_.advertise<rm_msgs::ChassisCmd>("/cmd_chassis", 1);
-    gimbal_cmd_pub_ = nh_.advertise<rm_msgs::GimbalCmd>("/cmd_gimbal", 1);
-    shooter_cmd_pub_ = nh_.advertise<rm_msgs::ShootCmd>("/cmd_shoot", 1);
-
+    // pub //
+    ros::NodeHandle root_nh;
+    vel_cmd_pub_ = root_nh.advertise<geometry_msgs::Twist>("/cmd_vel", 1);
+    chassis_cmd_pub_ = root_nh.advertise<rm_msgs::ChassisCmd>("/cmd_chassis", 1);
+    gimbal_cmd_pub_ = root_nh.advertise<rm_msgs::GimbalCmd>("/cmd_gimbal", 1);
+    shooter_cmd_pub_ = root_nh.advertise<rm_msgs::ShootCmd>("/cmd_shoot", 1);
   }
 
   void jointDataCallback(const rm_msgs::Joint::ConstPtr &data) {

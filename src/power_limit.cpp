@@ -5,7 +5,8 @@
 #include "rm_fsm/power_limit.h"
 
 PowerLimit::PowerLimit(ros::NodeHandle &nh) {
-  if (!pid_buffer_.init(nh))
+  ros::NodeHandle power_nh = ros::NodeHandle(nh, "power_limit/");
+  if (!pid_buffer_.init(power_nh))
     ROS_INFO("[PowerLimit] PID initialize fail!");
   nh.param("des_buffer_", des_buffer_, 0.0);
 }

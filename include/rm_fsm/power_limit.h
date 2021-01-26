@@ -7,11 +7,11 @@
 
 #include <ros/ros.h>
 #include <control_toolbox/pid.h>
-#include "rm_fsm/fsm_data.h"
+#include <rm_fsm/referee.h>
 
 class PowerLimit {
  public:
-  PowerLimit(ros::NodeHandle &nh);
+  explicit PowerLimit(ros::NodeHandle &nh);
   void input(referee::RefereeData referee);
   double output();
 

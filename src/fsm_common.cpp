@@ -44,8 +44,8 @@ void State<T>::setChassis(uint8_t chassis_mode,
                           double angular_z) {
   if (this->data_->referee_.flag) {
 
-    this->power_limit_->input(this->data_->referee_.referee_data_);
-    this->data_->chassis_cmd_.effort_limit = this->power_limit_->output();
+    this->data_->power_limit_->input(this->data_->referee_.referee_data_);
+    this->data_->chassis_cmd_.effort_limit = this->data_->power_limit_->output();
     ROS_INFO("Can read referee system data,begin to use power limit function");
   } else {
     ROS_INFO("Can't read referee system data,don't use power limit function");
@@ -101,8 +101,6 @@ void State<T>::setShoot(uint8_t shoot_mode, uint8_t shoot_num, ros::Time now) {
   this->data_->shooter_cmd_pub_.publish(this->data_->shoot_cmd_);
 }
 
-
-
 /**
  * Constructor for the Control FSM. Passes in all of the necessary
  * data and stores it in a struct. Initializes the FSM with a starting
@@ -112,7 +110,6 @@ void State<T>::setShoot(uint8_t shoot_mode, uint8_t shoot_num, ros::Time now) {
  */
 template<typename T>
 Fsm<T>::Fsm(ros::NodeHandle &node_handle) {
-  data_.nh_ = node_handle;
 
   tf_listener_ = new tf2_ros::TransformListener(tf_);
 
@@ -129,7 +126,7 @@ Fsm<T>::Fsm(ros::NodeHandle &node_handle) {
  */
 template<typename T>
 void Fsm<T>::init() {
-  this->data_.rosInit();
+  this->data_.init(nh_);
 
   string2state.insert(std::make_pair("invalid", nullptr));
 
