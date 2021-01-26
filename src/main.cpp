@@ -8,7 +8,7 @@
 
 int main(int argc, char **argv) {
   ros::init(argc, argv, "fsm");
-  ros::NodeHandle nh;
+  ros::NodeHandle nh("~");
   FsmStandard<float> control_fsm(nh);
   ros::Rate loop_rate(100);
   while (ros::ok()) {
