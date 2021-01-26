@@ -7,7 +7,7 @@
 namespace referee {
 void Referee::init() {
   serial::Timeout timeout = serial::Timeout::simpleTimeout(50);
-  serial_.setPort("/dev/ttyUSB2");
+  serial_.setPort("/dev/ttyUSB0");
   serial_.setBaudrate(115200);
   serial_.setTimeout(timeout);
   int count = 0;

@@ -1,4 +1,4 @@
-fsm:
+rm_fsm:
   power_limit:
-    pid_buffer_: { p: 0.8, i: 0, d: 0.0, i_max: 0.0, i_min: 0.0, antiwindup: true }
-    des_buffer_: 0.0
+    pid_buffer: { p: 0.05, i: 0, d: 0.0, i_max: 0.0, i_min: 0.0, antiwindup: true }
+    des_buffer: 0.5

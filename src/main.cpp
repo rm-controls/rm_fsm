@@ -7,7 +7,7 @@
 #include <rm_fsm/fsm_standard.h>
 
 int main(int argc, char **argv) {
-  ros::init(argc, argv, "fsm");
+  ros::init(argc, argv, "rm_fsm");
   ros::NodeHandle nh("~");
   FsmStandard<float> control_fsm(nh);
   ros::Rate loop_rate(100);

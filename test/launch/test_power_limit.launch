@@ -20,6 +20,6 @@
 
     <node name="rm_base" pkg="rm_base" type="rm_base" respawn="false"/>
     <node name="dbus_node" pkg="rm_base" type="dbus_node" respawn="false"/>
-    <node name="rm_fsm" pkg="rm_fsm" type="rm_fsm" respawn="false"/>
+<!--     <node name="rm_fsm" pkg="rm_fsm" type="rm_fsm" respawn="false"/> -->
 
 </launch>
