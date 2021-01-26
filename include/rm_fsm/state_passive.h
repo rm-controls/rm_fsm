@@ -11,7 +11,6 @@ class StatePassive : public State<T> {
  public:
   StatePassive(FsmData<T> *fsm_data,
                const std::string &state_string,
-               tf2_ros::TransformListener *tf_listener,
                ros::NodeHandle &nh,
                bool pc_control);
   void onEnter() override;

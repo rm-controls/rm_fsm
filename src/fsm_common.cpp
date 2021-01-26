@@ -14,12 +14,10 @@
 template<typename T>
 State<T>::State(FsmData<T> *fsm_data,
                 std::string state_name,
-                tf2_ros::TransformListener *tf_listener,
                 ros::NodeHandle &nh,
                 bool pc_control)
     : data_(fsm_data),
       state_name_(std::move(state_name)),
-      tf_listener_(tf_listener),
       state_nh_(nh),
       pc_control_(pc_control) {
   std::cout << "[FSM_State] Initialized FSM state: " << state_name_
@@ -101,7 +99,7 @@ template<typename T>
 Fsm<T>::Fsm(ros::NodeHandle &node_handle) {
   data_.nh_ = node_handle;
   nh_ = node_handle;
-  tf_listener_ = new tf2_ros::TransformListener(tf_);
+  //tf_listener_ = new tf2_ros::TransformListener(tf_);
 
   safety_checker_ = new SafetyChecker<T>(&data_);
 

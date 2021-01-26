@@ -7,9 +7,8 @@
 template<typename T>
 StateRaw<T>::StateRaw(FsmData<T> *fsm_data,
                       const std::string &state_string,
-                      tf2_ros::TransformListener *tf_listener,
                       ros::NodeHandle &nh,
-                      bool pc_control):State<T>(fsm_data, state_string, tf_listener, nh, pc_control) {
+                      bool pc_control):State<T>(fsm_data, state_string, nh, pc_control) {
 
 }
 
