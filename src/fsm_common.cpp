@@ -14,12 +14,10 @@
 template<typename T>
 State<T>::State(FsmData<T> *fsm_data,
                 std::string state_name,
-                tf2_ros::TransformListener *tf_listener,
                 ros::NodeHandle &nh,
                 bool pc_control)
     : data_(fsm_data),
       state_name_(std::move(state_name)),
-      tf_listener_(tf_listener),
       state_nh_(nh),
       pc_control_(pc_control) {
   std::cout << "[FSM_State] Initialized FSM state: " << state_name_
@@ -51,7 +49,7 @@ void State<T>::setChassis(uint8_t chassis_mode,
   this->data_->cmd_vel.linear.x = linear_x;
   this->data_->cmd_vel.linear.y = linear_y;
   this->data_->cmd_vel.angular.z = angular_z;
-  this->data_->chassis_cmd_.current_limit = 0.5;
+  this->data_->chassis_cmd_.effort_limit = 0.5;
   this->data_->vel_cmd_pub_.publish(this->data_->cmd_vel);
   this->data_->chassis_cmd_pub_.publish(this->data_->chassis_cmd_);
 }
@@ -81,12 +79,11 @@ void State<T>::setGimbal(uint8_t gimbal_mode, double rate_yaw, double rate_pitch
  * @param now
  */
 template<typename T>
-void State<T>::setShoot(uint8_t shoot_mode, uint8_t shoot_num, ros::Time now) {
+void State<T>::setShoot(uint8_t shoot_mode, uint8_t shoot_speed, double shoot_hz, ros::Time now) {
   this->data_->shoot_cmd_.mode = shoot_mode;
 
-  this->data_->shoot_cmd_.num = shoot_num;
-  this->data_->shoot_cmd_.speed = 5;
-  this->data_->shoot_cmd_.hz = 5;
+  this->data_->shoot_cmd_.speed = shoot_speed;
+  this->data_->shoot_cmd_.hz = shoot_hz;
   this->data_->shoot_cmd_.stamp = now;
 
   this->data_->shooter_cmd_pub_.publish(this->data_->shoot_cmd_);
@@ -101,8 +98,6 @@ void State<T>::setShoot(uint8_t shoot_mode, uint8_t shoot_num, ros::Time now) {
  */
 template<typename T>
 Fsm<T>::Fsm(ros::NodeHandle &node_handle) {
-  data_.nh_ = node_handle;
-
   tf_listener_ = new tf2_ros::TransformListener(tf_);
 
   safety_checker_ = new SafetyChecker<T>(&data_);
@@ -118,7 +113,7 @@ Fsm<T>::Fsm(ros::NodeHandle &node_handle) {
  */
 template<typename T>
 void Fsm<T>::init() {
-  this->data_.rosInit();
+  this->data_.init(nh_);
 
   string2state.insert(std::make_pair("invalid", nullptr));
 
@@ -144,9 +139,17 @@ template<typename T>
 void Fsm<T>::run() {
   // TODO: Safety check
 
-  // run referee system
-  if (this->data_.referee_.flag) {
-    data_.referee_.read();
+  // run referee system and publish some referee data
+  if (this->data_.referee_->flag) {
+    data_.referee_->read();
+
+    data_.referee_->referee_pub_data_.chassis_volt = data_.referee_->referee_data_.power_heat_data_.chassis_volt;
+    data_.referee_->referee_pub_data_.chassis_current = data_.referee_->referee_data_.power_heat_data_.chassis_current;
+    data_.referee_->referee_pub_data_.chassis_power = data_.referee_->referee_data_.power_heat_data_.chassis_power;
+    data_.referee_->referee_pub_data_.chassis_power_buffer =
+        data_.referee_->referee_data_.power_heat_data_.chassis_power_buffer;
+
+    data_.referee_pub_.publish(data_.referee_->referee_pub_data_);
   }
 
   // Run the robot control code if operating mode is not unsafe

@@ -5,8 +5,9 @@
 #define SRC_RM_BRIDGE_INCLUDE_RT_RT_REFEREE_H_
 //Referee System
 #include <cstdint>
-#include "rm_fsm/protocol.h"
 #include <serial/serial.h>
+#include "rm_msgs/Referee.h"
+#include "rm_fsm/protocol.h"
 
 namespace referee {
 struct RefereeData {
@@ -47,8 +48,10 @@ class Referee {
   ~Referee() = default;
   void init();
   void read();
+
   RefereeData referee_data_{};
   bool flag = false;
+  rm_msgs::Referee referee_pub_data_;
 
  private:
   serial::Serial serial_;

@@ -50,11 +50,13 @@ class FsmData {
   rm_msgs::ShootCmd shoot_cmd_;
   ros::Publisher shooter_cmd_pub_;
 
-  referee::Referee referee_;
+  referee::Referee *referee_{};
+  ros::Publisher referee_pub_;
 
   void init(ros::NodeHandle nh) {
-    referee_.init();
+    //referee_.init();
     power_limit_ = new PowerLimit(nh);
+    referee_ = new referee::Referee();
     // sub //
     dbus_sub_ = nh.subscribe<rm_msgs::DbusData>(
         "/dbus_data", 10, &FsmData::dbusDataCallback, this);
@@ -70,6 +72,7 @@ class FsmData {
     chassis_cmd_pub_ = root_nh.advertise<rm_msgs::ChassisCmd>("/cmd_chassis", 1);
     gimbal_cmd_pub_ = root_nh.advertise<rm_msgs::GimbalCmd>("/cmd_gimbal", 1);
     shooter_cmd_pub_ = root_nh.advertise<rm_msgs::ShootCmd>("/cmd_shoot", 1);
+    referee_pub_ = root_nh.advertise<rm_msgs::Referee>("/referee", 1);
   }
 
   void jointDataCallback(const rm_msgs::Joint::ConstPtr &data) {

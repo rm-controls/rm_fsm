@@ -8,13 +8,13 @@
 #include <rm_fsm/fsm_data.h>
 
 #include <iostream>
-#include "rm_fsm/safety_checker.h"
 #include <tf/transform_listener.h>
 #include <queue>
 #include <ros_utilities.h>
 #include <utility>
-
 #include <control_toolbox/pid.h>
+#include "ori_tool.h"
+#include "rm_fsm/safety_checker.h"
 
 /**
  * A base fsm state class for all robots.
@@ -24,11 +24,7 @@ template<typename T>
 class State {
  public:
   // Generic constructor fo all states
-  State(FsmData<T> *fsm_data,
-        std::string state_string,
-        tf2_ros::TransformListener *tf_listener,
-        ros::NodeHandle &nh,
-        bool pc_control);
+  State(FsmData<T> *fsm_data, std::string state_string, ros::NodeHandle &nh, bool pc_control);
 
   // Behavior to be carried out when entering a state
   virtual void onEnter() = 0;
@@ -42,7 +38,7 @@ class State {
   // Base controllers.
   void setChassis(uint8_t, double, double, double);
   void setGimbal(uint8_t, double, double);
-  void setShoot(uint8_t, uint8_t, ros::Time);
+  void setShoot(uint8_t, uint8_t, double, ros::Time);
 
   // Holds all of the relevant control data
   FsmData<T> *data_;

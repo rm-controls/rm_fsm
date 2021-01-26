@@ -2,7 +2,7 @@
 // Created by luohx on 20-2-19.
 //
 #include <ros/ros.h>
-#include <rm_fsm/referee.h>
+#include "rm_fsm/referee.h"
 
 namespace referee {
 void Referee::init() {
