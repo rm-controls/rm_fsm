@@ -6,41 +6,41 @@
 
 namespace referee {
 void Referee::init() {
-  serial::Timeout timeout = serial::Timeout::simpleTimeout(50);
-  serial_.setPort("/dev/ttyUSB3");
-  serial_.setBaudrate(115200);
-  serial_.setTimeout(timeout);
-  int count = 0;
-
-  while (!serial_.isOpen()) {
-    try {
-      serial_.open();
-      this->flag = true;
-    } catch (serial::IOException &e) {
-      ROS_WARN("Referee system serial cannot open [%s]", e.what());
-    }
-    ros::Duration(0.5).sleep();
-    if (count++ >= 1) {
-      break;
-    }
-  }
-  if (this->flag) {
-    ROS_INFO("serial open successfully.\n");
-    referee_unpack_obj.index = 0;
-    referee_unpack_obj.unpack_step = kStepHeaderSof;
-  } else {
-    ROS_INFO("Run fsm without referee system");
-  }
+//  serial::Timeout timeout = serial::Timeout::simpleTimeout(50);
+//  serial_.setPort("/dev/ttyUSB3");
+//  serial_.setBaudrate(115200);
+//  serial_.setTimeout(timeout);
+//  int count = 0;
+//
+//  while (!serial_.isOpen()) {
+//    try {
+//      serial_.open();
+//      this->flag = true;
+//    } catch (serial::IOException &e) {
+//      ROS_WARN("Referee system serial cannot open [%s]", e.what());
+//    }
+//    ros::Duration(0.5).sleep();
+//    if (count++ >= 1) {
+//      break;
+//    }
+//  }
+//  if (this->flag) {
+//    ROS_INFO("serial open successfully.\n");
+//    referee_unpack_obj.index = 0;
+//    referee_unpack_obj.unpack_step = kStepHeaderSof;
+//  } else {
+//    ROS_INFO("Run fsm without referee system");
+//  }
 }
 
 void Referee::read() {
-  if (serial_.waitReadable()) {
-    std::vector<uint8_t> rx_buffer;
-    serial_.read(rx_buffer, serial_.available());
-    rx_len_ = rx_buffer.size();
-
-    unpack(rx_buffer);
-  }
+//  if (serial_.waitReadable()) {
+//    std::vector<uint8_t> rx_buffer;
+//    serial_.read(rx_buffer, serial_.available());
+//    rx_len_ = rx_buffer.size();
+//
+//    unpack(rx_buffer);
+//  }
 }
 
 void Referee::unpack(const std::vector<uint8_t> &rx_buffer) {

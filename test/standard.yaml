@@ -12,25 +12,25 @@ rm_base:
       bus: can0
       id: 0x201
       type: rm_3508
-      wc: 300
+      wc: 250
       ts: 0.001
     actuator_lf:
       bus: can0
       id: 0x202
       type: rm_3508
-      wc: 300
+      wc: 250
       ts: 0.001
     actuator_lb:
       bus: can0
       id: 0x203
       type: rm_3508
-      wc: 300
+      wc: 250
       ts: 0.001
     actuator_rb:
       bus: can0
       id: 0x204
       type: rm_3508
-      wc: 300
+      wc: 250
       ts: 0.001
     actuator_yaw:
       bus: can1
@@ -42,7 +42,7 @@ rm_base:
       bus: can1
       id: 0x206
       type: rm_6020
-      wc: 200
+      wc: 150
       ts: 0.001
     actuator_fiction_left:
       bus: can1
@@ -76,14 +76,14 @@ rm_base:
     joint_lf_name: "joint_lf"
     joint_lb_name: "joint_lb"
     publish_rate_: 100
-    wheel_base: 0.38
-    wheel_track: 0.39
+    wheel_base: 0.375
+    wheel_track: 0.40
     wheel_radius: 0.07625
     current_coeff: 1.
-    pid_rf: { p: 0.8, i: 0, d: 0.0, i_max: 0.0, i_min: 0.0, antiwindup: true }
-    pid_rb: { p: 0.8, i: 0, d: 0.0, i_max: 0.0, i_min: 0.0, antiwindup: true }
-    pid_lf: { p: 0.8, i: 0, d: 0.0, i_max: 0.0, i_min: 0.0, antiwindup: true }
-    pid_lb: { p: 0.8, i: 0, d: 0.0, i_max: 0.0, i_min: 0.0, antiwindup: true }
+    pid_rf: { p: 0.3, i: 0, d: 0.0, i_max: 0.0, i_min: 0.0, antiwindup: true }
+    pid_rb: { p: 0.3, i: 0, d: 0.0, i_max: 0.0, i_min: 0.0, antiwindup: true }
+    pid_lf: { p: 0.3, i: 0, d: 0.0, i_max: 0.0, i_min: 0.0, antiwindup: true }
+    pid_lb: { p: 0.3, i: 0, d: 0.0, i_max: 0.0, i_min: 0.0, antiwindup: true }
     pid_follow: { p: 0, i: 0, d: 0.0, i_max: 0.0, i_min: 0.0, antiwindup: true }
     pid_twist: { p: 0, i: 0, d: 0.0, i_max: 0.0, i_min: 0.0, antiwindup: true }
     pose_covariance_diagonal: [0.001, 0.001, 0.001, 0.001, 0.001, 0.001]
@@ -106,7 +106,7 @@ rm_base:
     publish_state: true
   gimbal_standard_controller:
     type: rm_gimbal_controllers/GimbalStandardController
-    pid_yaw: { p: 6, i: 0.08, d: 0.08 ,i_max: 0.2, i_min: -0.2, antiwindup: true, publish_state: true }
+    pid_yaw: { p: 3, i: 0.01, d: 0.03 ,i_max: 0.2, i_min: -0.2, antiwindup: true, publish_state: true }
     pid_pitch: { p: 10, i: 0.1, d: 0.08 ,i_max: 0.2, i_min: -0.2, antiwindup: true, publish_state: true }
     resistance_coff: 0.4
     g: 9.81
