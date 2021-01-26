@@ -54,9 +54,9 @@ class FsmData {
   ros::Publisher referee_pub_;
 
   void init(ros::NodeHandle nh) {
-    //referee_.init();
     power_limit_ = new PowerLimit(nh);
     referee_ = new referee::Referee();
+    referee_->init();
     // sub //
     dbus_sub_ = nh.subscribe<rm_msgs::DbusData>(
         "/dbus_data", 10, &FsmData::dbusDataCallback, this);
