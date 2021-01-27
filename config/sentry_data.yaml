@@ -1,1 +1,6 @@
 robot_type: "sentry"
+  auto_move_chassis_speed: 1.0
+  auto_move_chassis_accel: 1.0
+  auto_move_pitch_speed: 0.5
+  auto_move_yaw_speed: 3.14
+  auto_move_distance: 3.0
