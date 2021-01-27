@@ -16,6 +16,7 @@ class StateRaw : public State<T> {
   void onEnter() override;
   void run() override;
   void onExit() override;
+  int shoot_hz;
 };
 
 #endif //SRC_FSM_STATE_RAW_H

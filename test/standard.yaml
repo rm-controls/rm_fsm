@@ -12,55 +12,55 @@ rm_base:
       bus: can0
       id: 0x201
       type: rm_3508
-      wc: 250
+      wc: 600
       ts: 0.001
     actuator_lf:
       bus: can0
       id: 0x202
       type: rm_3508
-      wc: 250
+      wc: 600
       ts: 0.001
     actuator_lb:
       bus: can0
       id: 0x203
       type: rm_3508
-      wc: 250
+      wc: 600
       ts: 0.001
     actuator_rb:
       bus: can0
       id: 0x204
       type: rm_3508
-      wc: 250
+      wc: 600
       ts: 0.001
     actuator_yaw:
       bus: can1
       id: 0x205
       type: rm_6020
-      wc: 200
+      wc: 800
       ts: 0.001
     actuator_pitch:
       bus: can1
       id: 0x206
       type: rm_6020
-      wc: 150
+      wc: 800
       ts: 0.001
     actuator_fiction_left:
       bus: can1
       id: 0x201
       type: rm_3508_dir
-      wc: 200
+      wc: 600
       ts: 0.001
     actuator_fiction_right:
       bus: can1
       id: 0x202
       type: rm_3508_dir
-      wc: 200
+      wc: 600
       ts: 0.001
     actuator_trigger:
       bus: can1
       id: 0x203
       type: rm_2006
-      wc: 200
+      wc: 300
       ts: 0.001
 
   robot_state_controller:

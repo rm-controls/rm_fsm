@@ -9,7 +9,7 @@ StateRaw<T>::StateRaw(FsmData<T> *fsm_data,
                       const std::string &state_string,
                       ros::NodeHandle &nh,
                       bool pc_control):State<T>(fsm_data, state_string, nh, pc_control) {
-  this->tf_listener_ = new tf2_ros::TransformListener(this->tf_);
+  shoot_hz= getParam(this->state_nh_,"shoot_hz",5);
 }
 
 template<typename T>
@@ -21,7 +21,6 @@ template<typename T>
 void StateRaw<T>::run() {
   double linear_x = 0, linear_y = 0, angular_z = 0;
   double rate_yaw = 0, rate_pitch = 0;
-  double shoot_hz = 10;
   ros::Time now = ros::Time::now();
 
   if (this->pc_control_) { // pc control
