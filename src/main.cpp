@@ -6,6 +6,7 @@
 #include "rm_fsm/fsm_common.h"
 #include "rm_fsm/fsm_sentry.h"
 #include "rm_fsm/fsm_standard.h"
+#include "rm_fsm/fsm_hero.h"
 
 int main(int argc, char **argv) {
   std::string robot;
@@ -17,6 +18,8 @@ int main(int argc, char **argv) {
     control_fsm = new FsmStandard<float>(nh);
   else if(robot=="sentry")
     control_fsm = new FsmSentry<float>(nh);
+  else if(robot=="hero")
+    control_fsm = new FsmHero<float>(nh);
   else
   {
     ROS_ERROR("no robot type load");

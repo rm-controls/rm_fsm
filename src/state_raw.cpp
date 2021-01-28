@@ -41,9 +41,10 @@ void StateRaw<T>::run() {
     rate_yaw = -this->data_->dbus_data_.ch_l_x * M_PI * 4;
     rate_pitch = -this->data_->dbus_data_.ch_l_y * M_PI * 4;
 
-    if (this->data_->dbus_data_.s_l == this->data_->dbus_data_.MID)  this->setShoot(this->data_->shoot_cmd_.READY, this->data_->shoot_cmd_.SPEED_10M_PER_SECOND, shoot_hz, now);
-    else if(this->data_->dbus_data_.s_l == this->data_->dbus_data_.UP) this->setShoot(this->data_->shoot_cmd_.PUSH, this->data_->shoot_cmd_.SPEED_10M_PER_SECOND, shoot_hz, now);
+    if (this->data_->dbus_data_.s_l == this->data_->dbus_data_.UP)  this->setShoot(this->data_->shoot_cmd_.PUSH, this->data_->shoot_cmd_.SPEED_10M_PER_SECOND, shoot_hz, now);
+    else if(this->data_->dbus_data_.s_l == this->data_->dbus_data_.MID) this->setShoot(this->data_->shoot_cmd_.READY, this->data_->shoot_cmd_.SPEED_10M_PER_SECOND, shoot_hz, now);
     else if(this->data_->dbus_data_.s_l == this->data_->dbus_data_.DOWN) this->setShoot(this->data_->shoot_cmd_.PASSIVE, this->data_->shoot_cmd_.SPEED_10M_PER_SECOND, shoot_hz, now);
+    ROS_INFO("shoot mode");
   }
 
   this->setChassis(this->data_->chassis_cmd_.RAW, linear_x, linear_y, angular_z);
