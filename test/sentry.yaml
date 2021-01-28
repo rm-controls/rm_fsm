@@ -73,10 +73,10 @@ rm_base:
   shooter_standard_controller:
     type: rm_shooter_controllers/ShooterStandardController
     push_angle: 0.8
-    block_effort: 2.0
-    block_duration: 0.05
+    block_effort: 1.5
+    block_duration: 0.1
     block_speed: 0.5
-    anti_block_angle: 0.45
+    anti_block_angle: 0.25
     anti_block_error: 0.1
     qd_10: 370.0
     qd_15: 494.0
@@ -84,7 +84,7 @@ rm_base:
 
     pid_fiction_l: { p: 0.001, i: 0.0, d: 0.0, i_max: 0.0, i_min: 0.0, antiwindup: true, publish_state: true }
     pid_fiction_r: { p: 0.001, i: 0.0, d: 0.0, i_max: 0.0, i_min: 0.0, antiwindup: true, publish_state: true }
-    pid_trigger: { p: 7.4, i: 0.0, d: 0.22, i_max: 0.0, i_min: 0.0, antiwindup: true, publish_state: true }
+    pid_trigger: { p: 7.4, i: 0.0, d: 0.24, i_max: 0.0, i_min: 0.0, antiwindup: true, publish_state: true }
     publish_state: true
   gimbal_standard_controller:
     type: rm_gimbal_controllers/GimbalStandardController
