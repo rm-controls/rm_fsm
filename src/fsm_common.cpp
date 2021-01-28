@@ -142,14 +142,6 @@ void Fsm<T>::run() {
   // run referee system and publish some referee data
   if (this->data_.referee_->flag) {
     data_.referee_->read();
-
-    data_.referee_->referee_pub_data_.chassis_volt = data_.referee_->referee_data_.power_heat_data_.chassis_volt;
-    data_.referee_->referee_pub_data_.chassis_current = data_.referee_->referee_data_.power_heat_data_.chassis_current;
-    data_.referee_->referee_pub_data_.chassis_power = data_.referee_->referee_data_.power_heat_data_.chassis_power;
-    data_.referee_->referee_pub_data_.chassis_power_buffer =
-        data_.referee_->referee_data_.power_heat_data_.chassis_power_buffer;
-
-    data_.referee_pub_.publish(data_.referee_->referee_pub_data_);
   }
 
   // Run the robot control code if operating mode is not unsafe

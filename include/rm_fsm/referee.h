@@ -51,6 +51,7 @@ class Referee {
 
   RefereeData referee_data_{};
   bool flag = false;
+  ros::Publisher referee_pub_;
   rm_msgs::Referee referee_pub_data_;
 
  private:

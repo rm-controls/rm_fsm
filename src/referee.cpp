@@ -7,7 +7,7 @@
 namespace referee {
 void Referee::init() {
   serial::Timeout timeout = serial::Timeout::simpleTimeout(50);
-  serial_.setPort("/dev/usbRefree");
+  serial_.setPort("/dev/usbReferee");
   serial_.setBaudrate(115200);
   serial_.setTimeout(timeout);
   int count = 0;
@@ -38,9 +38,15 @@ void Referee::read() {
     std::vector<uint8_t> rx_buffer;
     serial_.read(rx_buffer, serial_.available());
     rx_len_ = rx_buffer.size();
-
     unpack(rx_buffer);
   }
+
+  referee_pub_data_.chassis_volt = referee_data_.power_heat_data_.chassis_volt;
+  referee_pub_data_.chassis_current = referee_data_.power_heat_data_.chassis_current;
+  referee_pub_data_.chassis_power = referee_data_.power_heat_data_.chassis_power;
+  referee_pub_data_.chassis_power_buffer = referee_data_.power_heat_data_.chassis_power_buffer;
+
+  referee_pub_.publish(referee_pub_data_);
 }
 
 void Referee::unpack(const std::vector<uint8_t> &rx_buffer) {
@@ -265,7 +271,7 @@ void Referee::getData(uint8_t *frame) {
 
 uint32_t verify_CRC8_check_sum(unsigned char *pch_message, unsigned int dw_length) {
   unsigned char ucExpected = 0;
-  if ((pch_message == 0) || (dw_length <= 2)) {
+  if ((pch_message == nullptr) || (dw_length <= 2)) {
     return 0;
   }
   ucExpected = get_CRC8_check_sum(pch_message, dw_length - 1, CRC8_INIT);
@@ -281,7 +287,7 @@ uint8_t get_CRC8_check_sum(unsigned char *pch_message, unsigned int dw_length, u
 }
 uint32_t verify_CRC16_check_sum(uint8_t *pchMessage, uint32_t dwLength) {
   uint16_t wExpected = 0;
-  if ((pchMessage == NULL) || (dwLength <= 2)) {
+  if ((pchMessage == nullptr) || (dwLength <= 2)) {
     return 0;
   }
   wExpected = get_CRC16_check_sum(pchMessage, dwLength - 2, 0xffff);
@@ -290,7 +296,7 @@ uint32_t verify_CRC16_check_sum(uint8_t *pchMessage, uint32_t dwLength) {
 }
 uint16_t get_CRC16_check_sum(uint8_t *pch_message, uint32_t dw_length, uint16_t wCRC) {
   uint8_t chData;
-  if (pch_message == NULL) {
+  if (pch_message == nullptr) {
     return 0xFFFF;
   }
   while (dw_length--) {
