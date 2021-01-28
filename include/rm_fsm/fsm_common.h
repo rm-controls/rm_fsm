@@ -85,9 +85,6 @@ class Fsm {
   // Get desired state decided by control fsm data.
   virtual std::string getDesiredState() = 0;
 
-  // Prints the current FSM status
-  void printInfo(int opt);
-
   // Send related data to FsmState
   FsmData<T> data_;
 
@@ -105,14 +102,6 @@ class Fsm {
  private:
   // Operating mode of the FSM
   FsmOperatingMode operating_mode_{};
-
-  // Choose how often to print info, every N iterations
-  int print_num_ = 100;  // N*(0.001s) in simulation time
-
-  // Track the number of iterations since last info print
-  int print_iter_ = 0;  // make larger than printNum to not print
-
-  int iter_ = 0;
 };
 
 #endif //SRC_RM_SOFTWARE_RM_DECISION_SRC_FSM_FSM_STATE_H_

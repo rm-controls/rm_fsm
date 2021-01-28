@@ -158,10 +158,6 @@ void Fsm<T>::run() {
 
         // Get the next FSM State by name
         next_state_ = string2state[next_state_name_];
-
-        // Print transition initialized info
-        //PrintInfo(1);
-
       } else {
         // Run the iteration for the current state normally
         current_state_->run();
@@ -170,15 +166,11 @@ void Fsm<T>::run() {
 
     // Run the transition code while transition is occuring
     if (operating_mode_ == FsmOperatingMode::kTransitioning) {
-
       // Check the robot state for safe operation
       // TODO: Safety post check.
 
       // Exit the current state cleanly
       current_state_->onExit();
-
-      // Print finalizing transition info
-      //PrintInfo(2);
 
       // Complete the transition
       current_state_ = next_state_;
@@ -198,76 +190,6 @@ void Fsm<T>::run() {
     ROS_INFO("[FSM] Current state is passive.");
     next_state_name_ = current_state_->state_name_;
   }
-
-  // Print the current state of the FSM
-  printInfo(0);
-
-  // Increase the iteration counter
-  iter_++;
-}
-
-/**
- * Prints Control FSM info at regular intervals and on important events
- * such as transition initializations and finalizations. Separate function
- * to not clutter the actual code.
- *
- * @param printing mode option for regular or an event
- */
-template<typename T>
-void Fsm<T>::printInfo(int opt) {
-  switch (opt) {
-    case 0:  // Normal printing case at regular intervals
-      // Increment printing iteration
-      print_iter_++;
-
-      // Print at commanded frequency
-      if (print_iter_ == print_num_) {
-        std::cout << "[CONTROL FSM] Printing FSM Info...\n";
-        std::cout
-            << "---------------------------------------------------------\n";
-        std::cout << "Iteration: " << iter_ << "\n";
-        if (operating_mode_ == FsmOperatingMode::kNormal) {
-          std::cout << "Operating Mode: NORMAL in " << current_state_->state_name_
-                    << "\n";
-
-        } else if (operating_mode_ == FsmOperatingMode::kTransitioning) {
-          std::cout << "Operating Mode: TRANSITIONING from "
-                    << current_state_->state_name_ << " to "
-                    << next_state_->state_name_ << "\n";
-
-        } else if (operating_mode_ == FsmOperatingMode::kEStop) {
-          std::cout << "Operating Mode: ESTOP\n";
-        }
-        std::cout << std::endl;
-
-        // Reset iteration counter
-        print_iter_ = 0;
-      }
-
-      // Print robot info about the robot's status
-      // data._gaitScheduler->printGaitInfo();
-      // data._desiredStateCommand->printStateCommandInfo();
-
-      break;
-
-    case 1:  // Initializing FSM State transition
-      std::cout << "[CONTROL FSM] Transition initialized from "
-                << current_state_->state_name_ << " to " << next_state_->state_name_
-                << "\n"
-                << std::endl;
-
-      break;
-
-    case 2:  // Finalizing FSM State transition
-      std::cout << "[CONTROL FSM] Transition finalizing from "
-                << current_state_->state_name_ << " to " << next_state_->state_name_
-                << "\n"
-                << std::endl;
-
-      break;
-    default:break;
-  }
-
 }
 
 // RobotRunner a template
