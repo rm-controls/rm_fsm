@@ -46,7 +46,7 @@ void StateRaw<T>::run() {
     else if(this->data_->dbus_data_.s_l == this->data_->dbus_data_.DOWN) this->setShoot(this->data_->shoot_cmd_.PASSIVE, this->data_->shoot_cmd_.SPEED_10M_PER_SECOND, shoot_hz, now);
   }
 
-  this->setChassis(this->data_->chassis_cmd_.RAW, linear_x, linear_y, angular_z);
+  this->setChassis(this->data_->chassis_cmd_.GYRO, linear_x, linear_y, angular_z);
   this->setGimbal(this->data_->gimbal_cmd_.RATE, rate_yaw, rate_pitch);
 }
 
