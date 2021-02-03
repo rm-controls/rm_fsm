@@ -49,7 +49,10 @@ void State<T>::setChassis(uint8_t chassis_mode,
   this->data_->cmd_vel.linear.x = linear_x;
   this->data_->cmd_vel.linear.y = linear_y;
   this->data_->cmd_vel.angular.z = angular_z;
-  this->data_->chassis_cmd_.effort_limit = 99;
+
+  this->data_->power_limit_->input(this->data_->referee_->referee_data_);
+  this->data_->chassis_cmd_.current_limit = this->data_->power_limit_->output();
+
   this->data_->vel_cmd_pub_.publish(this->data_->cmd_vel);
   this->data_->chassis_cmd_pub_.publish(this->data_->chassis_cmd_);
 }
