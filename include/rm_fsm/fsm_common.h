@@ -52,6 +52,20 @@ class State {
   ros::NodeHandle state_nh_;
 
   bool pc_control_;
+
+  // chassis fsm control accelerate
+  double accel_x_ = 0.0;
+  double accel_y_ = 0.0;
+  double accel_angular_ = 0.0;
+
+  // chassis fsm control coefficient
+  double coefficient_x_ = 0.0;
+  double coefficient_y_ = 0.0;
+  double coefficient_angular_ = 0.0;
+
+  // gimbal fsm control coefficient
+  double coefficient_yaw_ = 0.0;
+  double coefficient_pitch_ = 0.0;
 };
 
 /**
