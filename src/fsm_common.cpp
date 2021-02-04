@@ -102,17 +102,6 @@ Fsm<T>::Fsm(ros::NodeHandle &node_handle):nh_(node_handle) {
 
   safety_checker_ = new SafetyChecker<T>(&data_);
 
-  // Initialize the FSM with the Passive FSM State
-  init();
-}
-
-/**
- * Initialize the Control FSM with the default settings. Should be set to
- * Passive state and Normal operation mode.
- * @attention Passive state is replaced by invalid state temporarily.
- */
-template<typename T>
-void Fsm<T>::init() {
   this->data_.init(nh_);
 
   string2state.insert(std::make_pair("invalid", nullptr));

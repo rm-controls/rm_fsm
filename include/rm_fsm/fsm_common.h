@@ -74,9 +74,6 @@ class Fsm {
   //Pointer list of each state.
   std::map<std::string, State<T> *> string2state;
 
-  // Initializes the Control FSM instance
-  void init();
-
   // Runs the FSM logic and handles the state transitions and normal runs
   void run();
 
