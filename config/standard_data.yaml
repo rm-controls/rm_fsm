@@ -1,1 +1,2 @@
 robot_type: "standard"
+shoot_hz: 10

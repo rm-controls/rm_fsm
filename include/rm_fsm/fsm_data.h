@@ -15,6 +15,7 @@
 #include "rm_msgs/Joint.h"
 #include "rm_fsm/referee.h"
 #include "rm_fsm/power_limit.h"
+#include "rm_fsm/shooter_heat_limit.h"
 
 template<typename T>
 class FsmData {
@@ -49,11 +50,13 @@ class FsmData {
   //shooter
   rm_msgs::ShootCmd shoot_cmd_;
   ros::Publisher shooter_cmd_pub_;
+  ShooterHeatLimit *shooter_heat_limit_{};
 
   referee::Referee *referee_{};
 
   void init(ros::NodeHandle nh) {
     power_limit_ = new PowerLimit(nh);
+    shooter_heat_limit_ = new ShooterHeatLimit(nh);
     referee_ = new referee::Referee();
     referee_->init();
     // sub //

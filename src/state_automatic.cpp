@@ -64,7 +64,7 @@ void StateAutomatic<T>::run() {
     this->data_->cmd_vel.linear.x = -auto_move_chassis_speed_;
     this->data_->chassis_cmd_.accel.linear.x = auto_move_chassis_accel_;
   }
-  this->data_->chassis_cmd_.current_limit = 0.5;
+  this->data_->chassis_cmd_.effort_limit = 0.5;
   this->data_->vel_cmd_pub_.publish(this->data_->cmd_vel);
   this->data_->chassis_cmd_pub_.publish(this->data_->chassis_cmd_);
   //gimbal control

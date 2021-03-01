@@ -123,7 +123,8 @@ rm_base:
     anti_block_error: 0.1
     qd_10: 370.0
     qd_15: 495.0
-    qd_16: 498.0
+    #qd_16: 498.0
+    qd_16: 900.0
     qd_30: 772.0
     pid_fiction_l: { p: 0.002, i: 0.0, d: 0.0, i_max: 0.0, i_min: 0.0, antiwindup: true, publish_state: true }
     pid_fiction_r: { p: 0.002, i: 0.0, d: 0.0, i_max: 0.0, i_min: 0.0, antiwindup: true, publish_state: true }

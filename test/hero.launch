@@ -20,6 +20,7 @@
         rm_base/joint_state_controller
         rm_base/gimbal_standard_controller
         rm_base/chassis_standard_controller
+        rm_base/shooter_standard_controller
    "/>
 
     <node name="rm_base" pkg="rm_base" type="rm_base" respawn="false"/>

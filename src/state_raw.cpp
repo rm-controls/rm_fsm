@@ -9,7 +9,7 @@ StateRaw<T>::StateRaw(FsmData<T> *fsm_data,
                       const std::string &state_string,
                       ros::NodeHandle &nh,
                       bool pc_control):State<T>(fsm_data, state_string, nh, pc_control) {
-  shoot_hz= getParam(this->state_nh_,"shoot_hz",5);
+  shoot_hz = getParam(this->state_nh_, "shoot_hz", 5);
 }
 
 template<typename T>
@@ -31,7 +31,11 @@ void StateRaw<T>::run() {
     rate_yaw = -this->data_->dbus_data_.m_x * M_PI * 4;
     rate_pitch = -this->data_->dbus_data_.m_y * M_PI * 4;
 
-    if (this->data_->dbus_data_.p_l) this->setShoot(this->data_->shoot_cmd_.PUSH, this->data_->shoot_cmd_.SPEED_10M_PER_SECOND, shoot_hz, now);
+    if (this->data_->dbus_data_.p_l)
+      this->setShoot(this->data_->shoot_cmd_.PUSH,
+                     this->data_->shoot_cmd_.SPEED_16M_PER_SECOND,
+                     this->data_->shooter_heat_limit_->output(),
+                     now);
     else this->setShoot(this->data_->shoot_cmd_.PASSIVE, this->data_->shoot_cmd_.SPEED_10M_PER_SECOND, shoot_hz, now);
   } else { // rc control
     linear_x = this->data_->dbus_data_.ch_r_y * 3.5;
@@ -41,15 +45,25 @@ void StateRaw<T>::run() {
     rate_yaw = -this->data_->dbus_data_.ch_l_x * M_PI * 4;
     rate_pitch = -this->data_->dbus_data_.ch_l_y * M_PI * 4;
 
-    if (this->data_->dbus_data_.s_l == this->data_->dbus_data_.MID)  this->setShoot(this->data_->shoot_cmd_.READY, this->data_->shoot_cmd_.SPEED_10M_PER_SECOND, shoot_hz, now);
-    else if(this->data_->dbus_data_.s_l == this->data_->dbus_data_.UP) this->setShoot(this->data_->shoot_cmd_.PUSH, this->data_->shoot_cmd_.SPEED_10M_PER_SECOND, shoot_hz, now);
-    else if(this->data_->dbus_data_.s_l == this->data_->dbus_data_.DOWN) this->setShoot(this->data_->shoot_cmd_.PASSIVE, this->data_->shoot_cmd_.SPEED_10M_PER_SECOND, shoot_hz, now);
+    if (this->data_->dbus_data_.s_l == this->data_->dbus_data_.MID)
+      this->setShoot(this->data_->shoot_cmd_.READY,
+                     this->data_->shoot_cmd_.SPEED_16M_PER_SECOND,
+                     this->data_->shooter_heat_limit_->output(),
+                     now);
+    else if (this->data_->dbus_data_.s_l == this->data_->dbus_data_.UP) {
+      this->data_->shooter_heat_limit_->input(this->data_->referee_->referee_data_);
+      this->setShoot(this->data_->shoot_cmd_.PUSH,
+                     this->data_->shoot_cmd_.SPEED_16M_PER_SECOND,
+                     this->data_->shooter_heat_limit_->output(),
+                     now);
+    } else if (this->data_->dbus_data_.s_l == this->data_->dbus_data_.DOWN) {
+      this->setShoot(this->data_->shoot_cmd_.PASSIVE, this->data_->shoot_cmd_.SPEED_16M_PER_SECOND, shoot_hz, now);
+    }
+
+    this->setChassis(this->data_->chassis_cmd_.GYRO, linear_x, linear_y, angular_z);
+    this->setGimbal(this->data_->gimbal_cmd_.RATE, rate_yaw, rate_pitch);
   }
-
-  this->setChassis(this->data_->chassis_cmd_.GYRO, linear_x, linear_y, angular_z);
-  this->setGimbal(this->data_->gimbal_cmd_.RATE, rate_yaw, rate_pitch);
 }
-
 template<typename T>
 void StateRaw<T>::onExit() {
   // Nothing to clean up when exiting

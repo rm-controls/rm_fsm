@@ -39,8 +39,6 @@ std::string FsmStandard<T>::getDesiredState() {
   } else { // rc control
     if (this->data_.dbus_data_.s_r == this->data_.dbus_data_.DOWN) {
       return "passive";
-    } else if (this->data_.dbus_data_.s_l == this->data_.dbus_data_.UP) {
-      return "burst";
     } else if (this->data_.dbus_data_.s_r == this->data_.dbus_data_.MID) {
       return "raw";
     } else if (this->data_.dbus_data_.s_r == this->data_.dbus_data_.UP) {
