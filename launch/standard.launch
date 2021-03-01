@@ -1,7 +1,15 @@
 <launch>
+  <arg name="use_simulation" default="false"/>
+
+
   <!--  TODO: add rm_base, gimbal and shooter-->
   <!--  <include file="$(find rm_base)/launch/standard.launch"/>-->
-  <include file="$(find rm_chassis_controllers)/launch/standard.launch"/>
+  <include file="$(find rm_chassis_controllers)/launch/standard.launch">
+    <arg name="use_simulation" default="false"/>
+    <arg name="load_description" default="false"/>
+    <arg name="load_controller" value="false"/>
+    <arg name="odom_tf" default="true"/>
+  </include>
 
   <!-- load the controllers -->
   <node name="controller_spawner" pkg="controller_manager" type="spawner" respawn="false" output="screen" args="
