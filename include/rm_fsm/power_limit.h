@@ -17,7 +17,10 @@ class PowerLimit {
 
  private:
   double current_ = 99;
+  double coeff;
+  double multiple;
   double danger_surplus_;
+  double roll_back_buffer_;
 };
 
 #endif //SRC_RM_FSM_INCLUDE_RM_FSM_POWER_LIMIT_H_
