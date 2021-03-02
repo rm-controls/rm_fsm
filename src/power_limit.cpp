@@ -52,7 +52,7 @@ void PowerLimit::input(referee::RefereeData referee) {
   //this->openCapacity();        //check the super capacity button open or not
   //limit_power = limit_power + this->getCapacity();
 
-  if (chassis_power <= limit_power && w0 == 60) {
+  if (chassis_power <= limit_power && w0 >= 50) {
     ROS_INFO_THROTTLE(1, "Didn't use buffer power.");
     this->current_ = 99;
   } else {

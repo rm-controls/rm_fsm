@@ -45,6 +45,9 @@ void Referee::read() {
   referee_pub_data_.chassis_current = referee_data_.power_heat_data_.chassis_current;
   referee_pub_data_.chassis_power = referee_data_.power_heat_data_.chassis_power;
   referee_pub_data_.chassis_power_buffer = referee_data_.power_heat_data_.chassis_power_buffer;
+  referee_pub_data_.shooter_heat = referee_data_.power_heat_data_.shooter_heat0;
+  referee_pub_data_.shooter_heat_cooling_limit = referee_data_.game_robot_status_.shooter_heat0_cooling_limit;
+  referee_pub_data_.robot_hp = referee_data_.game_robot_status_.remain_HP;
 
   referee_pub_.publish(referee_pub_data_);
 }
