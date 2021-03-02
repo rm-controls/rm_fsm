@@ -11,14 +11,13 @@ int main(int argc, char **argv) {
   std::string robot;
   ros::init(argc, argv, "rm_fsm");
   ros::NodeHandle nh("~");
-  robot=getParam(nh,"robot_type",(std::string)"error");
+  robot = getParam(nh, "robot_type", (std::string) "error");
   Fsm<float> *control_fsm;
   if(robot=="standard")
     control_fsm = new FsmStandard<float>(nh);
-  else if(robot=="sentry")
+  else if (robot == "sentry")
     control_fsm = new FsmSentry<float>(nh);
-  else
-  {
+  else {
     ROS_ERROR("no robot type load");
     return 0;
   }

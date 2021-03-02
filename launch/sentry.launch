@@ -1,12 +1,11 @@
 <launch>
 
-    <rosparam file="$(find rm_base)/config/actuator_coefficient.yaml" command="load" ns="rm_base"/>
-    <rosparam file="$(find rm_fsm)/config/hero_data.yaml" command="load" ns="rm_fsm"/>
-    <rosparam file="$(find rm_fsm)/test/config/test_power_limit.yaml" command="load"/>
+    <rosparam file="$(find rm_base)/config/actuator_coefficient.yaml"  command="load" ns="rm_base"/>
+    <rosparam file="$(find rm_fsm)/config/sentry_data.yaml"  command="load" ns="rm_fsm"/>
 
-
-    <rosparam file="$(find rm_fsm)/test/hero.yaml" command="load"/>
-    <rosparam file="$(find rm_fsm)/test/hero.xacro" command="load" ns="robot_description"/>
+    <rosparam file="$(find rm_fsm)/config/sentry.yaml" command="load"/>
+    <rosparam
+            file="$(find rm_fsm)/urdf/sentry.xacro" command="load" ns="robot_description"/>
 
     <node pkg="tf" type="static_transform_publisher" name=""
           args="0 0 0 0 0 0 1 map odom 500"/>
@@ -18,9 +17,9 @@
           output="screen" args="
         rm_base/robot_state_controller
         rm_base/joint_state_controller
-        rm_base/gimbal_standard_controller
-        rm_base/chassis_standard_controller
         rm_base/shooter_standard_controller
+        rm_base/gimbal_standard_controller
+        rm_base/chassis_sentry_controller
    "/>
 
     <node name="rm_base" pkg="rm_base" type="rm_base" respawn="false"/>
