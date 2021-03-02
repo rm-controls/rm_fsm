@@ -11,7 +11,7 @@
 class ShooterHeatLimit {
  public:
   explicit ShooterHeatLimit(ros::NodeHandle &nh);
-  void input(referee::RefereeData referee);
+  void input(referee::RefereeData referee, double shoot_hz);
   uint8_t output();
 
  private:

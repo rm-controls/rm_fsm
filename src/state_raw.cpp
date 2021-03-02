@@ -51,7 +51,7 @@ void StateRaw<T>::run() {
                      this->data_->shooter_heat_limit_->output(),
                      now);
     else if (this->data_->dbus_data_.s_l == this->data_->dbus_data_.UP) {
-      this->data_->shooter_heat_limit_->input(this->data_->referee_->referee_data_);
+      this->data_->shooter_heat_limit_->input(this->data_->referee_->referee_data_, shoot_hz);
       this->setShoot(this->data_->shoot_cmd_.PUSH,
                      this->data_->shoot_cmd_.SPEED_10M_PER_SECOND,
                      this->data_->shooter_heat_limit_->output(),
