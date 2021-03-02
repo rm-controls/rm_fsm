@@ -15,7 +15,7 @@ template<typename T>
 State<T>::State(FsmData<T> *fsm_data, std::string state_name, ros::NodeHandle &nh, bool pc_control)
     : data_(fsm_data), state_name_(std::move(state_name)), state_nh_(nh), pc_control_(pc_control) {
   // load rc/pc control's parameter
-  state_nh_ = ros::NodeHandle(nh, "remote_control");
+  state_nh_ = ros::NodeHandle(nh, "rm_fsm/remote_control");
   state_nh_.param("accel_x", accel_x_, 10.0);
   state_nh_.param("accel_y", accel_y_, 10.0);
   state_nh_.param("accel_angular", accel_angular_, 10.0);
