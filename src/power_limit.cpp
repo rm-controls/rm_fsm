@@ -46,9 +46,9 @@ void PowerLimit::input(referee::RefereeData referee) {
     }
   } else if (referee.game_robot_status_.robot_id == 7
       || referee.game_robot_status_.robot_id == 107) { // Sentry robot
-    limit_power = 30;
+    limit_power = 20;
   } else { // Other robots
-    limit_power = 280;
+    limit_power = 200;
   }
 
   chassis_current_limit = limit_power / chassis_voltage;

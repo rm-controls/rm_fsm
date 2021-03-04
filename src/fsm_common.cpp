@@ -42,9 +42,9 @@ void State<T>::setChassis(uint8_t chassis_mode,
                           double angular_z) {
   this->data_->chassis_cmd_.mode = chassis_mode;
 
-  this->data_->chassis_cmd_.accel.linear.x = 10;
-  this->data_->chassis_cmd_.accel.linear.y = 10;
-  this->data_->chassis_cmd_.accel.angular.z = 10;
+  this->data_->chassis_cmd_.accel.linear.x = 50;
+  this->data_->chassis_cmd_.accel.linear.y = 50;
+  this->data_->chassis_cmd_.accel.angular.z = 50;
 
   this->data_->cmd_vel.linear.x = linear_x;
   this->data_->cmd_vel.linear.y = linear_y;
@@ -52,6 +52,8 @@ void State<T>::setChassis(uint8_t chassis_mode,
 
   this->data_->power_limit_->input(this->data_->referee_->referee_data_);
   this->data_->chassis_cmd_.effort_limit = this->data_->power_limit_->output();
+
+  //this->data_->chassis_cmd_.effort_limit = 99;
 
   this->data_->vel_cmd_pub_.publish(this->data_->cmd_vel);
   this->data_->chassis_cmd_pub_.publish(this->data_->chassis_cmd_);
