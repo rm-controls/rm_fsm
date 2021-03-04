@@ -9,7 +9,7 @@ StateFlySlope<T>::StateFlySlope(FsmData<T> *fsm_data,
                                 const std::string &state_string,
                                 ros::NodeHandle &nh,
                                 bool pc_control):State<T>(fsm_data, state_string, nh, pc_control) {
-
+  shoot_hz = getParam(this->state_nh_, "shoot_hz", 5);
 }
 
 template<typename T>
@@ -21,7 +21,6 @@ template<typename T>
 void StateFlySlope<T>::run() {
   double linear_x = 0, linear_y = 0, angular_z = 0;
   double rate_yaw = 0, rate_pitch = 0;
-  double shoot_hz = 0;
   ros::Time now = ros::Time::now();
 
   if (this->pc_control_) { // pc control
@@ -42,7 +41,10 @@ void StateFlySlope<T>::run() {
 
   this->setChassis(this->data_->chassis_cmd_.FOLLOW, linear_x, linear_y, angular_z);
   this->setGimbal(this->data_->gimbal_cmd_.RATE, rate_yaw, rate_pitch);
-  this->setShoot(this->data_->shoot_cmd_.PASSIVE, this->data_->shoot_cmd_.SPEED_10M_PER_SECOND, shoot_hz, now);
+  this->setShoot(this->data_->shoot_cmd_.PASSIVE,
+                 this->data_->shoot_cmd_.SPEED_10M_PER_SECOND,
+                 this->data_->shooter_heat_limit_->output(),
+                 now);
 }
 
 template<typename T>

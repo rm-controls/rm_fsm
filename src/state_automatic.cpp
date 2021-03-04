@@ -11,11 +11,13 @@ StateAutomatic<T>::StateAutomatic(FsmData<T> *fsm_data,
   this->tf_listener_ = new tf2_ros::TransformListener(this->tf_);
   point_side_ = 1;
   gimbal_position_ = 1;
+  shoot_hz = getParam(this->state_nh_, "shoot_hz", 0);
   auto_move_chassis_speed_ = getParam(this->state_nh_, "auto_move_chassis_speed", 1.0);
   auto_move_chassis_accel_ = getParam(this->state_nh_, "auto_move_chassis_accel", 1.0);
   auto_move_pitch_speed_ = getParam(this->state_nh_, "auto_move_pitch_speed", 0.5);
   auto_move_yaw_speed_ = getParam(this->state_nh_, "auto_move_yaw_speed", 3.14);
   auto_move_distance_ = getParam(this->state_nh_, "auto_move_distance", 3.0);
+
 }
 
 template<typename T>
@@ -28,7 +30,6 @@ void StateAutomatic<T>::run() {
   geometry_msgs::TransformStamped gimbal_transformStamped;
   geometry_msgs::TransformStamped chassis_transformStamped;
   double move_end, move_start;
-  double shoot_hz = 0;
   double roll{}, pitch{}, yaw{};
 
   move_end = auto_move_distance_ - 0.5 * auto_move_chassis_speed_ * auto_move_chassis_speed_ / auto_move_chassis_accel_;

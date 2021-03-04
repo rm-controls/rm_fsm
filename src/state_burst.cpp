@@ -37,7 +37,7 @@ void StateBurst<T>::run() {
                      this->data_->shoot_cmd_.SPEED_10M_PER_SECOND,
                      shoot_hz,
                      now);
-    else this->setShoot(this->data_->shoot_cmd_.PASSIVE, this->data_->shoot_cmd_.SPEED_10M_PER_SECOND, shoot_hz, now);
+    else this->setShoot(this->data_->shoot_cmd_.PASSIVE, this->data_->shoot_cmd_.SPEED_10M_PER_SECOND, 15, now);
   } else { // rc control
     linear_x = this->data_->dbus_data_.ch_r_y;
     linear_y = -this->data_->dbus_data_.ch_r_x;
