@@ -1,1 +1,11 @@
-robot_type: "standard"
+rm_fsm:
+  robot_type: "standard"
+  remote_control:
+    accel_x: 10.0
+    accel_y: 10.0
+    accel_angular: 10.0
+    coefficient_x: 3.5
+    coefficient_y: 3.5
+    coefficient_angular: 6.0
+    coefficient_yaw: 12.56
+    coefficient_pitch: 12.56

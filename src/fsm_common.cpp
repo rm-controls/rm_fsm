@@ -12,14 +12,19 @@
  * @param state_string the string name of the current FSM state
  */
 template<typename T>
-State<T>::State(FsmData<T> *fsm_data,
-                std::string state_name,
-                ros::NodeHandle &nh,
-                bool pc_control)
-    : data_(fsm_data),
-      state_name_(std::move(state_name)),
-      state_nh_(nh),
-      pc_control_(pc_control) {
+State<T>::State(FsmData<T> *fsm_data, std::string state_name, ros::NodeHandle &nh, bool pc_control)
+    : data_(fsm_data), state_name_(std::move(state_name)), state_nh_(nh), pc_control_(pc_control) {
+  // load rc/pc control's parameter
+  state_nh_ = ros::NodeHandle(nh, "rm_fsm/remote_control");
+  state_nh_.param("accel_x", accel_x_, 10.0);
+  state_nh_.param("accel_y", accel_y_, 10.0);
+  state_nh_.param("accel_angular", accel_angular_, 10.0);
+  state_nh_.param("coefficient_x", coefficient_x_, 3.5);
+  state_nh_.param("coefficient_y", coefficient_y_, 3.5);
+  state_nh_.param("coefficient_angular", coefficient_angular_, 6.0);
+  state_nh_.param("coefficient_yaw", coefficient_yaw_, 12.56);
+  state_nh_.param("coefficient_pitch", coefficient_pitch_, 12.56);
+
   std::cout << "[FSM_State] Initialized FSM state: " << state_name_
             << std::endl;
 }
@@ -42,14 +47,16 @@ void State<T>::setChassis(uint8_t chassis_mode,
                           double angular_z) {
   this->data_->chassis_cmd_.mode = chassis_mode;
 
-  this->data_->chassis_cmd_.accel.linear.x = 10;
-  this->data_->chassis_cmd_.accel.linear.y = 10;
-  this->data_->chassis_cmd_.accel.angular.z = 10;
+  this->data_->chassis_cmd_.accel.linear.x = accel_x_;
+  this->data_->chassis_cmd_.accel.linear.y = accel_y_;
+  this->data_->chassis_cmd_.accel.angular.z = accel_angular_;
 
-  this->data_->cmd_vel.linear.x = linear_x;
-  this->data_->cmd_vel.linear.y = linear_y;
-  this->data_->cmd_vel.angular.z = angular_z;
+  this->data_->cmd_vel.linear.x = linear_x * coefficient_x_;
+  this->data_->cmd_vel.linear.y = linear_y * coefficient_y_;
+  this->data_->cmd_vel.angular.z = angular_z * coefficient_angular_;
+
   this->data_->chassis_cmd_.effort_limit = 99;
+
   this->data_->vel_cmd_pub_.publish(this->data_->cmd_vel);
   this->data_->chassis_cmd_pub_.publish(this->data_->chassis_cmd_);
 }
@@ -65,8 +72,8 @@ template<typename T>
 void State<T>::setGimbal(uint8_t gimbal_mode, double rate_yaw, double rate_pitch) {
   this->data_->gimbal_cmd_.mode = gimbal_mode;
 
-  this->data_->gimbal_cmd_.rate_yaw = rate_yaw;
-  this->data_->gimbal_cmd_.rate_pitch = rate_pitch;
+  this->data_->gimbal_cmd_.rate_yaw = rate_yaw * coefficient_yaw_;
+  this->data_->gimbal_cmd_.rate_pitch = rate_pitch * coefficient_pitch_;
 
   this->data_->gimbal_cmd_pub_.publish(this->data_->gimbal_cmd_);
 }
@@ -102,24 +109,15 @@ Fsm<T>::Fsm(ros::NodeHandle &node_handle):nh_(node_handle) {
 
   safety_checker_ = new SafetyChecker<T>(&data_);
 
-  // Initialize the FSM with the Passive FSM State
-  init();
-}
-
-/**
- * Initialize the Control FSM with the default settings. Should be set to
- * Passive state and Normal operation mode.
- * @attention Passive state is replaced by invalid state temporarily.
- */
-template<typename T>
-void Fsm<T>::init() {
   this->data_.init(nh_);
 
   string2state.insert(std::make_pair("invalid", nullptr));
 
   // Initialize a new FSM State with the control data
   current_state_ = string2state["invalid"];
-  pc_control_ = 0;
+
+  pc_control_ = false;
+
   // Enter the new current state cleanly
   ROS_INFO("[FSM] Current state is invalid.");
 

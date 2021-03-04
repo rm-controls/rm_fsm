@@ -1,24 +1,28 @@
 <launch>
-  <arg name="use_simulation" default="false"/>
+
+    <rosparam file="$(find rm_base)/config/actuator_coefficient.yaml" command="load" ns="rm_base"/>
+    <rosparam file="$(find rm_fsm)/config/standard_data.yaml" command="load" ns="rm_fsm"/>
+    <rosparam file="$(find rm_fsm)/test/config/test_power_limit.yaml" command="load"/>
+
+    <rosparam file="$(find rm_fsm)/config/standard.yaml" command="load"/>
+    <rosparam file="$(find rm_fsm)/urdf/standard.xacro" command="load" ns="robot_description"/>
+
+    <node pkg="tf" type="static_transform_publisher" name=""
+          args="0 0 0 0 0 0 1 map odom 500"/>
 
 
-  <!--  TODO: add rm_base, gimbal and shooter-->
-  <!--  <include file="$(find rm_base)/launch/standard.launch"/>-->
-  <include file="$(find rm_chassis_controllers)/launch/standard.launch">
-    <arg name="use_simulation" default="false"/>
-    <arg name="load_description" default="false"/>
-    <arg name="load_controller" value="false"/>
-    <arg name="odom_tf" default="true"/>
-  </include>
-
-  <!-- load the controllers -->
-  <node name="controller_spawner" pkg="controller_manager" type="spawner" respawn="false" output="screen" args="
-        controllers/robot_state_controller
-        controllers/joint_state_controller
-        controllers/chassis_standard_controller
-        controllers/shooter_standard_controller
-        controllers/gimbal_standard_controller
+    <!-- load the controllers -->
+    <node name="controller_spawner" pkg="controller_manager" type="spawner"
+          respawn="false"
+          output="screen" args="
+        rm_base/robot_state_controller
+        rm_base/joint_state_controller
+        rm_base/shooter_standard_controller
+        rm_base/gimbal_standard_controller
+        rm_base/chassis_standard_controller
    "/>
 
-  <node name="dbus_node" pkg="rm_base" type="dbus_node" respawn="false"/>
+    <node name="rm_base" pkg="rm_base" type="rm_base" respawn="false"/>
+    <node name="dbus_node" pkg="rm_base" type="dbus_node" respawn="false"/>
+    <node name="rm_fsm" pkg="rm_fsm" type="rm_fsm" respawn="false"/>
 </launch>

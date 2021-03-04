@@ -77,7 +77,7 @@ include_directories(
 
 ## Declare cpp executables
 aux_source_directory(./src fsm_src)
-add_executable(${PROJECT_NAME} ${fsm_src})
+add_executable(${PROJECT_NAME} ${fsm_src} src/shooter_heat_limit.cpp include/rm_fsm/shooter_heat_limit.h)
 
 ## Add dependencies to exported targets, like ROS msgs or srvs
 add_dependencies(${PROJECT_NAME}

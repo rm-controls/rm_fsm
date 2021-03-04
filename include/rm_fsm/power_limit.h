@@ -16,10 +16,8 @@ class PowerLimit {
   double output();
 
  private:
-  ros::Time last_run_;
-  control_toolbox::Pid pid_buffer_;
-  double des_buffer_ = 0.0;
-
+  double current_ = 99;
+  double danger_surplus_;
 };
 
 #endif //SRC_RM_FSM_INCLUDE_RM_FSM_POWER_LIMIT_H_
