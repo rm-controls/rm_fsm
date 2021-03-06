@@ -18,7 +18,7 @@
           output="screen" args="
         rm_base/robot_state_controller
         rm_base/joint_state_controller
-        rm_base/gimbal_standard_controller
+
         rm_base/chassis_standard_controller
    "/>
 

@@ -6,7 +6,6 @@
 
 PowerLimit::PowerLimit(ros::NodeHandle &nh) {
   ros::NodeHandle power_nh = ros::NodeHandle(nh, "power_limit");
-  ros::NodeHandle pid_nh = ros::NodeHandle(nh, "power_limit/pid_buffer");
 
   power_nh.param("danger_surplus_", danger_surplus_, 10.0);
   power_nh.param("roll_back_buffer_", roll_back_buffer_, 10.0);

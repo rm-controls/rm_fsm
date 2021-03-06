@@ -34,7 +34,7 @@ void StateRaw<T>::run() {
     if (this->data_->dbus_data_.p_l) this->setShoot(this->data_->shoot_cmd_.PUSH, this->data_->shoot_cmd_.SPEED_10M_PER_SECOND, shoot_hz, now);
     else this->setShoot(this->data_->shoot_cmd_.PASSIVE, this->data_->shoot_cmd_.SPEED_10M_PER_SECOND, shoot_hz, now);
   } else { // rc control
-    linear_x = this->data_->dbus_data_.ch_r_y * 7;
+    linear_x = this->data_->dbus_data_.ch_r_y * 3.5;
     linear_y = -this->data_->dbus_data_.ch_r_x * 3.5;
     angular_z = this->data_->dbus_data_.wheel * 6;
 
@@ -46,7 +46,7 @@ void StateRaw<T>::run() {
     else if(this->data_->dbus_data_.s_l == this->data_->dbus_data_.DOWN) this->setShoot(this->data_->shoot_cmd_.PASSIVE, this->data_->shoot_cmd_.SPEED_10M_PER_SECOND, shoot_hz, now);
   }
 
-  this->setChassis(this->data_->chassis_cmd_.RAW, linear_x, linear_y, angular_z);
+  this->setChassis(this->data_->chassis_cmd_.GYRO, linear_x, linear_y, angular_z);
   this->setGimbal(this->data_->gimbal_cmd_.RATE, rate_yaw, rate_pitch);
 }
 
