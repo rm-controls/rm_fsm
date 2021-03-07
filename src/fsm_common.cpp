@@ -117,7 +117,7 @@ Fsm<T>::Fsm(ros::NodeHandle &node_handle):nh_(node_handle) {
   // Initialize a new FSM State with the control data
   current_state_ = string2state["invalid"];
 
-  pc_control_ = false;
+  pc_control_ = getParam(node_handle, "pc_control", 0);
 
   // Enter the new current state cleanly
   ROS_INFO("[FSM] Current state is invalid.");

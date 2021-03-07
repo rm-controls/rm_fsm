@@ -67,6 +67,7 @@ controllers:
 
 rm_fsm:
   robot_type: "standard"
+  pc_control: 1
   remote_control:
     accel_x: 10.0
     accel_y: 10.0

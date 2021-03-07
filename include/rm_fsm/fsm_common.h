@@ -108,7 +108,7 @@ class Fsm {
   tf2_ros::Buffer tf_;
   tf2_ros::TransformListener *tf_listener_;
 
-  bool pc_control_ = true; // pc control or rc control
+  bool pc_control_; // pc control or rc control
 
  private:
   // Operating mode of the FSM
