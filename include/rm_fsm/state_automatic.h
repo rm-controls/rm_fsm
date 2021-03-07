@@ -4,6 +4,8 @@
 
 #ifndef SRC_RM_FSM_INCLUDE_RM_FSM_STATE_AUTOMATIC_H_
 #define SRC_RM_FSM_INCLUDE_RM_FSM_STATE_AUTOMATIC_H_
+#include <tf2_ros/static_transform_broadcaster.h>
+#include <tf2_ros/transform_broadcaster.h>
 #include "rm_fsm/fsm_common.h"
 
 template<typename T>
@@ -18,12 +20,22 @@ class StateAutomatic : public State<T> {
   void onExit() override;
   int point_side_;
   int gimbal_position_;
-  int shoot_hz;
   double auto_move_chassis_speed_;
   double auto_move_chassis_accel_;
   double auto_move_pitch_speed_;
   double auto_move_yaw_speed_;
-  double auto_move_distance_;
+  double start_;
+  double end_;
+  int calibration_;
+  double speed_;
+  double last_position_;
+  double current_position_;
+  geometry_msgs::TransformStamped map2odom_;
+  geometry_msgs::TransformStamped odom2baselink_;
+  tf2_ros::StaticTransformBroadcaster  tf_broadcaster_;
+  tf2_ros::TransformBroadcaster br;
+
 };
+
 
 #endif //SRC_RM_FSM_INCLUDE_RM_FSM_STATE_AUTOMATIC_H_
