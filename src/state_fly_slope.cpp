@@ -25,11 +25,11 @@ void StateFlySlope<T>::run() {
 
   if (this->pc_control_) { // pc control
     linear_x = this->data_->dbus_data_.key_w - this->data_->dbus_data_.key_s; // W/S
-    linear_y = -(this->data_->dbus_data_.key_a - this->data_->dbus_data_.key_d); // A/D
+    linear_y = (this->data_->dbus_data_.key_a - this->data_->dbus_data_.key_d); // A/D
     angular_z = this->data_->dbus_data_.key_q - this->data_->dbus_data_.key_e; // Q/E
 
     rate_yaw = -this->data_->dbus_data_.m_x;
-    rate_pitch = -this->data_->dbus_data_.m_y;
+    rate_pitch = this->data_->dbus_data_.m_y;
   } else { // rc control
     linear_x = this->data_->dbus_data_.ch_r_y;
     linear_y = -this->data_->dbus_data_.ch_r_x;

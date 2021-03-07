@@ -25,12 +25,12 @@ void StateBurst<T>::run() {
   ros::Time now = ros::Time::now();
 
   if (this->pc_control_) { // pc control
-    linear_x = this->data_->dbus_data_.key_w - this->data_->dbus_data_.key_s; // W/S
-    linear_y = -(this->data_->dbus_data_.key_a - this->data_->dbus_data_.key_d); // A/D
-    angular_z = this->data_->dbus_data_.key_q - this->data_->dbus_data_.key_e; // Q/E
+    linear_x = (this->data_->dbus_data_.key_w - this->data_->dbus_data_.key_s); // W/S
+    linear_y = (this->data_->dbus_data_.key_a - this->data_->dbus_data_.key_d); // A/D
+    angular_z = (this->data_->dbus_data_.key_q - this->data_->dbus_data_.key_e); // Q/E
 
     rate_yaw = -this->data_->dbus_data_.m_x;
-    rate_pitch = -this->data_->dbus_data_.m_y;
+    rate_pitch = this->data_->dbus_data_.m_y;
 
     if (this->data_->dbus_data_.p_l)
       this->setShoot(this->data_->shoot_cmd_.PUSH,

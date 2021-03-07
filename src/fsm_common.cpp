@@ -17,6 +17,8 @@ State<T>::State(FsmData<T> *fsm_data, std::string state_name, ros::NodeHandle &n
   // load rc/pc control's parameter
   state_nh_ = ros::NodeHandle(nh, "remote_control");
 
+  pc_control_ = getParam(nh, "pc_control", 0);
+
   state_nh_.param("accel_x", accel_x_, 10.0);
   state_nh_.param("accel_y", accel_y_, 10.0);
   state_nh_.param("accel_angular", accel_angular_, 10.0);
