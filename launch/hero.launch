@@ -26,12 +26,12 @@
     <node name="controller_spawner" pkg="controller_manager" type="spawner"
           respawn="false"
           output="screen" args="
-        rm_base/robot_state_controller
-        rm_base/joint_state_controller
+        controllers/robot_state_controller
+        controllers/joint_state_controller
         controllers/imu_sensor_controller
-        rm_base/gimbal_standard_controller
-        rm_base/chassis_standard_controller
-        rm_base/shooter_standard_controller
+        controllers/gimbal_standard_controller
+        controllers/chassis_standard_controller
+        controllers/shooter_standard_controller
    "/>
 
     <node if="$(arg ekf)" pkg="robot_localization" type="ekf_localization_node" name="ekf_localization"
