@@ -26,7 +26,6 @@ controllers:
   joint_state_controller:
     type: joint_state_controller/JointStateController
     publish_rate: 100
-
   gimbal_standard_controller:
     type: rm_gimbal_controllers/GimbalStandardController
     joint_yaw_name: "yaw_joint"
@@ -43,7 +42,6 @@ controllers:
     dt: 0.001
     timeout: 0.001
     publish_rate: 50
-
   shooter_standard_controller:
     type: rm_shooter_controllers/ShooterStandardController
     joint_fiction_left_name: "left_friction_wheel_joint"

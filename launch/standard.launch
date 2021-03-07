@@ -2,12 +2,15 @@
     <arg name="use_simulation" default="false"/>
     <arg name="load_description" default="true"/>
     <arg name="load_controller" default="true"/>
+    <arg name="ekf" default="true"/>
+    <arg name="odom_tf" default="true"/>
+    <arg name="base_link_tf" default="true"/>
+    <arg name="camera_tf" default="true"/>
 
-    <rosparam file="$(find rm_base)/config/actuator_coefficient.yaml" command="load" ns="rm_base"/>
-    <rosparam file="$(find rm_fsm)/config/standard.yaml" command="load"/>
+    <rosparam file="$(find rm_fsm)/config/standard_data.yaml" command="load" ns="rm_fsm"/>
     <rosparam file="$(find rm_fsm)/test/config/test_power_limit.yaml" command="load"/>
-
     <rosparam unless="$(arg use_simulation)" file="$(find rm_base)/config/standard.yaml" command="load"/>
+    <rosparam file="$(find rm_fsm)/config/standard.yaml" command="load"/>
 
     <include if="$(arg load_description)" file="$(find rm_description)/launch/standard.launch">
         <arg name="load_chassis" value="true"/>
@@ -21,20 +24,29 @@
     </include>
     <include unless="$(arg use_simulation)" file="$(find rm_base)/launch/rm_base.launch"/>
 
-    <node pkg="tf" type="static_transform_publisher" name=""
-          args="0 0 0 0 0 0 1 map odom 500"/>
-
     <!-- load the controllers -->
     <node name="controller_spawner" pkg="controller_manager" type="spawner"
           respawn="false"
           output="screen" args="
         controllers/robot_state_controller
         controllers/joint_state_controller
+        controllers/imu_sensor_controller
         controllers/shooter_standard_controller
         controllers/gimbal_standard_controller
         controllers/chassis_standard_controller
 
    "/>
+
+    <node if="$(arg ekf)" pkg="robot_localization" type="ekf_localization_node" name="ekf_localization"
+          clear_params="true">
+        <rosparam command="load" file="$(find rm_chassis_controllers)/config/localization.yaml"/>
+    </node>
+    <node if="$(arg odom_tf)" pkg="tf" type="static_transform_publisher" name=""
+          args="0 0 0 0 0 0 1 map odom 100"/>
+    <node if="$(arg base_link_tf)" pkg="tf" type="static_transform_publisher" name=""
+          args="0 0 0 0 0 0 1 map base_link 100"/>
+    <node if="$(arg camera_tf)" pkg="tf" type="static_transform_publisher" name=""
+          args="0.086 0 -0.046 0.5, 0.5, 0.5, 0.5 pitch camera 100"/>
 
     <node name="dbus_node" pkg="rm_base" type="dbus_node" respawn="false"/>
     <node name="rm_fsm" pkg="rm_fsm" type="rm_fsm" respawn="false"/>
