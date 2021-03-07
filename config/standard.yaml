@@ -64,3 +64,15 @@ controllers:
     pid_fiction_r: { p: 0.001, i: 0.0, d: 0.0, i_max: 0.0, i_min: 0.0, antiwindup: true, publish_state: true }
     pid_trigger: { p: 7.4, i: 0.0, d: 0.22, i_max: 0.0, i_min: 0.0, antiwindup: true, publish_state: true }
     publish_rate: 50
+
+rm_fsm:
+  robot_type: "standard"
+  remote_control:
+    accel_x: 10.0
+    accel_y: 10.0
+    accel_angular: 10.0
+    coefficient_x: 3.5
+    coefficient_y: 3.5
+    coefficient_angular: 6.0
+    coefficient_yaw: 12.56
+    coefficient_pitch: 12.56

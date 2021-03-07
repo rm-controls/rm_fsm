@@ -4,11 +4,10 @@
     <arg name="load_controller" default="true"/>
 
     <rosparam file="$(find rm_base)/config/actuator_coefficient.yaml" command="load" ns="rm_base"/>
-    <rosparam file="$(find rm_fsm)/config/standard_data.yaml" command="load" ns="rm_fsm"/>
+    <rosparam file="$(find rm_fsm)/config/standard.yaml" command="load"/>
     <rosparam file="$(find rm_fsm)/test/config/test_power_limit.yaml" command="load"/>
 
     <rosparam unless="$(arg use_simulation)" file="$(find rm_base)/config/standard.yaml" command="load"/>
-    <rosparam file="$(find rm_fsm)/config/standard.yaml" command="load"/>
 
     <include if="$(arg load_description)" file="$(find rm_description)/launch/standard.launch">
         <arg name="load_chassis" value="true"/>
