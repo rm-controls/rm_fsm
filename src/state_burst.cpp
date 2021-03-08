@@ -7,8 +7,7 @@
 template<typename T>
 StateBurst<T>::StateBurst(FsmData<T> *fsm_data,
                           const std::string &state_string,
-                          ros::NodeHandle &nh,
-                          const std::string &control_mode):State<T>(fsm_data, state_string, nh, control_mode) {
+                          ros::NodeHandle &nh):State<T>(fsm_data, state_string, nh) {
 }
 
 template<typename T>

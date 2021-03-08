@@ -6,10 +6,10 @@
 
 template<typename T>
 FsmStandard<T>::FsmStandard(ros::NodeHandle &node_handle) : Fsm<T>(node_handle) {
-  state_passive_ = new StatePassive<T>(&this->data_, "passive", node_handle, this->control_mode_);
-  state_raw_ = new StateRaw<T>(&this->data_, "raw", node_handle, this->control_mode_);
-  state_fly_slope_ = new StateFlySlope<T>(&this->data_, "flyslope", node_handle, this->control_mode_);
-  state_burst_ = new StateBurst<T>(&this->data_, "burst", node_handle, this->control_mode_);
+  state_passive_ = new StatePassive<T>(&this->data_, "passive", node_handle);
+  state_raw_ = new StateRaw<T>(&this->data_, "raw", node_handle);
+  state_fly_slope_ = new StateFlySlope<T>(&this->data_, "flyslope", node_handle);
+  state_burst_ = new StateBurst<T>(&this->data_, "burst", node_handle);
 
   this->string2state.insert(std::pair<std::string, State<T> *>("passive", state_passive_));
   this->string2state.insert(std::pair<std::string, State<T> *>("raw", state_raw_));

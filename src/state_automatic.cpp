@@ -6,8 +6,7 @@
 template<typename T>
 StateAutomatic<T>::StateAutomatic(FsmData<T> *fsm_data,
                                   const std::string &state_string,
-                                  ros::NodeHandle &nh,
-                                  const std::string &control_mode):State<T>(fsm_data, state_string, nh, control_mode) {
+                                  ros::NodeHandle &nh):State<T>(fsm_data, state_string, nh) {
   this->tf_listener_ = new tf2_ros::TransformListener(this->tf_);
   point_side_ = 1;
   gimbal_position_ = 1;

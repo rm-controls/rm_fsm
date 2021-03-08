@@ -24,7 +24,7 @@ template<typename T>
 class State {
  public:
   // Generic constructor fo all states
-  State(FsmData<T> *fsm_data, std::string state_string, ros::NodeHandle &nh, std::string control_mode);
+  State(FsmData<T> *fsm_data, std::string state_string, ros::NodeHandle &nh);
 
   // Behavior to be carried out when entering a state
   virtual void onEnter() = 0;

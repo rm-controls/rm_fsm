@@ -7,9 +7,8 @@
 template<typename T>
 StatePassive<T>::StatePassive(FsmData<T> *fsm_data,
                               const std::string &state_string,
-                              ros::NodeHandle &nh,
-                              const std::string &control_mode):
-    State<T>(fsm_data, state_string, nh, control_mode) {
+                              ros::NodeHandle &nh):
+    State<T>(fsm_data, state_string, nh) {
   shoot_hz = getParam(this->state_nh_, "shoot_hz", 0);
 }
 

@@ -6,8 +6,8 @@
 
 template<typename T>
 FsmHero<T>::FsmHero(ros::NodeHandle &node_handle) : Fsm<T>(node_handle) {
-  state_passive_ = new StatePassive<T>(&this->data_, "passive", node_handle, this->control_mode_);
-  state_raw_ = new StateRaw<T>(&this->data_, "raw", node_handle, this->control_mode_);
+  state_passive_ = new StatePassive<T>(&this->data_, "passive", node_handle);
+  state_raw_ = new StateRaw<T>(&this->data_, "raw", node_handle);
 
   this->string2state.insert(std::pair<std::string, State<T> *>("passive", state_passive_));
   this->string2state.insert(std::pair<std::string, State<T> *>("raw", state_raw_));
