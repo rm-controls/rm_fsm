@@ -65,7 +65,7 @@ controllers:
 
 rm_fsm:
   robot_type: "standard"
-  pc_control: 1
+  pc_control: true
   remote_control:
     accel_x: 10.0
     accel_y: 10.0
@@ -75,3 +75,5 @@ rm_fsm:
     coefficient_angular: 6.0
     coefficient_yaw: 12.56
     coefficient_pitch: 12.56
+  power_limit:
+    danger_surplus_: 10.0

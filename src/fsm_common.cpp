@@ -28,8 +28,7 @@ State<T>::State(FsmData<T> *fsm_data, std::string state_name, ros::NodeHandle &n
   state_nh_.param("coefficient_yaw", coefficient_yaw_, 12.56);
   state_nh_.param("coefficient_pitch", coefficient_pitch_, 12.56);
 
-  std::cout << "[FSM_State] Initialized FSM state: " << state_name_
-            << std::endl;
+  ROS_INFO("Initialized FSM state: %s", state_name_.c_str());
 }
 
 /**
@@ -121,8 +120,13 @@ Fsm<T>::Fsm(ros::NodeHandle &node_handle):nh_(node_handle) {
 
   pc_control_ = getParam(node_handle, "pc_control", 0);
 
+  if (pc_control_)
+    ROS_INFO("Enter pc control.");
+  else
+    ROS_INFO("Enter rc control.");
+
   // Enter the new current state cleanly
-  ROS_INFO("[FSM] Current state is invalid.");
+  ROS_INFO("Current state is invalid.");
 
   // Initialize to not be in transition
   next_state_ = current_state_;
@@ -188,7 +192,7 @@ void Fsm<T>::run() {
 
   } else { // if ESTOP
     current_state_ = string2state["passive"];
-    ROS_INFO("[FSM] Current state is passive.");
+    ROS_INFO("Current state is passive.");
     next_state_name_ = current_state_->state_name_;
   }
 }

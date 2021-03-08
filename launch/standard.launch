@@ -7,7 +7,6 @@
     <arg name="base_link_tf" default="false"/>
     <arg name="camera_tf" default="false"/>
 
-    <rosparam file="$(find rm_fsm)/test/config/test_power_limit.yaml" command="load"/>
     <rosparam unless="$(arg use_simulation)" file="$(find rm_base)/config/standard.yaml" command="load"/>
     <rosparam file="$(find rm_fsm)/config/standard.yaml" command="load"/>
 

@@ -7,7 +7,7 @@
 #include <cstdint>
 #include <serial/serial.h>
 #include <rm_msgs/Referee.h>
-#include <rm_fsm/protocol.h>
+#include "rm_fsm/protocol.h"
 
 namespace referee {
 struct RefereeData {
