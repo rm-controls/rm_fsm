@@ -7,17 +7,17 @@ template<typename T>
 StateAutomatic<T>::StateAutomatic(FsmData<T> *fsm_data,
                                   const std::string &state_string,
                                   ros::NodeHandle &nh,
-                                  bool pc_control):State<T>(fsm_data, state_string, nh, pc_control) {
+                                  const std::string &control_mode):State<T>(fsm_data, state_string, nh, control_mode) {
   this->tf_listener_ = new tf2_ros::TransformListener(this->tf_);
-  point_side_ =1;
-  gimbal_position_ =1;
+  point_side_ = 1;
+  gimbal_position_ = 1;
   calibration_ = 0;
   speed_ = 0;
   last_position_ = 0;
   current_position_ = 0;
-  auto_move_chassis_speed_ = getParam(this->state_nh_,"auto_move_chassis_speed",1.0);
-  auto_move_chassis_accel_ = getParam(this->state_nh_,"auto_move_chassis_accel",1.0);
-  auto_move_pitch_speed_ = getParam(this->state_nh_,"auto_move_pitch_speed",0.5);
+  auto_move_chassis_speed_ = getParam(this->state_nh_, "auto_move_chassis_speed", 1.0);
+  auto_move_chassis_accel_ = getParam(this->state_nh_, "auto_move_chassis_accel", 1.0);
+  auto_move_pitch_speed_ = getParam(this->state_nh_, "auto_move_pitch_speed", 0.5);
   auto_move_yaw_speed_ = getParam(this->state_nh_,"auto_move_yaw_speed",3.14);
   start_ = getParam(this->state_nh_,"auto_move_start",0.3);
   end_ = getParam(this->state_nh_,"auto_move_end",1.5);

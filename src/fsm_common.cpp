@@ -2,7 +2,8 @@
 // Created by peter on 2020/12/3.
 //
 
-#include <rm_fsm/fsm_common.h>
+#include "rm_fsm/fsm_common.h"
+#include <utility>
 
 /**
  * Constructor for the FSM State class.
@@ -31,17 +32,6 @@ State<T>::State(FsmData<T> *fsm_data, std::string state_name, ros::NodeHandle &n
   ROS_INFO("Initialized FSM state: %s", state_name_.c_str());
 }
 
-/**
- *
- * @tparam T
- * @param chassis_mode
- * @param accel_x
- * @param accel_y
- * @param accel_z
- * @param linear_x
- * @param linear_y
- * @param angular_z
- */
 template<typename T>
 void State<T>::setChassis(uint8_t chassis_mode,
                           double linear_x,
@@ -63,13 +53,6 @@ void State<T>::setChassis(uint8_t chassis_mode,
   this->data_->chassis_cmd_pub_.publish(this->data_->chassis_cmd_);
 }
 
-/**
- *
- * @tparam T
- * @param gimbal_mode
- * @param yaw_rate
- * @param pitch_rate
- */
 template<typename T>
 void State<T>::setGimbal(uint8_t gimbal_mode, double rate_yaw, double rate_pitch) {
   this->data_->gimbal_cmd_.mode = gimbal_mode;
@@ -80,13 +63,6 @@ void State<T>::setGimbal(uint8_t gimbal_mode, double rate_yaw, double rate_pitch
   this->data_->gimbal_cmd_pub_.publish(this->data_->gimbal_cmd_);
 }
 
-/**
- *
- * @tparam T
- * @param shoot_mode
- * @param shoot_num
- * @param now
- */
 template<typename T>
 void State<T>::setShoot(uint8_t shoot_mode, uint8_t shoot_speed, double shoot_hz, ros::Time now) {
   this->data_->shoot_cmd_.mode = shoot_mode;
@@ -118,12 +94,15 @@ Fsm<T>::Fsm(ros::NodeHandle &node_handle):nh_(node_handle) {
   // Initialize a new FSM State with the control data
   current_state_ = string2state["invalid"];
 
-  pc_control_ = getParam(node_handle, "pc_control", 0);
+  // Get control mode (rc/pc)
+  control_mode_ = getParam(node_handle, "control_mode", (std::string) "rc");
 
-  if (pc_control_)
+  if (control_mode_ == "pc")
     ROS_INFO("Enter pc control.");
-  else
+  else if (control_mode_ == "rc")
     ROS_INFO("Enter rc control.");
+  else
+    ROS_ERROR("Cannot enter the corresponding control mode (pc/rc).");
 
   // Enter the new current state cleanly
   ROS_INFO("Current state is invalid.");

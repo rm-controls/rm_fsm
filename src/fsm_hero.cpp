@@ -6,8 +6,8 @@
 
 template<typename T>
 FsmHero<T>::FsmHero(ros::NodeHandle &node_handle) : Fsm<T>(node_handle) {
-  state_passive_ = new StatePassive<T>(&this->data_, "passive", node_handle, this->pc_control_);
-  state_raw_ = new StateRaw<T>(&this->data_, "raw", node_handle, this->pc_control_);
+  state_passive_ = new StatePassive<T>(&this->data_, "passive", node_handle, this->control_mode_);
+  state_raw_ = new StateRaw<T>(&this->data_, "raw", node_handle, this->control_mode_);
 
   this->string2state.insert(std::pair<std::string, State<T> *>("passive", state_passive_));
   this->string2state.insert(std::pair<std::string, State<T> *>("raw", state_raw_));
@@ -17,7 +17,7 @@ FsmHero<T>::FsmHero(ros::NodeHandle &node_handle) : Fsm<T>(node_handle) {
 template<typename T>
 std::string FsmHero<T>::getDesiredState() {
 
-  if (this->pc_control_) { // pc control
+  if (this->control_mode_ == "pc") { // pc control
     if (this->data_.dbus_data_.key_ctrl
         && this->data_.dbus_data_.key_q) { // ctrl + q change state to passive
       return "passive";
@@ -27,7 +27,7 @@ std::string FsmHero<T>::getDesiredState() {
     } else {
       return this->current_state_->state_name_;
     }
-  } else { // rc control
+  } else if (this->control_mode_ == "rc") { // rc control
     if (this->data_.dbus_data_.s_r == this->data_.dbus_data_.DOWN) {
       return "passive";
     } else if (this->data_.dbus_data_.s_r == this->data_.dbus_data_.MID) {
@@ -35,6 +35,8 @@ std::string FsmHero<T>::getDesiredState() {
     } else {
       return "passive";
     }
+  } else {
+    return "passive";
   }
 }
 

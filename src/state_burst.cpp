@@ -8,8 +8,7 @@ template<typename T>
 StateBurst<T>::StateBurst(FsmData<T> *fsm_data,
                           const std::string &state_string,
                           ros::NodeHandle &nh,
-                          bool pc_control):State<T>(fsm_data, state_string, nh, pc_control) {
-
+                          const std::string &control_mode):State<T>(fsm_data, state_string, nh, control_mode) {
 }
 
 template<typename T>
@@ -24,7 +23,7 @@ void StateBurst<T>::run() {
   double shoot_hz = 0;
   ros::Time now = ros::Time::now();
 
-  if (this->pc_control_) { // pc control
+  if (this->control_mode_ == "pc") { // pc control
     linear_x = (this->data_->dbus_data_.key_w - this->data_->dbus_data_.key_s); // W/S
     linear_y = (this->data_->dbus_data_.key_a - this->data_->dbus_data_.key_d); // A/D
     angular_z = (this->data_->dbus_data_.key_q - this->data_->dbus_data_.key_e); // Q/E
@@ -38,7 +37,7 @@ void StateBurst<T>::run() {
                      shoot_hz,
                      now);
     else this->setShoot(this->data_->shoot_cmd_.PASSIVE, this->data_->shoot_cmd_.SPEED_10M_PER_SECOND, 15, now);
-  } else { // rc control
+  } else if (this->control_mode_ == "rc") { // rc control
     linear_x = this->data_->dbus_data_.ch_r_y;
     linear_y = -this->data_->dbus_data_.ch_r_x;
     angular_z = this->data_->dbus_data_.wheel;
@@ -58,6 +57,8 @@ void StateBurst<T>::run() {
                      now);
     else if (this->data_->dbus_data_.s_l == this->data_->dbus_data_.DOWN)
       this->setShoot(this->data_->shoot_cmd_.PASSIVE, this->data_->shoot_cmd_.SPEED_10M_PER_SECOND, shoot_hz, now);
+  } else {
+    this->setShoot(this->data_->shoot_cmd_.PASSIVE, this->data_->shoot_cmd_.SPEED_10M_PER_SECOND, shoot_hz, now);
   }
 
   this->setChassis(this->data_->chassis_cmd_.GYRO, linear_x, linear_y, angular_z);

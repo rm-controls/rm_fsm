@@ -12,7 +12,7 @@ class StatePassive : public State<T> {
   StatePassive(FsmData<T> *fsm_data,
                const std::string &state_string,
                ros::NodeHandle &nh,
-               bool pc_control);
+               const std::string &control_mode);
   void onEnter() override;
   void run() override;
   void onExit() override;

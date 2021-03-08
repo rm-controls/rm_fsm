@@ -64,9 +64,10 @@ controllers:
     pid_fiction_r: { p: 0.002, i: 0.0, d: 0.0, i_max: 0.0, i_min: 0.0, antiwindup: true, publish_state: true }
     pid_trigger: { p: 20, i: 0.0, d: 1.0, i_max: 0.0, i_min: 0.0, antiwindup: true, publish_state: true }
     publish_rate: 50
+
 rm_fsm:
   robot_type: "hero"
-  pc_control: true
+  control_mode: "pc"
   remote_control:
     accel_x: 10.0
     accel_y: 10.0
