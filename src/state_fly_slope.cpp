@@ -7,8 +7,7 @@
 template<typename T>
 StateFlySlope<T>::StateFlySlope(FsmData<T> *fsm_data,
                                 const std::string &state_string,
-                                ros::NodeHandle &nh,
-                                bool pc_control):State<T>(fsm_data, state_string, nh, pc_control) {
+                                ros::NodeHandle &nh):State<T>(fsm_data, state_string, nh) {
   shoot_hz = getParam(this->state_nh_, "shoot_hz", 5);
 }
 
@@ -23,20 +22,22 @@ void StateFlySlope<T>::run() {
   double rate_yaw = 0, rate_pitch = 0;
   ros::Time now = ros::Time::now();
 
-  if (this->pc_control_) { // pc control
+  if (this->control_mode_ == "pc") { // pc control
     linear_x = this->data_->dbus_data_.key_w - this->data_->dbus_data_.key_s; // W/S
-    linear_y = -(this->data_->dbus_data_.key_a - this->data_->dbus_data_.key_d); // A/D
+    linear_y = (this->data_->dbus_data_.key_a - this->data_->dbus_data_.key_d); // A/D
     angular_z = this->data_->dbus_data_.key_q - this->data_->dbus_data_.key_e; // Q/E
 
     rate_yaw = -this->data_->dbus_data_.m_x;
-    rate_pitch = -this->data_->dbus_data_.m_y;
-  } else { // rc control
+    rate_pitch = this->data_->dbus_data_.m_y;
+  } else if (this->control_mode_ == "rc") { // rc control
     linear_x = this->data_->dbus_data_.ch_r_y;
     linear_y = -this->data_->dbus_data_.ch_r_x;
     angular_z = this->data_->dbus_data_.wheel;
 
     rate_yaw = -this->data_->dbus_data_.ch_l_x;
     rate_pitch = -this->data_->dbus_data_.ch_l_y;
+  } else {
+
   }
 
   this->setChassis(this->data_->chassis_cmd_.FOLLOW, linear_x, linear_y, angular_z);

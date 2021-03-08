@@ -7,9 +7,8 @@
 template<typename T>
 StatePassive<T>::StatePassive(FsmData<T> *fsm_data,
                               const std::string &state_string,
-                              ros::NodeHandle &nh,
-                              bool pc_control):
-    State<T>(fsm_data, state_string, nh, pc_control) {
+                              ros::NodeHandle &nh):
+    State<T>(fsm_data, state_string, nh) {
   shoot_hz = getParam(this->state_nh_, "shoot_hz", 0);
 }
 
@@ -22,7 +21,6 @@ template<typename T>
 void StatePassive<T>::run() {
   double linear_x = 0, linear_y = 0, angular_z = 0;
   double rate_yaw = 0, rate_pitch = 0;
-  double shoot_hz = 0;
   ros::Time now = ros::Time::now();
 
   this->setChassis(this->data_->chassis_cmd_.PASSIVE, linear_x, linear_y, angular_z);

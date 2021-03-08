@@ -13,8 +13,7 @@ class StateAutomatic : public State<T> {
  public:
   StateAutomatic(FsmData<T> *fsm_data,
                  const std::string &state_string,
-                 ros::NodeHandle &nh,
-                 bool pc_control);
+                 ros::NodeHandle &nh);
   void onEnter() override;
   void run() override;
   void onExit() override;

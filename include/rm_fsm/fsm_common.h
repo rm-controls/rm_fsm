@@ -24,7 +24,7 @@ template<typename T>
 class State {
  public:
   // Generic constructor fo all states
-  State(FsmData<T> *fsm_data, std::string state_string, ros::NodeHandle &nh, bool pc_control);
+  State(FsmData<T> *fsm_data, std::string state_string, ros::NodeHandle &nh);
 
   // Behavior to be carried out when entering a state
   virtual void onEnter() = 0;
@@ -51,7 +51,7 @@ class State {
 
   ros::NodeHandle state_nh_;
 
-  bool pc_control_;
+  std::string control_mode_;
 
   // chassis fsm control accelerate
   double accel_x_ = 0.0;
@@ -108,7 +108,7 @@ class Fsm {
   tf2_ros::Buffer tf_;
   tf2_ros::TransformListener *tf_listener_;
 
-  bool pc_control_; // pc control or rc control
+  std::string control_mode_; // pc control or rc control
 
  private:
   // Operating mode of the FSM
