@@ -1,73 +1,6 @@
-controllers:
-  robot_state_controller:
-    type: robot_state_controller/RobotStateController
-    publish_rate: 100
-  imu_sensor_controller:
-    type: imu_sensor_controller/ImuSensorController
-    publish_rate: 100
-  chassis_standard_controller:
-    type: rm_chassis_controllers/ChassisStandardController
-    joint_lf_name: "front_left_wheel_joint"
-    joint_rf_name: "front_right_wheel_joint"
-    joint_lb_name: "back_left_wheel_joint"
-    joint_rb_name: "back_right_wheel_joint"
-    publish_rate_: 100
-    wheel_base: 0.47
-    wheel_track: 0.50
-    wheel_radius: 0.07625
-    pid_rf: { p: 0.8, i: 0, d: 0.0, i_max: 0.0, i_min: 0.0, antiwindup: true }
-    pid_rb: { p: 0.8, i: 0, d: 0.0, i_max: 0.0, i_min: 0.0, antiwindup: true }
-    pid_lf: { p: 0.8, i: 0, d: 0.0, i_max: 0.0, i_min: 0.0, antiwindup: true }
-    pid_lb: { p: 0.8, i: 0, d: 0.0, i_max: 0.0, i_min: 0.0, antiwindup: true }
-    pid_follow: { p: 0, i: 0, d: 0.0, i_max: 0.0, i_min: 0.0, antiwindup: true }
-    pid_twist: { p: 0, i: 0, d: 0.0, i_max: 0.0, i_min: 0.0, antiwindup: true }
-    pose_covariance_diagonal: [0.001, 0.001, 0.001, 0.001, 0.001, 0.001]
-    twist_covariance_diagonal: [0.001, 0.001, 1000000.0, 1000000.0, 1000000.0, 1.0]
-  joint_state_controller:
-    type: joint_state_controller/JointStateController
-    publish_rate: 100
-
-  gimbal_standard_controller:
-    type: rm_gimbal_controllers/GimbalStandardController
-    joint_yaw_name: "yaw_joint"
-    joint_pitch_name: "pitch_joint"
-    pid_yaw: { p: 6, i: 0.08, d: 0.08 ,i_clamp_max: 0.2, i_clamp_min: -0.2, antiwindup: true, publish_state: true }
-    pid_pitch: { p: 10, i: 7.0, d: 0.08 ,i_clamp_max: 0.4, i_clamp_min: -0.4, antiwindup: true, publish_state: true }
-    resistance_coff_qd_10: 0.45
-    resistance_coff_qd_15: 0.4
-    resistance_coff_qd_16: 0.7
-    resistance_coff_qd_18: 0.55
-    resistance_coff_qd_30: 3.0
-    g: 9.81
-    delay: 0.2
-    dt: 0.001
-    timeout: 0.001
-    publish_rate: 50
-
-  shooter_standard_controller:
-    type: rm_shooter_controllers/ShooterStandardController
-    joint_fiction_left_name: "left_friction_wheel_joint"
-    joint_fiction_right_name: "right_friction_wheel_joint"
-    joint_trigger_name: "trigger_joint"
-    push_angle: 1.4
-    block_effort: 2.9
-    block_duration: 0.5
-    block_speed: 0.9
-    anti_block_angle: 0.5
-    anti_block_error: 0.1
-    qd_10: 420.0
-    qd_15: 495.0
-    qd_16: 498.0
-    qd_18: 540.0
-    qd_30: 772.0
-    pid_fiction_l: { p: 0.002, i: 0.0, d: 0.0, i_max: 0.0, i_min: 0.0, antiwindup: true, publish_state: true }
-    pid_fiction_r: { p: 0.002, i: 0.0, d: 0.0, i_max: 0.0, i_min: 0.0, antiwindup: true, publish_state: true }
-    pid_trigger: { p: 20, i: 0.0, d: 1.0, i_max: 0.0, i_min: 0.0, antiwindup: true, publish_state: true }
-    publish_rate: 50
-
 rm_fsm:
   robot_type: "hero"
-  control_mode: "pc"
+  control_mode: "rc"
   control_param:
     rc_param:
       accel_x: 10.0
@@ -85,7 +18,7 @@ rm_fsm:
       coefficient_x: 3.5
       coefficient_y: 3.5
       coefficient_angular: 6.0
-      coefficient_yaw: 125.6
-      coefficient_pitch: 125.6
+      coefficient_yaw: 12.56
+      coefficient_pitch: 12.56
   power_limit:
     danger_surplus_: 10.0
