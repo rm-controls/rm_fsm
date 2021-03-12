@@ -231,15 +231,46 @@ void Referee::getData(uint8_t *frame) {
     }
   }
 }
+
+void Referee::sendGraphicSingle() {
+  uint8_t data[200] = {0,};
+  SendClientData send_data;
+
+  send_data.txFrameHeader.sof = 0xA5;
+  send_data.txFrameHeader.seq = 0;
+  send_data.txFrameHeader.data_length = sizeof(StudentInteractiveHeaderDataReceive) + sizeof(GraphicDataStruct);
+  memcpy(data, &send_data.txFrameHeader, sizeof(FrameHeaderStruct));
+  appendCRC8CheckSum(data, sizeof(FrameHeaderStruct));
+  send_data.CmdID = 0x0301;
+
+  send_data.dataFrameHeader.data_cmd_id = 0x0101;
+  send_data.dataFrameHeader.send_ID = 101;
+  send_data.dataFrameHeader.receiver_ID = 0x0165;
+
+  send_data.graphic_data.graphic_name[0] = 0;
+  send_data.graphic_data.graphic_name[1] = 0;
+  send_data.graphic_data.graphic_name[2] = 0;
+  send_data.graphic_data.operate_type = 1;
+  send_data.graphic_data.graphic_type = 1;
+  send_data.graphic_data.layer = 0;
+  send_data.graphic_data.color = 1;
+  send_data.graphic_data.start_angle = 0;
+  send_data.graphic_data.end_angle = 0;
+  send_data.graphic_data.width = 50;
+  send_data.graphic_data.start_x = 0;
+  send_data.graphic_data.start_y = 0;
+  send_data.graphic_data.radius = 9;
+  send_data.graphic_data.end_x = 500;
+  send_data.graphic_data.end_y = 500;
+
+  memcpy(data + sizeof(FrameHeaderStruct),
+         (uint8_t *) &send_data.CmdID,
+         sizeof(send_data.CmdID) + sizeof(send_data.dataFrameHeader) + sizeof(send_data.graphic_data));
+  appendCRC16CheckSum(data, sizeof(send_data));
+
+  serial_.write(data, sizeof(send_data));
 }
 
-uint32_t verify_CRC8_check_sum(unsigned char *pch_message, unsigned int dw_length) {
-  unsigned char ucExpected = 0;
-  if ((pch_message == nullptr) || (dw_length <= 2)) {
-    return 0;
-  }
-  ucExpected = get_CRC8_check_sum(pch_message, dw_length - 1, CRC8_INIT);
-  return (ucExpected == pch_message[dw_length - 1]);
 }
 
 /******************* CRC Verify *************************/

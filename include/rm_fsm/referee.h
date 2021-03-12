@@ -48,6 +48,7 @@ class Referee {
   ~Referee() = default;
   void init();
   void read();
+  void sendGraphicSingle();
 
   RefereeData referee_data_{};
   bool flag = false;

@@ -4,7 +4,7 @@
 
 #ifndef SRC_RM_BRIDGE_INCLUDE_RT_PROTOCOL_H_
 #define SRC_RM_BRIDGE_INCLUDE_RT_PROTOCOL_H_
-
+#define __packed __attribute__((packed))
 #include <cstdint>
 
 // Interface Protocol
@@ -37,7 +37,7 @@ typedef struct {
   uint16_t data_length;
   uint8_t seq;
   uint8_t crc8;
-} FrameHeaderStruct;
+}__packed FrameHeaderStruct;
 
 // Unpacking order
 typedef enum {
@@ -251,6 +251,11 @@ typedef struct {
   uint16_t send_ID;
   uint16_t receiver_ID;
 } StudentInteractiveHeaderData;
+typedef struct {
+  uint16_t data_cmd_id;
+  uint16_t send_ID;
+  uint16_t receiver_ID;
+}__packed StudentInteractiveHeaderDataReceive;
 
 typedef struct {
   uint8_t *data;
@@ -297,6 +302,14 @@ typedef struct {
   GraphicDataStruct grapic_data_struct;
   uint8_t data[30];
 } ClientCustomCharacter;
+
+typedef struct {
+  FrameHeaderStruct txFrameHeader;//帧头
+  uint16_t CmdID;//命令码
+  StudentInteractiveHeaderDataReceive dataFrameHeader;//数据段头结构
+  GraphicDataStruct graphic_data;//数据段
+  uint16_t FrameTail;//帧尾
+}__packed SendClientData;
 
 /***********************Frame tail(CRC8_CRC16)********************************************/
 const uint8_t
