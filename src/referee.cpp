@@ -93,7 +93,7 @@ void Referee::unpack(const std::vector<uint8_t> &rx_buffer) {
       case kStepHeaderCrc8: {
         referee_unpack_obj.protocol_packet[referee_unpack_obj.index++] = byte;
         if (referee_unpack_obj.index == (kProtocolHeaderLength - 1)) {
-          if (verify_CRC8_check_sum(referee_unpack_obj.protocol_packet, kProtocolHeaderLength)) {
+          if (verifyCRC8CheckSum(referee_unpack_obj.protocol_packet, kProtocolHeaderLength)) {
             referee_unpack_obj.unpack_step = kStepDataCrc16;
           } else {
             referee_unpack_obj.unpack_step = kStepHeaderSof;
@@ -111,9 +111,9 @@ void Referee::unpack(const std::vector<uint8_t> &rx_buffer) {
             >= (kProtocolHeaderLength + kProtocolTailLength + kProtocolCmdIdLength + referee_unpack_obj.data_len - 1)) {
           referee_unpack_obj.unpack_step = kStepHeaderSof;
           referee_unpack_obj.index = 0;
-          if (verify_CRC16_check_sum(referee_unpack_obj.protocol_packet,
-                                     kProtocolHeaderLength + kProtocolTailLength + kProtocolCmdIdLength
-                                         + referee_unpack_obj.data_len)) {
+          if (verifyCRC16CheckSum(referee_unpack_obj.protocol_packet,
+                                  kProtocolHeaderLength + kProtocolTailLength + kProtocolCmdIdLength
+                                      + referee_unpack_obj.data_len)) {
             getData(referee_unpack_obj.protocol_packet);
             memset(referee_unpack_obj.protocol_packet, 0, sizeof(referee_unpack_obj.protocol_packet));
             referee_unpack_obj.unpack_step = kStepHeaderSof;
@@ -225,45 +225,6 @@ void Referee::getData(uint8_t *frame) {
       memcpy(&referee_data_.dart_client_cmd_, frame + index, sizeof(DartClientCmd));
       break;
     }
-    case kStudentInteractiveDataCmdId: {
-      memcpy(&referee_data_.student_interactive_header_data_, frame + index, sizeof(StudentInteractiveHeaderData));
-
-      uint16_t data_cmd_id = 0;
-      memcpy(&data_cmd_id, frame + index, sizeof(uint16_t));
-
-      index += sizeof(StudentInteractiveHeaderData);
-
-      if (data_cmd_id >= kRobotInteractiveCmdIdMin && data_cmd_id <= kRobotInteractiveCmdIdMax)
-        memcpy(&referee_data_.robot_interactive_data_, frame + index, sizeof(RobotInteractiveData));
-      else if (data_cmd_id == kClientGraphicDeleteCmdId)
-        memcpy(&referee_data_.client_custom_graphic_delete_,
-               frame + index,
-               sizeof(ClientCustomGraphicDelete));
-      else if (data_cmd_id == kClientGraphicSingleCmdId)
-        memcpy(&referee_data_.client_custom_graphic_single_,
-               frame + index,
-               sizeof(ClientCustomGraphicSingle));
-      else if (data_cmd_id == kClientGraphicDoubleCmdId)
-        memcpy(&referee_data_.client_custom_graphic_double_,
-               frame + index,
-               sizeof(ClientCustomGraphicDouble));
-      else if (data_cmd_id == kClientGraphicFiveCmdId)
-        memcpy(&referee_data_.client_custom_graphic_five_,
-               frame + index,
-               sizeof(ClientCustomGraphicFive));
-      else if (data_cmd_id == kClientGraphicSevenCmdId)
-        memcpy(&referee_data_.client_custom_graphic_seven_,
-               frame + index,
-               sizeof(ClientCustomGraphicSeven));
-      else if (data_cmd_id == kClientCharacterCmdId)
-        memcpy(&referee_data_.client_custom_character_,
-               frame + index,
-               sizeof(ClientCustomCharacter));
-      else {
-        ROS_WARN("[Referee]Interactive data command ID not found.");
-      }
-    }
-      break;
     default: {
       ROS_WARN("[Referee]Referee command ID not found.");
       break;
@@ -280,7 +241,9 @@ uint32_t verify_CRC8_check_sum(unsigned char *pch_message, unsigned int dw_lengt
   ucExpected = get_CRC8_check_sum(pch_message, dw_length - 1, CRC8_INIT);
   return (ucExpected == pch_message[dw_length - 1]);
 }
-uint8_t get_CRC8_check_sum(unsigned char *pch_message, unsigned int dw_length, unsigned char ucCRC8) {
+
+/******************* CRC Verify *************************/
+uint8_t getCRC8CheckSum(unsigned char *pch_message, unsigned int dw_length, unsigned char ucCRC8) {
   unsigned char uc_index;
   while (dw_length--) {
     uc_index = ucCRC8 ^ (*pch_message++);
@@ -288,23 +251,75 @@ uint8_t get_CRC8_check_sum(unsigned char *pch_message, unsigned int dw_length, u
   }
   return (ucCRC8);
 }
-uint32_t verify_CRC16_check_sum(uint8_t *pchMessage, uint32_t dwLength) {
+
+/*
+** Descriptions: CRC8 Verify function
+** Input: Data to Verify,Stream length = Data + checksum
+** Output: True or False (CRC Verify Result)
+*/
+uint32_t verifyCRC8CheckSum(unsigned char *pch_message, unsigned int dw_length) {
+  unsigned char ucExpected = 0;
+  if ((pch_message == nullptr) || (dw_length <= 2)) {
+    return 0;
+  }
+  ucExpected = getCRC8CheckSum(pch_message, dw_length - 1, CRC8_INIT);
+  return (ucExpected == pch_message[dw_length - 1]);
+}
+
+/*
+** Descriptions: append CRC8 to the end of data
+** Input: Data to CRC and append,Stream length = Data + checksum
+** Output: True or False (CRC Verify Result)
+*/
+void appendCRC8CheckSum(unsigned char *pchMessage, unsigned int dwLength) {
+  unsigned char ucCRC = 0;
+  if ((pchMessage == nullptr) || (dwLength <= 2)) return;
+  ucCRC = getCRC8CheckSum((unsigned char *) pchMessage, dwLength - 1, CRC8_INIT);
+  pchMessage[dwLength - 1] = ucCRC;
+}
+
+/*
+** Descriptions: CRC16 checksum function
+** Input: Data to check,Stream length, initialized checksum
+** Output: CRC checksum
+*/
+uint16_t getCRC16CheckSum(uint8_t *pchMessage, uint32_t dwLength, uint16_t wCRC) {
+  uint8_t chData;
+  if (pchMessage == nullptr) {
+    return 0xFFFF;
+  }
+  while (dwLength--) {
+    chData = *pchMessage++;
+    (wCRC) = ((uint16_t) (wCRC) >> 8) ^ wCRC_table[((uint16_t) (wCRC) ^ (uint16_t) (chData)) & 0x00ff];
+  }
+  return wCRC;
+}
+
+/*
+** Descriptions: CRC16 Verify function
+** Input: Data to Verify,Stream length = Data + checksum
+** Output: True or False (CRC Verify Result)
+*/
+uint32_t verifyCRC16CheckSum(uint8_t *pchMessage, uint32_t dwLength) {
   uint16_t wExpected = 0;
   if ((pchMessage == nullptr) || (dwLength <= 2)) {
     return 0;
   }
-  wExpected = get_CRC16_check_sum(pchMessage, dwLength - 2, 0xffff);
+  wExpected = getCRC16CheckSum(pchMessage, dwLength - 2, CRC16_INIT);
   return ((wExpected & 0xff) == pchMessage[dwLength - 2] && ((wExpected >> 8) & 0xff) == pchMessage[dwLength - 1]);
-  //return wExpected;
 }
-uint16_t get_CRC16_check_sum(uint8_t *pch_message, uint32_t dw_length, uint16_t wCRC) {
-  uint8_t chData;
-  if (pch_message == nullptr) {
-    return 0xFFFF;
+
+/*
+** Descriptions: append CRC16 to the end of data
+** Input: Data to CRC and append,Stream length = Data + checksum
+** Output: True or False (CRC Verify Result)
+*/
+void appendCRC16CheckSum(uint8_t *pchMessage, uint32_t dwLength) {
+  uint16_t wCRC = 0;
+  if ((pchMessage == nullptr) || (dwLength <= 2)) {
+    return;
   }
-  while (dw_length--) {
-    chData = *pch_message++;
-    (wCRC) = ((uint16_t) (wCRC) >> 8) ^ wCRC_table[((uint16_t) (wCRC) ^ (uint16_t) (chData)) & 0x00ff];
-  }
-  return wCRC;
+  wCRC = getCRC16CheckSum((uint8_t *) pchMessage, dwLength - 2, CRC16_INIT);
+  pchMessage[dwLength - 2] = (uint8_t) (wCRC & 0x00ff);
+  pchMessage[dwLength - 1] = (uint8_t) ((wCRC >> 8) & 0x00ff);
 }

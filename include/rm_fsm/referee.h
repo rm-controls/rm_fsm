@@ -66,4 +66,11 @@ class Referee {
 };
 }
 
+uint8_t getCRC8CheckSum(unsigned char *pch_message, unsigned int dw_length, unsigned char ucCRC8);
+uint32_t verifyCRC8CheckSum(unsigned char *pch_message, unsigned int dw_length);
+void appendCRC8CheckSum(unsigned char *pchMessage, unsigned int dwLength);
+uint32_t verifyCRC16CheckSum(uint8_t *pchMessage, uint32_t dwLength);
+uint16_t getCRC16CheckSum(uint8_t *pchMessage, uint32_t dwLength, uint16_t wCRC);
+void appendCRC16CheckSum(unsigned char *pchMessage, unsigned int dwLength);
+
 #endif //SRC_RM_BRIDGE_INCLUDE_RT_RT_REFEREE_H_

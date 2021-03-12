@@ -275,7 +275,7 @@ typedef struct {
   uint32_t radius: 10;
   uint32_t end_x: 11;
   uint32_t end_y: 11;
-} GraphicDataStruct;
+}__packed GraphicDataStruct;
 
 typedef struct {
   GraphicDataStruct grapic_data_struct;
@@ -320,7 +320,7 @@ const uint8_t CRC8_table[256] =
         0xe9, 0xb7, 0x55, 0x0b, 0x88, 0xd6, 0x34, 0x6a, 0x2b, 0x75, 0x97, 0xc9, 0x4a, 0x14, 0xf6, 0xa8,
         0x74, 0x2a, 0xc8, 0x96, 0x15, 0x4b, 0xa9, 0xf7, 0xb6, 0xe8, 0x0a, 0x54, 0xd7, 0x89, 0x6b, 0x35,
     };
-//uint16_t CRC16_INIT = 0xffff;
+const uint16_t CRC16_INIT = 0xffff;
 const uint16_t wCRC_table[256] =
     {
         0x0000, 0x1189, 0x2312, 0x329b, 0x4624, 0x57ad, 0x6536, 0x74bf,
@@ -356,8 +356,5 @@ const uint16_t wCRC_table[256] =
         0xf78f, 0xe606, 0xd49d, 0xc514, 0xb1ab, 0xa022, 0x92b9, 0x8330,
         0x7bc7, 0x6a4e, 0x58d5, 0x495c, 0x3de3, 0x2c6a, 0x1ef1, 0x0f78
     };
-uint32_t verify_CRC8_check_sum(unsigned char *pch_message, unsigned int dw_length);
-uint8_t get_CRC8_check_sum(unsigned char *pch_message, unsigned int dw_length, unsigned char ucCRC8);
-uint32_t verify_CRC16_check_sum(uint8_t *pchMessage, uint32_t dwLength);
-uint16_t get_CRC16_check_sum(uint8_t *pch_message, uint32_t dw_length, uint16_t wCRC);
+
 #endif //SRC_RM_BRIDGE_INCLUDE_RT_PROTOCOL_H_
