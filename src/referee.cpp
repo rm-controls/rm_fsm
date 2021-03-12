@@ -232,43 +232,57 @@ void Referee::getData(uint8_t *frame) {
   }
 }
 
-void Referee::sendGraphicSingle() {
-  uint8_t data[200] = {0,};
-  SendClientData send_data;
+void Referee::drawGraphic(RobotId robot_id, ClientId client_id,
+                          int side, GraphicOperateType operate_type) {
+  uint8_t tx_buffer[128] = {0,};
+  DrawClientGraphicData send_data;
 
-  send_data.txFrameHeader.sof = 0xA5;
-  send_data.txFrameHeader.seq = 0;
-  send_data.txFrameHeader.data_length = sizeof(StudentInteractiveHeaderDataReceive) + sizeof(GraphicDataStruct);
-  memcpy(data, &send_data.txFrameHeader, sizeof(FrameHeaderStruct));
-  appendCRC8CheckSum(data, sizeof(FrameHeaderStruct));
-  send_data.CmdID = 0x0301;
+  send_data.tx_frame_header_.sof = 0xA5;
+  send_data.tx_frame_header_.seq = 0;
+  send_data.tx_frame_header_.data_length = sizeof(StudentInteractiveHeaderData) + sizeof(GraphicDataStruct);
 
-  send_data.dataFrameHeader.data_cmd_id = 0x0101;
-  send_data.dataFrameHeader.send_ID = 101;
-  send_data.dataFrameHeader.receiver_ID = 0x0165;
+  memcpy(tx_buffer, &send_data.tx_frame_header_, sizeof(FrameHeaderStruct));
+  appendCRC8CheckSum(tx_buffer, sizeof(FrameHeaderStruct));
 
-  send_data.graphic_data.graphic_name[0] = 0;
-  send_data.graphic_data.graphic_name[1] = 0;
-  send_data.graphic_data.graphic_name[2] = 0;
-  send_data.graphic_data.operate_type = 1;
-  send_data.graphic_data.graphic_type = 1;
-  send_data.graphic_data.layer = 0;
-  send_data.graphic_data.color = 1;
-  send_data.graphic_data.start_angle = 0;
-  send_data.graphic_data.end_angle = 0;
-  send_data.graphic_data.width = 50;
-  send_data.graphic_data.start_x = 0;
-  send_data.graphic_data.start_y = 0;
-  send_data.graphic_data.radius = 9;
-  send_data.graphic_data.end_x = 500;
-  send_data.graphic_data.end_y = 500;
+  send_data.cmd_id_ = kStudentInteractiveDataCmdId;
 
-  memcpy(data + sizeof(FrameHeaderStruct),
-         (uint8_t *) &send_data.CmdID,
-         sizeof(send_data.CmdID) + sizeof(send_data.dataFrameHeader) + sizeof(send_data.graphic_data));
-  appendCRC16CheckSum(data, sizeof(send_data));
+  send_data.graphic_header_data_.data_cmd_id = kClientGraphicSingleCmdId;
+  send_data.graphic_header_data_.send_ID = robot_id;
+  send_data.graphic_header_data_.receiver_ID = client_id;
 
-  serial_.write(data, sizeof(send_data));
+  if (side) {
+    send_data.graphic_data_struct_.graphic_name[0] = 1;
+    send_data.graphic_data_struct_.start_x = 100;
+    send_data.graphic_data_struct_.start_y = 800;
+    send_data.graphic_data_struct_.end_x = 200;
+    send_data.graphic_data_struct_.end_y = 900;
+  } else {
+    send_data.graphic_data_struct_.graphic_name[0] = 0;
+    send_data.graphic_data_struct_.start_x = 1720;
+    send_data.graphic_data_struct_.start_y = 800;
+    send_data.graphic_data_struct_.end_x = 1820; // 11 bit
+    send_data.graphic_data_struct_.end_y = 900; // 11 bit
+  }
+
+  send_data.graphic_data_struct_.graphic_name[1] = 0;
+  send_data.graphic_data_struct_.graphic_name[2] = 0;
+  send_data.graphic_data_struct_.operate_type = operate_type;
+  send_data.graphic_data_struct_.graphic_type = 1;
+  send_data.graphic_data_struct_.layer = 0;
+  send_data.graphic_data_struct_.color = 1; // yellow
+  send_data.graphic_data_struct_.start_angle = 0; // take the lower 9 bit
+  send_data.graphic_data_struct_.end_angle = 0; // 9 bit
+  send_data.graphic_data_struct_.width = 10; // 10 bit
+  send_data.graphic_data_struct_.radius = 0; // 11 bit
+
+
+  memcpy(tx_buffer + sizeof(FrameHeaderStruct), (uint8_t *) &send_data.cmd_id_,
+         sizeof(send_data.cmd_id_) + sizeof(send_data.graphic_header_data_)
+             + sizeof(send_data.graphic_data_struct_));
+
+  appendCRC16CheckSum(tx_buffer, sizeof(send_data));
+
+  serial_.write(tx_buffer, sizeof(send_data));
 }
 
 }

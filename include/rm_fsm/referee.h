@@ -32,13 +32,8 @@ struct RefereeData {
   DartClientCmd dart_client_cmd_;
   StudentInteractiveHeaderData student_interactive_header_data_;
   RobotInteractiveData robot_interactive_data_;
-  ClientCustomGraphicDelete client_custom_graphic_delete_;
+  GraphicDeleteStruct client_custom_graphic_delete_;
   GraphicDataStruct graphic_data_struct_;
-  ClientCustomGraphicSingle client_custom_graphic_single_;
-  ClientCustomGraphicDouble client_custom_graphic_double_;
-  ClientCustomGraphicFive client_custom_graphic_five_;
-  ClientCustomGraphicSeven client_custom_graphic_seven_;
-  ClientCustomCharacter client_custom_character_;
   int performance_system_; // Performance level system
 };
 
@@ -48,7 +43,8 @@ class Referee {
   ~Referee() = default;
   void init();
   void read();
-  void sendGraphicSingle();
+  void drawGraphic(RobotId robot_id, ClientId client_id, int side, GraphicOperateType operate_type);
+  void deleteGraphic(RobotId, ClientId, DeleteType, uint8_t);
 
   RefereeData referee_data_{};
   bool flag = false;
@@ -63,7 +59,6 @@ class Referee {
       kProtocolCmdIdLength = sizeof(uint16_t), kProtocolTailLength = 2;
   void unpack(const std::vector<uint8_t> &rx_buffer);
   void getData(uint8_t *frame);
-
 };
 }
 

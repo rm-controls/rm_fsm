@@ -250,12 +250,7 @@ typedef struct {
   uint16_t data_cmd_id;
   uint16_t send_ID;
   uint16_t receiver_ID;
-} StudentInteractiveHeaderData;
-typedef struct {
-  uint16_t data_cmd_id;
-  uint16_t send_ID;
-  uint16_t receiver_ID;
-}__packed StudentInteractiveHeaderDataReceive;
+}__packed StudentInteractiveHeaderData;
 
 typedef struct {
   uint8_t *data;
@@ -283,25 +278,20 @@ typedef struct {
 }__packed GraphicDataStruct;
 
 typedef struct {
-  GraphicDataStruct grapic_data_struct;
-} ClientCustomGraphicSingle;
+  FrameHeaderStruct tx_frame_header_;
+  uint16_t cmd_id_;
+  StudentInteractiveHeaderData graphic_header_data_;
+  GraphicDataStruct graphic_data_struct_;
+  uint16_t frame_tail_;
+}__packed DrawClientGraphicData;
 
 typedef struct {
-  GraphicDataStruct grapic_data_struct[2];
-} ClientCustomGraphicDouble;
-
-typedef struct {
-  GraphicDataStruct grapic_data_struct[5];
-} ClientCustomGraphicFive;
-
-typedef struct {
-  GraphicDataStruct grapic_data_struct[7];
-} ClientCustomGraphicSeven;
-
-typedef struct {
-  GraphicDataStruct grapic_data_struct;
-  uint8_t data[30];
-} ClientCustomCharacter;
+  FrameHeaderStruct tx_frame_header_;
+  uint16_t cmd_id_;
+  StudentInteractiveHeaderData graphic_header_data_;
+  GraphicDataStruct graphic_data_struct_[7];
+  uint16_t frame_tail_;
+}__packed DrawClientCharData;
 
 typedef struct {
   FrameHeaderStruct txFrameHeader;//帧头
