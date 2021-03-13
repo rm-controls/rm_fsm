@@ -231,6 +231,10 @@ void Referee::getData(uint8_t *frame) {
       memcpy(&referee_data_.dart_client_cmd_, frame + index, sizeof(DartClientCmd));
       break;
     }
+    case kRobotCommandCmdId: {
+      memcpy(&referee_data_.robot_command_, frame + index, sizeof(RobotCommand));
+      break;
+    }
     default: {
       ROS_WARN("[Referee]Referee command ID not found.");
       break;

@@ -29,7 +29,8 @@ typedef enum {
   kRobotRfidStatusCmdId = 0x0209,
   kDartClientCmdId = 0x020A,
   kStudentInteractiveDataCmdId = 0x0301,
-  IDCustomData,
+  kRobotInteractiveDataCmdId = 0x0302,
+  kRobotCommandCmdId = 0x0303,
 } RefereeCmdId;
 
 typedef struct {

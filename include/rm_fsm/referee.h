@@ -32,6 +32,8 @@ struct RefereeData {
   DartClientCmd dart_client_cmd_;
   StudentInteractiveHeaderData student_interactive_header_data_;
   GraphicDataStruct graphic_data_struct_;
+  RobotInteractiveData robot_interactive_data_;
+  RobotCommand robot_command_;
   int performance_system_; // Performance level system
 };
 
