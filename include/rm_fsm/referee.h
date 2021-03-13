@@ -31,8 +31,6 @@ struct RefereeData {
   RfidStatus rfid_status_;
   DartClientCmd dart_client_cmd_;
   StudentInteractiveHeaderData student_interactive_header_data_;
-  RobotInteractiveData robot_interactive_data_;
-  GraphicDeleteStruct client_custom_graphic_delete_;
   GraphicDataStruct graphic_data_struct_;
   int performance_system_; // Performance level system
 };
@@ -44,7 +42,8 @@ class Referee {
   void init();
   void read();
   void drawGraphic(RobotId robot_id, ClientId client_id, int side, GraphicOperateType operate_type);
-  void deleteGraphic(RobotId, ClientId, DeleteType, uint8_t);
+  void drawCharacter(RobotId robot_id, ClientId client_id, int side, GraphicOperateType operate_type, std::string data);
+  void drawFloat(RobotId robot_id, ClientId client_id, float data, GraphicOperateType operate_type);
 
   RefereeData referee_data_{};
   bool flag = false;

@@ -200,7 +200,7 @@ typedef struct {
   uint16_t operate_launch_cmd_time;
 } DartClientCmd;
 
-/***********************Interactive data between robots----0x0301********************/
+/*********************** Interactive data between robots----0x0301 ********************/
 typedef enum {
   kRobotInteractiveCmdIdMin = 0x0200,
   kRobotInteractiveCmdIdMax = 0x02FF,
@@ -252,14 +252,11 @@ typedef struct {
   uint16_t receiver_ID;
 }__packed StudentInteractiveHeaderData;
 
-typedef struct {
-  uint8_t *data;
-} RobotInteractiveData;
-
-typedef struct {
-  uint8_t operate_type;
-  uint8_t layer;
-} ClientCustomGraphicDelete;
+typedef enum {
+  kAdd = 1,
+  kModify = 2,
+  kDelete = 3
+} GraphicOperateType;
 
 typedef struct {
   uint8_t graphic_name[3];
@@ -289,17 +286,24 @@ typedef struct {
   FrameHeaderStruct tx_frame_header_;
   uint16_t cmd_id_;
   StudentInteractiveHeaderData graphic_header_data_;
-  GraphicDataStruct graphic_data_struct_[7];
+  GraphicDataStruct graphic_data_struct_;
+  uint8_t data_[30];
   uint16_t frame_tail_;
 }__packed DrawClientCharData;
 
+/********************** Robot Interactive data ----0x0302 *******************************************/
 typedef struct {
-  FrameHeaderStruct txFrameHeader;//帧头
-  uint16_t CmdID;//命令码
-  StudentInteractiveHeaderDataReceive dataFrameHeader;//数据段头结构
-  GraphicDataStruct graphic_data;//数据段
-  uint16_t FrameTail;//帧尾
-}__packed SendClientData;
+  uint8_t *data;
+}__packed RobotInteractiveData;
+
+/********************** Robot command data ----0x0303 ***********************************************/
+typedef struct {
+  float target_position_x;
+  float target_position_y;
+  float target_position_z;
+  uint8_t command_keyboard;
+  uint16_t target_robot_ID;
+}__packed RobotCommand;
 
 /***********************Frame tail(CRC8_CRC16)********************************************/
 const uint8_t
