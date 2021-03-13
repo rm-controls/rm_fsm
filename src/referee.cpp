@@ -7,10 +7,16 @@
 namespace referee {
 void Referee::init() {
   serial::Timeout timeout = serial::Timeout::simpleTimeout(50);
-  serial_.setPort("/dev/usbReferee");
-  serial_.setBaudrate(115200);
-  serial_.setTimeout(timeout);
   int count = 0;
+
+  try {
+    serial_.setPort("/dev/usbReferee");
+    serial_.setBaudrate(115200);
+    serial_.setTimeout(timeout);
+  } catch (serial::SerialException &e) {
+    ROS_WARN("Cannot set serial port of referee system, check whether the serial library is installed.");
+    return;
+  }
 
   while (!serial_.isOpen()) {
     try {
