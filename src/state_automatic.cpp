@@ -14,12 +14,12 @@ StateAutomatic<T>::StateAutomatic(FsmData<T> *fsm_data,
   speed_ = 0;
   last_position_ = 0;
   current_position_ = 0;
-  auto_move_chassis_speed_ = getParam(this->state_nh_, "auto_move_chassis_speed", 1.0);
-  auto_move_chassis_accel_ = getParam(this->state_nh_, "auto_move_chassis_accel", 1.0);
-  auto_move_pitch_speed_ = getParam(this->state_nh_, "auto_move_pitch_speed", 0.5);
-  auto_move_yaw_speed_ = getParam(this->state_nh_,"auto_move_yaw_speed",3.14);
-  start_ = getParam(this->state_nh_,"auto_move_start",0.3);
-  end_ = getParam(this->state_nh_,"auto_move_end",1.5);
+  auto_move_chassis_speed_ = getParam(nh, "auto_move_chassis_speed", 1.0);
+  auto_move_chassis_accel_ = getParam(nh, "auto_move_chassis_accel", 1.0);
+  auto_move_pitch_speed_ = getParam(nh, "auto_move_pitch_speed", 0.5);
+  auto_move_yaw_speed_ = getParam(nh, "auto_move_yaw_speed", 3.14);
+  start_ = getParam(nh, "auto_move_start", 0.3);
+  end_ = getParam(nh, "auto_move_end", 1.5);
 
   map2odom_.header.stamp = ros::Time::now();
   map2odom_.header.frame_id = "map";

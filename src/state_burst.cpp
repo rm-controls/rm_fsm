@@ -17,9 +17,9 @@ void StateBurst<T>::onEnter() {
 
 template<typename T>
 void StateBurst<T>::run() {
-  double linear_x = 0, linear_y = 0, angular_z = 0;
-  double rate_yaw = 0, rate_pitch = 0;
-  double shoot_hz = 0;
+  double linear_x = 0.0, linear_y = 0.0, angular_z = 0.0;
+  double rate_yaw = 0.0, rate_pitch = 0.0;
+  double shoot_hz = 0.0;
   ros::Time now = ros::Time::now();
 
   if (this->control_mode_ == "pc") { // pc control
@@ -47,7 +47,7 @@ void StateBurst<T>::run() {
     if (this->data_->dbus_data_.s_l == this->data_->dbus_data_.MID)
       this->setShoot(this->data_->shoot_cmd_.READY,
                      this->data_->shoot_cmd_.SPEED_10M_PER_SECOND,
-                     shoot_hz,
+                     0.0,
                      now);
     else if (this->data_->dbus_data_.s_l == this->data_->dbus_data_.UP)
       this->setShoot(this->data_->shoot_cmd_.PUSH,

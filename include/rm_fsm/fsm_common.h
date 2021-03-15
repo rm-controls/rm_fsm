@@ -49,8 +49,6 @@ class State {
   tf2_ros::Buffer tf_;
   tf2_ros::TransformListener *tf_listener_;
 
-  ros::NodeHandle state_nh_;
-
   std::string control_mode_;
 
   // chassis fsm control accelerate
@@ -66,6 +64,8 @@ class State {
   // gimbal fsm control coefficient
   double coefficient_yaw_ = 0.0;
   double coefficient_pitch_ = 0.0;
+
+  double shoot_hz_ = 0.0;
 };
 
 /**
