@@ -18,13 +18,11 @@ void StatePassive<T>::onEnter() {
 
 template<typename T>
 void StatePassive<T>::run() {
-  double linear_x = 0, linear_y = 0, angular_z = 0;
-  double rate_yaw = 0, rate_pitch = 0;
   ros::Time now = ros::Time::now();
 
-  this->setChassis(this->data_->chassis_cmd_.PASSIVE, linear_x, linear_y, angular_z);
-  this->setGimbal(this->data_->gimbal_cmd_.PASSIVE, rate_yaw, rate_pitch);
-  this->setShoot(this->data_->shoot_cmd_.PASSIVE, this->data_->shoot_cmd_.SPEED_10M_PER_SECOND, shoot_hz, now);
+  this->setChassis(this->data_->chassis_cmd_.PASSIVE, 0.0, 0.0, 0.0);
+  this->setGimbal(this->data_->gimbal_cmd_.PASSIVE, 0.0, 0.0);
+  this->setShoot(this->data_->shoot_cmd_.PASSIVE, this->data_->shoot_cmd_.SPEED_10M_PER_SECOND, 0.0, now);
 }
 
 template<typename T>
