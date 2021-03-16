@@ -17,14 +17,13 @@ void StateRaw<T>::onEnter() {
 
 template<typename T>
 void StateRaw<T>::run() {
-  double linear_x, linear_y, angular_z;
+  double linear_x, linear_y;
   double rate_yaw, rate_pitch;
   ros::Time now = ros::Time::now();
 
   if (this->control_mode_ == "pc") { // pc control
     linear_x = (this->data_->dbus_data_.key_w - this->data_->dbus_data_.key_s); // W/S
     linear_y = (this->data_->dbus_data_.key_a - this->data_->dbus_data_.key_d); // A/D
-    angular_z = (this->data_->dbus_data_.key_q - this->data_->dbus_data_.key_e); // Q/E
 
     rate_yaw = -this->data_->dbus_data_.m_x;
     rate_pitch = this->data_->dbus_data_.m_y;
@@ -38,7 +37,6 @@ void StateRaw<T>::run() {
   } else { // rc control
     linear_x = this->data_->dbus_data_.ch_r_y;
     linear_y = -this->data_->dbus_data_.ch_r_x;
-    angular_z = this->data_->dbus_data_.wheel;
 
     rate_yaw = -this->data_->dbus_data_.ch_l_x;
     rate_pitch = -this->data_->dbus_data_.ch_l_y;
@@ -54,7 +52,7 @@ void StateRaw<T>::run() {
     }
   }
 
-  this->setChassis(this->data_->chassis_cmd_.RAW, linear_x, linear_y, angular_z);
+  this->setChassis(this->data_->chassis_cmd_.RAW, linear_x, linear_y, 0.0);
   this->setGimbal(this->data_->gimbal_cmd_.RATE, rate_yaw, rate_pitch);
 }
 template<typename T>

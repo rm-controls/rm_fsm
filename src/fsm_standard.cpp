@@ -32,9 +32,6 @@ std::string FsmStandard<T>::getDesiredState() {
     } else if (this->data_.dbus_data_.key_ctrl
         && this->data_.dbus_data_.key_e) { // ctrl + e change state to fly slope
       return "flyslope";
-    } else if (this->data_.dbus_data_.key_ctrl && this->data_.dbus_data_.key_shift
-        && this->data_.dbus_data_.key_q) { // ctrl + shift + q change state to burst
-      return "burst";
     } else {
       return this->current_state_->state_name_;
     }

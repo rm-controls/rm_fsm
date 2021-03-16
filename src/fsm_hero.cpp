@@ -27,6 +27,7 @@ std::string FsmHero<T>::getDesiredState() {
     } else {
       return this->current_state_->state_name_;
     }
+
   } else if (this->control_mode_ == "rc") { // rc control
     if (this->data_.dbus_data_.s_r == this->data_.dbus_data_.DOWN) {
       return "passive";

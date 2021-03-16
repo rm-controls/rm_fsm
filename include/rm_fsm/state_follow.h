@@ -15,7 +15,8 @@ class StateFollow : public State<T> {
   void onEnter() override;
   void run() override;
   void onExit() override;
-  int shoot_hz;
+ private:
+  bool is_spin = false;
 };
 
 #endif //SRC_RM_SOFTWARE_RM_FSM_INCLUDE_RM_FSM_STATE_FOLLOW_H_

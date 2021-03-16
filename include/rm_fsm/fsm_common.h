@@ -5,8 +5,6 @@
 #ifndef SRC_RM_SOFTWARE_RM_DECISION_SRC_FSM_FSM_STATE_H_
 #define SRC_RM_SOFTWARE_RM_DECISION_SRC_FSM_FSM_STATE_H_
 
-#include <rm_fsm/fsm_data.h>
-
 #include <iostream>
 #include <tf/transform_listener.h>
 #include <queue>
@@ -14,6 +12,7 @@
 #include <utility>
 #include <control_toolbox/pid.h>
 #include "ori_tool.h"
+#include "rm_fsm/fsm_data.h"
 #include "rm_fsm/safety_checker.h"
 
 /**
