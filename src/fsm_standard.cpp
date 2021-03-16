@@ -7,12 +7,12 @@
 template<typename T>
 FsmStandard<T>::FsmStandard(ros::NodeHandle &node_handle) : Fsm<T>(node_handle) {
   state_passive_ = new StatePassive<T>(&this->data_, "passive", node_handle);
-  state_raw_ = new StateRaw<T>(&this->data_, "raw", node_handle);
+  state_follow_ = new StateFollow<T>(&this->data_, "follow", node_handle);
   state_fly_slope_ = new StateFlySlope<T>(&this->data_, "flyslope", node_handle);
   state_burst_ = new StateBurst<T>(&this->data_, "burst", node_handle);
 
   this->string2state.insert(std::pair<std::string, State<T> *>("passive", state_passive_));
-  this->string2state.insert(std::pair<std::string, State<T> *>("raw", state_raw_));
+  this->string2state.insert(std::pair<std::string, State<T> *>("follow", state_follow_));
   this->string2state.insert(std::pair<std::string, State<T> *>("flyslope", state_fly_slope_));
   this->string2state.insert(std::pair<std::string, State<T> *>("burst", state_burst_));
 
@@ -28,7 +28,7 @@ std::string FsmStandard<T>::getDesiredState() {
       return "passive";
     } else if (this->data_.dbus_data_.key_ctrl
         && this->data_.dbus_data_.key_w) { // ctrl + w change state to raw
-      return "raw";
+      return "follow";
     } else if (this->data_.dbus_data_.key_ctrl
         && this->data_.dbus_data_.key_e) { // ctrl + e change state to fly slope
       return "flyslope";
@@ -42,7 +42,7 @@ std::string FsmStandard<T>::getDesiredState() {
     if (this->data_.dbus_data_.s_r == this->data_.dbus_data_.DOWN) {
       return "passive";
     } else if (this->data_.dbus_data_.s_r == this->data_.dbus_data_.MID) {
-      return "raw";
+      return "follow";
     } else if (this->data_.dbus_data_.s_r == this->data_.dbus_data_.UP) {
       return "flyslope";
     } else {
