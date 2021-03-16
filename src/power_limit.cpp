@@ -15,15 +15,14 @@ PowerLimit::PowerLimit(ros::NodeHandle &nh) {
 }
 
 void PowerLimit::input(referee::RefereeData referee) {
-  float chassis_power = referee.power_heat_data_.chassis_power;
-  float chassis_voltage = referee.power_heat_data_.chassis_volt;
+  double chassis_power = referee.power_heat_data_.chassis_power;
+  double chassis_voltage = referee.power_heat_data_.chassis_volt;
   double chassis_current_need = 99;
   double chassis_current_limit;
   uint16_t w0 = referee.power_heat_data_.chassis_power_buffer; //chassis power buffer now
   double w1, w2;              //chassis power buffer 100ms&200ms later
+  double limit_power;
 
-
-  float limit_power;
   // Change limit power of different level and robot
   if ((referee.game_robot_status_.robot_id >= 3
       && referee.game_robot_status_.robot_id <= 5)
@@ -74,6 +73,6 @@ void PowerLimit::input(referee::RefereeData referee) {
   }
 }
 
-double PowerLimit::output() {
+double PowerLimit::output() const {
   return current_;
 }

@@ -13,25 +13,25 @@ State<T>::State(FsmData<T> *fsm_data, std::string state_name, ros::NodeHandle &n
   control_mode_ = getParam(nh, "control_mode", (std::string) "rc");
 
   if (control_mode_ == "rc") { // get rc params
-    accel_x_ = getParam(nh, "rm_fsm/rc_param/accel_x", 10.0);
-    accel_y_ = getParam(nh, "rm_fsm/rc_param/accel_y", 10.0);
-    accel_angular_ = getParam(nh, "rm_fsm/rc_param/accel_angular", 10.0);
-    coefficient_x_ = getParam(nh, "rm_fsm/rc_param/coefficient_x", 3.5);
-    coefficient_y_ = getParam(nh, "rm_fsm/rc_param/coefficient_y", 3.5);
-    coefficient_angular_ = getParam(nh, "rm_fsm/rc_param/coefficient_angular", 6.0);
-    coefficient_yaw_ = getParam(nh, "rm_fsm/rc_param/coefficient_yaw", 12.56);
-    coefficient_pitch_ = getParam(nh, "rm_fsm/rc_param/coefficient_pitch", 12.56);
-    shoot_hz_ = getParam(nh, "rm_fsm/rc_param/shoot_hz", 5.0);
+    accel_x_ = getParam(nh, "control_param/rc_param/accel_x", 10.0);
+    accel_y_ = getParam(nh, "control_param/rc_param/accel_y", 10.0);
+    accel_angular_ = getParam(nh, "control_param/rc_param/accel_angular", 10.0);
+    coefficient_x_ = getParam(nh, "control_param/rc_param/coefficient_x", 3.5);
+    coefficient_y_ = getParam(nh, "control_param/rc_param/coefficient_y", 3.5);
+    coefficient_angular_ = getParam(nh, "control_param/rc_param/coefficient_angular", 6.0);
+    coefficient_yaw_ = getParam(nh, "control_param/rc_param/coefficient_yaw", 12.56);
+    coefficient_pitch_ = getParam(nh, "control_param/rc_param/coefficient_pitch", 12.56);
+    shoot_hz_ = getParam(nh, "control_param/rc_param/shoot_hz", 5.0);
   } else if (control_mode_ == "pc") { // get pc params
-    accel_x_ = getParam(nh, "rm_fsm/pc_param/accel_x", 10.0);
-    accel_y_ = getParam(nh, "rm_fsm/pc_param/accel_y", 10.0);
-    accel_angular_ = getParam(nh, "rm_fsm/pc_param/accel_angular", 10.0);
-    coefficient_x_ = getParam(nh, "rm_fsm/pc_param/coefficient_x", 3.5);
-    coefficient_y_ = getParam(nh, "rm_fsm/pc_param/coefficient_y", 3.5);
-    coefficient_angular_ = getParam(nh, "rm_fsm/pc_param/coefficient_angular", 6.0);
-    coefficient_yaw_ = getParam(nh, "rm_fsm/pc_param/coefficient_yaw", 125.6);
-    coefficient_pitch_ = getParam(nh, "rm_fsm/pc_param/coefficient_pitch", 125.6);
-    shoot_hz_ = getParam(nh, "rm_fsm/pc_param/shoot_hz", 5.0);
+    accel_x_ = getParam(nh, "control_param/pc_param/accel_x", 10.0);
+    accel_y_ = getParam(nh, "control_param/pc_param/accel_y", 10.0);
+    accel_angular_ = getParam(nh, "control_param/pc_param/accel_angular", 10.0);
+    coefficient_x_ = getParam(nh, "control_param/pc_param/coefficient_x", 3.5);
+    coefficient_y_ = getParam(nh, "control_param/pc_param/coefficient_y", 3.5);
+    coefficient_angular_ = getParam(nh, "control_param/pc_param/coefficient_angular", 6.0);
+    coefficient_yaw_ = getParam(nh, "control_param/pc_param/coefficient_yaw", 125.6);
+    coefficient_pitch_ = getParam(nh, "control_param/pc_param/coefficient_pitch", 125.6);
+    shoot_hz_ = getParam(nh, "control_param/pc_param/shoot_hz", 5.0);
   } else {
     ROS_ERROR("Cannot load control param.");
   }
@@ -48,11 +48,12 @@ void State<T>::setChassis(uint8_t chassis_mode,
   this->data_->chassis_cmd_.accel.linear.y = accel_y_;
   this->data_->chassis_cmd_.accel.angular.z = accel_angular_;
 
+  this->data_->power_limit_->input(this->data_->referee_->referee_data_);
+  this->data_->chassis_cmd_.effort_limit = this->data_->power_limit_->output();
+
   this->data_->cmd_vel.linear.x = linear_x * coefficient_x_;
   this->data_->cmd_vel.linear.y = linear_y * coefficient_y_;
   this->data_->cmd_vel.angular.z = angular_z * coefficient_angular_;
-
-  this->data_->chassis_cmd_.effort_limit = 99;
 
   this->data_->vel_cmd_pub_.publish(this->data_->cmd_vel);
   this->data_->chassis_cmd_pub_.publish(this->data_->chassis_cmd_);
