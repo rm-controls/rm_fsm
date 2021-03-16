@@ -14,14 +14,17 @@ int main(int argc, char **argv) {
   ros::NodeHandle nh("~");
   robot = getParam(nh, "robot_type", (std::string) "error");
   Fsm<float> *control_fsm;
-  if (robot == "standard")
+  if (robot == "standard") {
     control_fsm = new FsmStandard<float>(nh);
-  else if (robot == "sentry")
+    ROS_INFO("Running standard robot.");
+  } else if (robot == "sentry") {
     control_fsm = new FsmSentry<float>(nh);
-  else if (robot == "hero")
+    ROS_INFO("Running sentry robot.");
+  } else if (robot == "hero") {
     control_fsm = new FsmHero<float>(nh);
-  else {
-    ROS_ERROR("no robot type load");
+    ROS_INFO("Running hero robot.");
+  } else {
+    ROS_ERROR("No robot type load");
     return 0;
   }
   ros::Rate loop_rate(100);

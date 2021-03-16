@@ -12,7 +12,7 @@ StateRaw<T>::StateRaw(FsmData<T> *fsm_data,
 
 template<typename T>
 void StateRaw<T>::onEnter() {
-  ROS_INFO("[fsm] Enter raw mode");
+  ROS_INFO("Enter raw mode");
 }
 
 template<typename T>
@@ -58,7 +58,7 @@ void StateRaw<T>::run() {
 template<typename T>
 void StateRaw<T>::onExit() {
   // Nothing to clean up when exiting
-  ROS_INFO("[fsm] Exit raw mode");
+  ROS_INFO("Exit raw mode");
 }
 
 template

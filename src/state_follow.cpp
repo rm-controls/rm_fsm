@@ -12,7 +12,7 @@ StateFollow<T>::StateFollow(FsmData<T> *fsm_data,
 
 template<typename T>
 void StateFollow<T>::onEnter() {
-  ROS_INFO("[fsm] Enter follow mode");
+  ROS_INFO("Enter follow mode");
 }
 
 template<typename T>
@@ -71,7 +71,7 @@ void StateFollow<T>::run() {
 template<typename T>
 void StateFollow<T>::onExit() {
   // Nothing to clean up when exiting
-  ROS_INFO("[fsm] Exit follow mode");
+  ROS_INFO("Exit follow mode");
 }
 
 template

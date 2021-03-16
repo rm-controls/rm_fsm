@@ -12,7 +12,7 @@ StateBurst<T>::StateBurst(FsmData<T> *fsm_data,
 
 template<typename T>
 void StateBurst<T>::onEnter() {
-  ROS_INFO("[fsm] Enter burst mode");
+  ROS_INFO("Enter burst mode");
 }
 
 template<typename T>
@@ -55,7 +55,7 @@ void StateBurst<T>::run() {
 template<typename T>
 void StateBurst<T>::onExit() {
 //Nothing to clean up when exiting
-  ROS_INFO("[fsm] Exit burst mode");
+  ROS_INFO("Exit burst mode");
 }
 
 template

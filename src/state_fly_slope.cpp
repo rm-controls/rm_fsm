@@ -12,7 +12,7 @@ StateFlySlope<T>::StateFlySlope(FsmData<T> *fsm_data,
 
 template<typename T>
 void StateFlySlope<T>::onEnter() {
-  ROS_INFO("[fsm] Enter flyslope mode");
+  ROS_INFO("Enter flyslope mode");
 }
 
 template<typename T>
@@ -43,7 +43,7 @@ void StateFlySlope<T>::run() {
 template<typename T>
 void StateFlySlope<T>::onExit() {
   // Nothing to clean up when exiting
-  ROS_INFO("[fsm] Exit flyslope mode");
+  ROS_INFO("Exit flyslope mode");
 }
 
 template

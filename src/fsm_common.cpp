@@ -35,8 +35,6 @@ State<T>::State(FsmData<T> *fsm_data, std::string state_name, ros::NodeHandle &n
   } else {
     ROS_ERROR("Cannot load control param.");
   }
-
-  ROS_INFO("Initialized FSM state: %s", state_name_.c_str());
 }
 
 template<typename T>
@@ -109,9 +107,6 @@ Fsm<T>::Fsm(ros::NodeHandle &node_handle):nh_(node_handle) {
     ROS_INFO("Enter rc control.");
   else
     ROS_ERROR("Cannot enter the corresponding control mode (pc/rc).");
-
-  // Enter the new current state cleanly
-  ROS_INFO("Current state is invalid.");
 
   // Initialize to not be in transition
   next_state_ = current_state_;

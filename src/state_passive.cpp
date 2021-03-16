@@ -13,7 +13,7 @@ StatePassive<T>::StatePassive(FsmData<T> *fsm_data,
 
 template<typename T>
 void StatePassive<T>::onEnter() {
-  ROS_INFO("[fsm] Enter passive mode");
+  ROS_INFO("Enter passive mode");
 }
 
 template<typename T>
@@ -28,7 +28,7 @@ void StatePassive<T>::run() {
 template<typename T>
 void StatePassive<T>::onExit() {
 //Nothing to clean up when exiting
-  ROS_INFO("[fsm] Exit passive mode");
+  ROS_INFO("Exit passive mode");
 }
 
 template

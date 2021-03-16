@@ -33,7 +33,7 @@ StateAutomatic<T>::StateAutomatic(FsmData<T> *fsm_data,
 
 template<typename T>
 void StateAutomatic<T>::onEnter() {
-  ROS_INFO("[fsm] Enter automatic mode");
+  ROS_INFO("Enter automatic mode");
 }
 
 template<typename T>
@@ -150,7 +150,7 @@ void StateAutomatic<T>::run() {
 template<typename T>
 void StateAutomatic<T>::onExit() {
   // Nothing to clean up when exiting
-  ROS_INFO("[fsm] Exit automatic mode");
+  ROS_INFO("Exit automatic mode");
 }
 
 template
