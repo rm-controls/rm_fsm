@@ -27,7 +27,6 @@ std::string FsmSentry<T>::getDesiredState() {
     }else {
       return "passive";
     }
-
 }
 
 template
