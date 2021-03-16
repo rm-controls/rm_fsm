@@ -13,7 +13,6 @@
 #include <control_toolbox/pid.h>
 #include "ori_tool.h"
 #include "rm_fsm/fsm_data.h"
-#include "rm_fsm/safety_checker.h"
 
 /**
  * A base fsm state class for all robots.
@@ -90,8 +89,6 @@ class Fsm {
   // Runs the FSM logic and handles the state transitions and normal runs
   void run();
 
-  // FsmOperatingMode SafetyCheck();
-
   // Get desired state decided by control fsm data.
   virtual std::string getDesiredState() = 0;
 
@@ -101,8 +98,6 @@ class Fsm {
   State<T> *current_state_;    // current FSM state
   State<T> *next_state_;       // next FSM state
   std::string next_state_name_;  // next FSM state name
-
-  SafetyChecker<T> *safety_checker_;
 
   tf2_ros::Buffer tf_;
   tf2_ros::TransformListener *tf_listener_;

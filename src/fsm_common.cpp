@@ -51,11 +51,11 @@ void State<T>::setChassis(uint8_t chassis_mode,
   this->data_->power_limit_->input(this->data_->referee_->referee_data_);
   this->data_->chassis_cmd_.effort_limit = this->data_->power_limit_->output();
 
-  this->data_->cmd_vel.linear.x = linear_x * coefficient_x_;
-  this->data_->cmd_vel.linear.y = linear_y * coefficient_y_;
-  this->data_->cmd_vel.angular.z = angular_z * coefficient_angular_;
+  this->data_->cmd_vel_.linear.x = linear_x * coefficient_x_;
+  this->data_->cmd_vel_.linear.y = linear_y * coefficient_y_;
+  this->data_->cmd_vel_.angular.z = angular_z * coefficient_angular_;
 
-  this->data_->vel_cmd_pub_.publish(this->data_->cmd_vel);
+  this->data_->vel_cmd_pub_.publish(this->data_->cmd_vel_);
   this->data_->chassis_cmd_pub_.publish(this->data_->chassis_cmd_);
 }
 
@@ -90,7 +90,6 @@ void State<T>::setShoot(uint8_t shoot_mode, uint8_t shoot_speed, double shoot_hz
 template<typename T>
 Fsm<T>::Fsm(ros::NodeHandle &node_handle):nh_(node_handle) {
   tf_listener_ = new tf2_ros::TransformListener(tf_);
-  safety_checker_ = new SafetyChecker<T>(&data_);
 
   this->data_.init(nh_);
 
