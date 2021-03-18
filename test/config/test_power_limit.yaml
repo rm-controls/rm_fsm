@@ -1,3 +1,0 @@
-rm_fsm:
-  power_limit:
-    danger_surplus_: 10.0

@@ -23,21 +23,12 @@ class FsmData {
   FsmData() = default;
 
   ros::Subscriber dbus_sub_;
-  ros::Subscriber joint_sub_;
-  ros::Subscriber robot_status_sub_;
-  ros::Subscriber game_status_sub_;
-  ros::Subscriber imu_sub_;
-  ros::Subscriber euler_sub_;
 
   rm_msgs::DbusData dbus_data_;
-  rm_msgs::Joint joint_data_;
-  sensor_msgs::Imu imu_data_;
-  geometry_msgs::Vector3 euler_;
 
   //chassis
   rm_msgs::ChassisCmd chassis_cmd_;
-  geometry_msgs::Twist cmd_vel;
-  double max_chassis_speed_[3]{};
+  geometry_msgs::Twist cmd_vel_;
   ros::Publisher vel_cmd_pub_;
   ros::Publisher chassis_cmd_pub_;
   PowerLimit *power_limit_{};
@@ -45,7 +36,6 @@ class FsmData {
   //gimbal
   rm_msgs::GimbalCmd gimbal_cmd_;
   ros::Publisher gimbal_cmd_pub_;
-  double max_gimbal_rate_[2]{};
 
   //shooter
   rm_msgs::ShootCmd shoot_cmd_;
@@ -58,17 +48,12 @@ class FsmData {
     power_limit_ = new PowerLimit(nh);
     shooter_heat_limit_ = new ShooterHeatLimit(nh);
     referee_ = new referee::Referee();
+
     referee_->init();
-    // sub //
+    // sub
     dbus_sub_ = nh.subscribe<rm_msgs::DbusData>(
         "/dbus_data", 10, &FsmData::dbusDataCallback, this);
-    joint_sub_ = nh.subscribe<rm_msgs::Joint>(
-        "/rm_base/joint_data", 10, &FsmData::jointDataCallback, this);
-    imu_sub_ = nh.subscribe<sensor_msgs::Imu>(
-        "/rm_base/imu_data", 10, &FsmData::imuDataCallback, this);
-    euler_sub_ = nh.subscribe<geometry_msgs::Vector3>(
-        "/rm_base/euler", 10, &FsmData::eulerCallback, this);
-    // pub //
+    // pub
     ros::NodeHandle root_nh;
     vel_cmd_pub_ = root_nh.advertise<geometry_msgs::Twist>("/cmd_vel", 1);
     chassis_cmd_pub_ = root_nh.advertise<rm_msgs::ChassisCmd>("/cmd_chassis", 1);
@@ -77,19 +62,9 @@ class FsmData {
     referee_->referee_pub_ = root_nh.advertise<rm_msgs::Referee>("/referee", 1);
   }
 
-  void jointDataCallback(const rm_msgs::Joint::ConstPtr &data) {
-    joint_data_ = *data;
-  }
   void dbusDataCallback(const rm_msgs::DbusData::ConstPtr &data) {
     dbus_data_ = *data;
   }
-  void imuDataCallback(const sensor_msgs::ImuConstPtr &data) {
-    imu_data_ = *data;
-  }
-  void eulerCallback(const geometry_msgs::Vector3::ConstPtr &data) {
-    euler_ = *data;
-  }
-
 };
 
 #endif //RM_BASE_RM_DECISION_INCLUDE_FSM_CONTROL_FSM_DATA_H_

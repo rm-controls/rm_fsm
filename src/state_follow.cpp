@@ -1,29 +1,36 @@
 //
-// Created by astro on 2020/12/8.
+// Created by peter on 2021/3/15.
 //
 
-#include <rm_fsm/state_raw.h>
+#include <rm_fsm/state_follow.h>
 
 template<typename T>
-StateRaw<T>::StateRaw(FsmData<T> *fsm_data,
-                      const std::string &state_string,
-                      ros::NodeHandle &nh):State<T>(fsm_data, state_string, nh) {
+StateFollow<T>::StateFollow(FsmData<T> *fsm_data,
+                            const std::string &state_string,
+                            ros::NodeHandle &nh):State<T>(fsm_data, state_string, nh) {
 }
 
 template<typename T>
-void StateRaw<T>::onEnter() {
-  ROS_INFO("Enter raw mode");
+void StateFollow<T>::onEnter() {
+  ROS_INFO("Enter follow mode");
 }
 
 template<typename T>
-void StateRaw<T>::run() {
-  double linear_x, linear_y;
+void StateFollow<T>::run() {
+  double linear_x, linear_y, angular_z;
   double rate_yaw, rate_pitch;
   ros::Time now = ros::Time::now();
 
   if (this->control_mode_ == "pc") { // pc control
     linear_x = (this->data_->dbus_data_.key_w - this->data_->dbus_data_.key_s); // W/S
     linear_y = (this->data_->dbus_data_.key_a - this->data_->dbus_data_.key_d); // A/D
+    if (this->data_->dbus_data_.key_shift) {
+      if (is_spin) { // enter follow
+        this->setChassis(this->data_->chassis_cmd_.FOLLOW, linear_x, linear_y, 0.0);
+      } else { // enter gyro
+        this->setChassis(this->data_->chassis_cmd_.GYRO, linear_x, linear_y, 1.0);
+      }
+    }
 
     rate_yaw = -this->data_->dbus_data_.m_x;
     rate_pitch = this->data_->dbus_data_.m_y;
@@ -37,6 +44,13 @@ void StateRaw<T>::run() {
   } else { // rc control
     linear_x = this->data_->dbus_data_.ch_r_y;
     linear_y = -this->data_->dbus_data_.ch_r_x;
+
+    if (this->data_->dbus_data_.wheel) { // enter gyro
+      angular_z = this->data_->dbus_data_.wheel;
+      this->setChassis(this->data_->chassis_cmd_.GYRO, linear_x, linear_y, angular_z);
+    } else { // enter follow
+      this->setChassis(this->data_->chassis_cmd_.FOLLOW, linear_x, linear_y, 0.0);
+    }
 
     rate_yaw = -this->data_->dbus_data_.ch_l_x;
     rate_pitch = -this->data_->dbus_data_.ch_l_y;
@@ -52,16 +66,15 @@ void StateRaw<T>::run() {
     }
   }
 
-  this->setChassis(this->data_->chassis_cmd_.RAW, linear_x, linear_y, 0.0);
   this->setGimbal(this->data_->gimbal_cmd_.RATE, rate_yaw, rate_pitch);
 }
 template<typename T>
-void StateRaw<T>::onExit() {
+void StateFollow<T>::onExit() {
   // Nothing to clean up when exiting
-  ROS_INFO("Exit raw mode");
+  ROS_INFO("Exit follow mode");
 }
 
 template
-class StateRaw<double>;
+class StateFollow<double>;
 template
-class StateRaw<float>;
+class StateFollow<float>;

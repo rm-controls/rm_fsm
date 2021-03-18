@@ -31,14 +31,9 @@ struct RefereeData {
   RfidStatus rfid_status_;
   DartClientCmd dart_client_cmd_;
   StudentInteractiveHeaderData student_interactive_header_data_;
-  RobotInteractiveData robot_interactive_data_;
-  ClientCustomGraphicDelete client_custom_graphic_delete_;
   GraphicDataStruct graphic_data_struct_;
-  ClientCustomGraphicSingle client_custom_graphic_single_;
-  ClientCustomGraphicDouble client_custom_graphic_double_;
-  ClientCustomGraphicFive client_custom_graphic_five_;
-  ClientCustomGraphicSeven client_custom_graphic_seven_;
-  ClientCustomCharacter client_custom_character_;
+  RobotInteractiveData robot_interactive_data_;
+  RobotCommand robot_command_;
   int performance_system_; // Performance level system
 };
 
@@ -48,6 +43,9 @@ class Referee {
   ~Referee() = default;
   void init();
   void read();
+  void drawGraphic(RobotId robot_id, ClientId client_id, int side, GraphicOperateType operate_type);
+  void drawCharacter(RobotId robot_id, ClientId client_id, int side, GraphicOperateType operate_type, std::string data);
+  void drawFloat(RobotId robot_id, ClientId client_id, float data, GraphicOperateType operate_type);
 
   RefereeData referee_data_{};
   bool flag = false;
@@ -62,8 +60,14 @@ class Referee {
       kProtocolCmdIdLength = sizeof(uint16_t), kProtocolTailLength = 2;
   void unpack(const std::vector<uint8_t> &rx_buffer);
   void getData(uint8_t *frame);
-
 };
 }
+
+uint8_t getCRC8CheckSum(unsigned char *pch_message, unsigned int dw_length, unsigned char ucCRC8);
+uint32_t verifyCRC8CheckSum(unsigned char *pch_message, unsigned int dw_length);
+void appendCRC8CheckSum(unsigned char *pchMessage, unsigned int dwLength);
+uint32_t verifyCRC16CheckSum(uint8_t *pchMessage, uint32_t dwLength);
+uint16_t getCRC16CheckSum(uint8_t *pchMessage, uint32_t dwLength, uint16_t wCRC);
+void appendCRC16CheckSum(unsigned char *pchMessage, unsigned int dwLength);
 
 #endif //SRC_RM_BRIDGE_INCLUDE_RT_RT_REFEREE_H_

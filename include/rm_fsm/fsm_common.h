@@ -5,8 +5,6 @@
 #ifndef SRC_RM_SOFTWARE_RM_DECISION_SRC_FSM_FSM_STATE_H_
 #define SRC_RM_SOFTWARE_RM_DECISION_SRC_FSM_FSM_STATE_H_
 
-#include <rm_fsm/fsm_data.h>
-
 #include <iostream>
 #include <tf/transform_listener.h>
 #include <queue>
@@ -14,7 +12,7 @@
 #include <utility>
 #include <control_toolbox/pid.h>
 #include "ori_tool.h"
-#include "rm_fsm/safety_checker.h"
+#include "rm_fsm/fsm_data.h"
 
 /**
  * A base fsm state class for all robots.
@@ -49,8 +47,6 @@ class State {
   tf2_ros::Buffer tf_;
   tf2_ros::TransformListener *tf_listener_;
 
-  ros::NodeHandle state_nh_;
-
   std::string control_mode_;
 
   // chassis fsm control accelerate
@@ -66,6 +62,8 @@ class State {
   // gimbal fsm control coefficient
   double coefficient_yaw_ = 0.0;
   double coefficient_pitch_ = 0.0;
+
+  double shoot_hz_ = 0.0;
 };
 
 /**
@@ -91,8 +89,6 @@ class Fsm {
   // Runs the FSM logic and handles the state transitions and normal runs
   void run();
 
-  // FsmOperatingMode SafetyCheck();
-
   // Get desired state decided by control fsm data.
   virtual std::string getDesiredState() = 0;
 
@@ -102,8 +98,6 @@ class Fsm {
   State<T> *current_state_;    // current FSM state
   State<T> *next_state_;       // next FSM state
   std::string next_state_name_;  // next FSM state name
-
-  SafetyChecker<T> *safety_checker_;
 
   tf2_ros::Buffer tf_;
   tf2_ros::TransformListener *tf_listener_;

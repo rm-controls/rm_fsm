@@ -4,7 +4,7 @@
 
 #ifndef SRC_RM_BRIDGE_INCLUDE_RT_PROTOCOL_H_
 #define SRC_RM_BRIDGE_INCLUDE_RT_PROTOCOL_H_
-
+#define __packed __attribute__((packed))
 #include <cstdint>
 
 // Interface Protocol
@@ -29,7 +29,8 @@ typedef enum {
   kRobotRfidStatusCmdId = 0x0209,
   kDartClientCmdId = 0x020A,
   kStudentInteractiveDataCmdId = 0x0301,
-  IDCustomData,
+  kRobotInteractiveDataCmdId = 0x0302,
+  kRobotCommandCmdId = 0x0303,
 } RefereeCmdId;
 
 typedef struct {
@@ -37,7 +38,7 @@ typedef struct {
   uint16_t data_length;
   uint8_t seq;
   uint8_t crc8;
-} FrameHeaderStruct;
+}__packed FrameHeaderStruct;
 
 // Unpacking order
 typedef enum {
@@ -200,7 +201,7 @@ typedef struct {
   uint16_t operate_launch_cmd_time;
 } DartClientCmd;
 
-/***********************Interactive data between robots----0x0301********************/
+/*********************** Interactive data between robots----0x0301 ********************/
 typedef enum {
   kRobotInteractiveCmdIdMin = 0x0200,
   kRobotInteractiveCmdIdMax = 0x02FF,
@@ -250,16 +251,13 @@ typedef struct {
   uint16_t data_cmd_id;
   uint16_t send_ID;
   uint16_t receiver_ID;
-} StudentInteractiveHeaderData;
+}__packed StudentInteractiveHeaderData;
 
-typedef struct {
-  uint8_t *data;
-} RobotInteractiveData;
-
-typedef struct {
-  uint8_t operate_type;
-  uint8_t layer;
-} ClientCustomGraphicDelete;
+typedef enum {
+  kAdd = 1,
+  kModify = 2,
+  kDelete = 3
+} GraphicOperateType;
 
 typedef struct {
   uint8_t graphic_name[3];
@@ -275,28 +273,38 @@ typedef struct {
   uint32_t radius: 10;
   uint32_t end_x: 11;
   uint32_t end_y: 11;
-} GraphicDataStruct;
+}__packed GraphicDataStruct;
 
 typedef struct {
-  GraphicDataStruct grapic_data_struct;
-} ClientCustomGraphicSingle;
+  FrameHeaderStruct tx_frame_header_;
+  uint16_t cmd_id_;
+  StudentInteractiveHeaderData graphic_header_data_;
+  GraphicDataStruct graphic_data_struct_;
+  uint16_t frame_tail_;
+}__packed DrawClientGraphicData;
 
 typedef struct {
-  GraphicDataStruct grapic_data_struct[2];
-} ClientCustomGraphicDouble;
+  FrameHeaderStruct tx_frame_header_;
+  uint16_t cmd_id_;
+  StudentInteractiveHeaderData graphic_header_data_;
+  GraphicDataStruct graphic_data_struct_;
+  uint8_t data_[30];
+  uint16_t frame_tail_;
+}__packed DrawClientCharData;
 
+/********************** Robot Interactive data ----0x0302 *******************************************/
 typedef struct {
-  GraphicDataStruct grapic_data_struct[5];
-} ClientCustomGraphicFive;
+  uint8_t *data;
+}__packed RobotInteractiveData;
 
+/********************** Robot command data ----0x0303 ***********************************************/
 typedef struct {
-  GraphicDataStruct grapic_data_struct[7];
-} ClientCustomGraphicSeven;
-
-typedef struct {
-  GraphicDataStruct grapic_data_struct;
-  uint8_t data[30];
-} ClientCustomCharacter;
+  float target_position_x;
+  float target_position_y;
+  float target_position_z;
+  uint8_t command_keyboard;
+  uint16_t target_robot_ID;
+}__packed RobotCommand;
 
 /***********************Frame tail(CRC8_CRC16)********************************************/
 const uint8_t
@@ -320,7 +328,7 @@ const uint8_t CRC8_table[256] =
         0xe9, 0xb7, 0x55, 0x0b, 0x88, 0xd6, 0x34, 0x6a, 0x2b, 0x75, 0x97, 0xc9, 0x4a, 0x14, 0xf6, 0xa8,
         0x74, 0x2a, 0xc8, 0x96, 0x15, 0x4b, 0xa9, 0xf7, 0xb6, 0xe8, 0x0a, 0x54, 0xd7, 0x89, 0x6b, 0x35,
     };
-//uint16_t CRC16_INIT = 0xffff;
+const uint16_t CRC16_INIT = 0xffff;
 const uint16_t wCRC_table[256] =
     {
         0x0000, 0x1189, 0x2312, 0x329b, 0x4624, 0x57ad, 0x6536, 0x74bf,
@@ -356,8 +364,5 @@ const uint16_t wCRC_table[256] =
         0xf78f, 0xe606, 0xd49d, 0xc514, 0xb1ab, 0xa022, 0x92b9, 0x8330,
         0x7bc7, 0x6a4e, 0x58d5, 0x495c, 0x3de3, 0x2c6a, 0x1ef1, 0x0f78
     };
-uint32_t verify_CRC8_check_sum(unsigned char *pch_message, unsigned int dw_length);
-uint8_t get_CRC8_check_sum(unsigned char *pch_message, unsigned int dw_length, unsigned char ucCRC8);
-uint32_t verify_CRC16_check_sum(uint8_t *pchMessage, uint32_t dwLength);
-uint16_t get_CRC16_check_sum(uint8_t *pch_message, uint32_t dw_length, uint16_t wCRC);
+
 #endif //SRC_RM_BRIDGE_INCLUDE_RT_PROTOCOL_H_

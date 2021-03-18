@@ -13,11 +13,14 @@ class PowerLimit {
  public:
   explicit PowerLimit(ros::NodeHandle &nh);
   void input(referee::RefereeData referee);
-  double output();
+  double output() const;
 
  private:
   double current_ = 99;
-  double danger_surplus_;
+  double coeff{};
+  double multiple{};
+  double danger_surplus_{};
+  double roll_back_buffer_{};
 };
 
 #endif //SRC_RM_FSM_INCLUDE_RM_FSM_POWER_LIMIT_H_

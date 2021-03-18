@@ -7,10 +7,10 @@
 template<typename T>
 FsmHero<T>::FsmHero(ros::NodeHandle &node_handle) : Fsm<T>(node_handle) {
   state_passive_ = new StatePassive<T>(&this->data_, "passive", node_handle);
-  state_raw_ = new StateRaw<T>(&this->data_, "raw", node_handle);
+  state_follow_ = new StateFollow<T>(&this->data_, "follow", node_handle);
 
   this->string2state.insert(std::pair<std::string, State<T> *>("passive", state_passive_));
-  this->string2state.insert(std::pair<std::string, State<T> *>("raw", state_raw_));
+  this->string2state.insert(std::pair<std::string, State<T> *>("follow", state_follow_));
   this->current_state_ = this->string2state["passive"];
 }
 
@@ -23,15 +23,16 @@ std::string FsmHero<T>::getDesiredState() {
       return "passive";
     } else if (this->data_.dbus_data_.key_ctrl
         && this->data_.dbus_data_.key_w) { // ctrl + w change state to raw
-      return "raw";
+      return "follow";
     } else {
       return this->current_state_->state_name_;
     }
+
   } else if (this->control_mode_ == "rc") { // rc control
     if (this->data_.dbus_data_.s_r == this->data_.dbus_data_.DOWN) {
       return "passive";
     } else if (this->data_.dbus_data_.s_r == this->data_.dbus_data_.MID) {
-      return "raw";
+      return "follow";
     } else {
       return "passive";
     }

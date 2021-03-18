@@ -7,36 +7,34 @@
 
 template<typename T>
 State<T>::State(FsmData<T> *fsm_data, std::string state_name, ros::NodeHandle &nh)
-    : data_(fsm_data), state_name_(std::move(state_name)), state_nh_(nh) {
-  // load rc/pc control parameters
-  state_nh_ = ros::NodeHandle(nh, "control_param");
+    : data_(fsm_data), state_name_(std::move(state_name)) {
 
   // Get control mode (rc/pc)
   control_mode_ = getParam(nh, "control_mode", (std::string) "rc");
 
   if (control_mode_ == "rc") { // get rc params
-    state_nh_.param("rc_param/accel_x", accel_x_, 10.0);
-    state_nh_.param("rc_param/accel_y", accel_y_, 10.0);
-    state_nh_.param("rc_param/accel_angular", accel_angular_, 10.0);
-    state_nh_.param("rc_param/coefficient_x", coefficient_x_, 3.5);
-    state_nh_.param("rc_param/coefficient_y", coefficient_y_, 3.5);
-    state_nh_.param("rc_param/coefficient_angular", coefficient_angular_, 6.0);
-    state_nh_.param("rc_param/coefficient_yaw", coefficient_yaw_, 12.56);
-    state_nh_.param("rc_param/coefficient_pitch", coefficient_pitch_, 12.56);
+    accel_x_ = getParam(nh, "control_param/rc_param/accel_x", 10.0);
+    accel_y_ = getParam(nh, "control_param/rc_param/accel_y", 10.0);
+    accel_angular_ = getParam(nh, "control_param/rc_param/accel_angular", 10.0);
+    coefficient_x_ = getParam(nh, "control_param/rc_param/coefficient_x", 3.5);
+    coefficient_y_ = getParam(nh, "control_param/rc_param/coefficient_y", 3.5);
+    coefficient_angular_ = getParam(nh, "control_param/rc_param/coefficient_angular", 6.0);
+    coefficient_yaw_ = getParam(nh, "control_param/rc_param/coefficient_yaw", 12.56);
+    coefficient_pitch_ = getParam(nh, "control_param/rc_param/coefficient_pitch", 12.56);
+    shoot_hz_ = getParam(nh, "control_param/rc_param/shoot_hz", 5.0);
   } else if (control_mode_ == "pc") { // get pc params
-    state_nh_.param("pc_param/accel_x", accel_x_, 10.0);
-    state_nh_.param("pc_param/accel_y", accel_y_, 10.0);
-    state_nh_.param("pc_param/accel_angular", accel_angular_, 10.0);
-    state_nh_.param("pc_param/coefficient_x", coefficient_x_, 3.5);
-    state_nh_.param("pc_param/coefficient_y", coefficient_y_, 3.5);
-    state_nh_.param("pc_param/coefficient_angular", coefficient_angular_, 6.0);
-    state_nh_.param("pc_param/coefficient_yaw", coefficient_yaw_, 125.6);
-    state_nh_.param("pc_param/coefficient_pitch", coefficient_pitch_, 125.6);
+    accel_x_ = getParam(nh, "control_param/pc_param/accel_x", 10.0);
+    accel_y_ = getParam(nh, "control_param/pc_param/accel_y", 10.0);
+    accel_angular_ = getParam(nh, "control_param/pc_param/accel_angular", 10.0);
+    coefficient_x_ = getParam(nh, "control_param/pc_param/coefficient_x", 3.5);
+    coefficient_y_ = getParam(nh, "control_param/pc_param/coefficient_y", 3.5);
+    coefficient_angular_ = getParam(nh, "control_param/pc_param/coefficient_angular", 6.0);
+    coefficient_yaw_ = getParam(nh, "control_param/pc_param/coefficient_yaw", 125.6);
+    coefficient_pitch_ = getParam(nh, "control_param/pc_param/coefficient_pitch", 125.6);
+    shoot_hz_ = getParam(nh, "control_param/pc_param/shoot_hz", 5.0);
   } else {
     ROS_ERROR("Cannot load control param.");
   }
-
-  ROS_INFO("Initialized FSM state: %s", state_name_.c_str());
 }
 
 template<typename T>
@@ -50,13 +48,14 @@ void State<T>::setChassis(uint8_t chassis_mode,
   this->data_->chassis_cmd_.accel.linear.y = accel_y_;
   this->data_->chassis_cmd_.accel.angular.z = accel_angular_;
 
-  this->data_->cmd_vel.linear.x = linear_x * coefficient_x_;
-  this->data_->cmd_vel.linear.y = linear_y * coefficient_y_;
-  this->data_->cmd_vel.angular.z = angular_z * coefficient_angular_;
+  this->data_->power_limit_->input(this->data_->referee_->referee_data_);
+  this->data_->chassis_cmd_.effort_limit = this->data_->power_limit_->output();
 
-  this->data_->chassis_cmd_.effort_limit = 99;
+  this->data_->cmd_vel_.linear.x = linear_x * coefficient_x_;
+  this->data_->cmd_vel_.linear.y = linear_y * coefficient_y_;
+  this->data_->cmd_vel_.angular.z = angular_z * coefficient_angular_;
 
-  this->data_->vel_cmd_pub_.publish(this->data_->cmd_vel);
+  this->data_->vel_cmd_pub_.publish(this->data_->cmd_vel_);
   this->data_->chassis_cmd_pub_.publish(this->data_->chassis_cmd_);
 }
 
@@ -91,7 +90,6 @@ void State<T>::setShoot(uint8_t shoot_mode, uint8_t shoot_speed, double shoot_hz
 template<typename T>
 Fsm<T>::Fsm(ros::NodeHandle &node_handle):nh_(node_handle) {
   tf_listener_ = new tf2_ros::TransformListener(tf_);
-  safety_checker_ = new SafetyChecker<T>(&data_);
 
   this->data_.init(nh_);
 
@@ -109,9 +107,6 @@ Fsm<T>::Fsm(ros::NodeHandle &node_handle):nh_(node_handle) {
     ROS_INFO("Enter rc control.");
   else
     ROS_ERROR("Cannot enter the corresponding control mode (pc/rc).");
-
-  // Enter the new current state cleanly
-  ROS_INFO("Current state is invalid.");
 
   // Initialize to not be in transition
   next_state_ = current_state_;

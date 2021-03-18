@@ -14,12 +14,12 @@ StateAutomatic<T>::StateAutomatic(FsmData<T> *fsm_data,
   speed_ = 0;
   last_position_ = 0;
   current_position_ = 0;
-  auto_move_chassis_speed_ = getParam(this->state_nh_, "auto_move_chassis_speed", 1.0);
-  auto_move_chassis_accel_ = getParam(this->state_nh_, "auto_move_chassis_accel", 1.0);
-  auto_move_pitch_speed_ = getParam(this->state_nh_, "auto_move_pitch_speed", 0.5);
-  auto_move_yaw_speed_ = getParam(this->state_nh_,"auto_move_yaw_speed",3.14);
-  start_ = getParam(this->state_nh_,"auto_move_start",0.3);
-  end_ = getParam(this->state_nh_,"auto_move_end",1.5);
+  auto_move_chassis_speed_ = getParam(nh, "auto_move/chassis_speed", 1.0);
+  auto_move_chassis_accel_ = getParam(nh, "auto_move/chassis_accel", 1.0);
+  auto_move_pitch_speed_ = getParam(nh, "auto_move/pitch_speed", 0.5);
+  auto_move_yaw_speed_ = getParam(nh, "auto_move/yaw_speed", 3.14);
+  start_ = getParam(nh, "auto_move/start", 0.3);
+  end_ = getParam(nh, "auto_move/end", 1.5);
 
   map2odom_.header.stamp = ros::Time::now();
   map2odom_.header.frame_id = "map";
@@ -33,7 +33,7 @@ StateAutomatic<T>::StateAutomatic(FsmData<T> *fsm_data,
 
 template<typename T>
 void StateAutomatic<T>::onEnter() {
-  ROS_INFO("[fsm] Enter automatic mode");
+  ROS_INFO("Enter automatic mode");
 }
 
 template<typename T>
@@ -74,7 +74,7 @@ void StateAutomatic<T>::run() {
 
     if (point_side_ == 1) {
       this->data_->chassis_cmd_.mode = this->data_->chassis_cmd_.RAW;
-      this->data_->cmd_vel.linear.x = auto_move_chassis_speed_;
+      this->data_->cmd_vel_.linear.x = auto_move_chassis_speed_;
       this->data_->chassis_cmd_.accel.linear.x = auto_move_chassis_accel_;
     }
     else if(point_side_ == 2){
@@ -84,7 +84,7 @@ void StateAutomatic<T>::run() {
     }
     else if (point_side_ == 3) {
       this->data_->chassis_cmd_.mode = this->data_->chassis_cmd_.RAW;
-      this->data_->cmd_vel.linear.x = -auto_move_chassis_speed_;
+      this->data_->cmd_vel_.linear.x = -auto_move_chassis_speed_;
       this->data_->chassis_cmd_.accel.linear.x = auto_move_chassis_accel_;
     }
     else if(point_side_ == 4){
@@ -94,7 +94,7 @@ void StateAutomatic<T>::run() {
     }
 
     this->data_->chassis_cmd_.effort_limit = 0.5;
-    this->data_->vel_cmd_pub_.publish(this->data_->cmd_vel);
+    this->data_->vel_cmd_pub_.publish(this->data_->cmd_vel_);
     this->data_->chassis_cmd_pub_.publish(this->data_->chassis_cmd_);
     //gimbal controler
     if (pitch > (0.9))
@@ -150,7 +150,7 @@ void StateAutomatic<T>::run() {
 template<typename T>
 void StateAutomatic<T>::onExit() {
   // Nothing to clean up when exiting
-  ROS_INFO("[fsm] Exit automatic mode");
+  ROS_INFO("Exit automatic mode");
 }
 
 template

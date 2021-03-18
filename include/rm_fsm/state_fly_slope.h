@@ -15,7 +15,6 @@ class StateFlySlope : public State<T> {
   void onEnter() override;
   void run() override;
   void onExit() override;
-  int shoot_hz;
 };
 
 #endif //SRC_RM_SOFTWARE_RM_DECISION_SRC_FSM_STATE_FLYSLOPE_H_
