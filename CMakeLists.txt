@@ -10,20 +10,19 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 add_definitions(-Wall -Werror)
 
 ## Find catkin macros and libraries
-list(APPEND CMAKE_PREFIX_PATH "/tmp/usr/local/share/serial/cmake/")
 find_package(serial REQUIRED)
 
 find_package(catkin REQUIRED
-    COMPONENTS
-    roscpp
-    sensor_msgs
-    roslint
-    rm_msgs
-    rm_common
-    tf
-    serial
-    control_toolbox
-    )
+        COMPONENTS
+        roscpp
+        sensor_msgs
+        roslint
+        rm_msgs
+        rm_common
+        tf
+        serial
+        control_toolbox
+        )
 
 ## Find system libraries
 #find_package(Eigen3 REQUIRED)
@@ -38,24 +37,24 @@ find_package(catkin REQUIRED
 ## CATKIN_DEPENDS: catkin_packages dependent projects also need
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
-    INCLUDE_DIRS
-    include
-    LIBRARIES
-    ${PROJECT_NAME}
-    CATKIN_DEPENDS
-    sensor_msgs
-    roslint
-    rm_msgs
-    rm_common
-    tf
-    control_toolbox
-    DEPENDS
-    ## find_package(Eigen3) provides a non standard EIGEN3_INCLUDE_DIR instead of Eigen3_INCLUDE_DIRS.
-    ## Therefore, the DEPEND does not work as expected and we need to add the directory to the INCLUDE_DIRS
-    # Eigen3
+        INCLUDE_DIRS
+        include
+        LIBRARIES
+        ${PROJECT_NAME}
+        CATKIN_DEPENDS
+        sensor_msgs
+        roslint
+        rm_msgs
+        rm_common
+        tf
+        control_toolbox
+        DEPENDS
+        ## find_package(Eigen3) provides a non standard EIGEN3_INCLUDE_DIR instead of Eigen3_INCLUDE_DIRS.
+        ## Therefore, the DEPEND does not work as expected and we need to add the directory to the INCLUDE_DIRS
+        # Eigen3
 
-    ## Boost is not part of the DEPENDS since it is only used in source files,
-    ## Dependees do not depend on Boost when they depend on this package.
+        ## Boost is not part of the DEPENDS since it is only used in source files,
+        ## Dependees do not depend on Boost when they depend on this package.
 )
 
 ###########
@@ -65,8 +64,8 @@ catkin_package(
 ## Specify additional locations of header files
 ## Your package locations should be listed before other locations
 include_directories(
-    include
-    ${catkin_INCLUDE_DIRS}
+        include
+        ${catkin_INCLUDE_DIRS}
 )
 
 ## Declare a cpp library
@@ -81,13 +80,13 @@ add_executable(${PROJECT_NAME} ${fsm_src} src/shooter_heat_limit.cpp include/rm_
 
 ## Add dependencies to exported targets, like ROS msgs or srvs
 add_dependencies(${PROJECT_NAME}
-    ${catkin_EXPORTED_TARGETS}
-    )
+        ${catkin_EXPORTED_TARGETS}
+        )
 
 ## Specify libraries to link executable targets against
 target_link_libraries(${PROJECT_NAME}
-    ${catkin_LIBRARIES}
-    )
+        ${catkin_LIBRARIES}
+        )
 
 #############
 ## Install ##
@@ -95,23 +94,23 @@ target_link_libraries(${PROJECT_NAME}
 
 # Mark executables and/or libraries for installation
 install(
-    TARGETS ${PROJECT_NAME} ${PROJECT_NAME}
-    ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-    LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-    RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+        TARGETS ${PROJECT_NAME} ${PROJECT_NAME}
+        ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+        LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+        RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 
 # Mark cpp header files for installation
 install(
-    DIRECTORY include/${PROJECT_NAME}/
-    DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
-    FILES_MATCHING PATTERN "*.hpp"
+        DIRECTORY include/${PROJECT_NAME}/
+        DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
+        FILES_MATCHING PATTERN "*.hpp"
 )
 
 # Mark other files for installation
 install(
-    DIRECTORY doc
-    DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
+        DIRECTORY doc
+        DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
 )
 
 #############
