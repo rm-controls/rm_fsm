@@ -41,7 +41,7 @@ std::string FsmStandard<T>::getDesiredState() {
     } else if (this->data_.dbus_data_.s_r == this->data_.dbus_data_.MID) {
       return "follow";
     } else if (this->data_.dbus_data_.s_r == this->data_.dbus_data_.UP) {
-      return "flyslope";
+      return "follow";
     } else {
       return "passive";
     }

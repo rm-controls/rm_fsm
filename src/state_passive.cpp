@@ -21,7 +21,7 @@ void StatePassive<T>::run() {
   ros::Time now = ros::Time::now();
 
   this->setChassis(this->data_->chassis_cmd_.PASSIVE, 0.0, 0.0, 0.0);
-  this->setGimbal(this->data_->gimbal_cmd_.PASSIVE, 0.0, 0.0);
+  this->setGimbal(this->data_->gimbal_cmd_.PASSIVE, 0.0, 0.0, 0);
   this->setShoot(this->data_->shoot_cmd_.PASSIVE, this->data_->shoot_cmd_.SPEED_10M_PER_SECOND, 0.0, now);
 }
 

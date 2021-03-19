@@ -31,7 +31,8 @@ std::string FsmHero<T>::getDesiredState() {
   } else if (this->control_mode_ == "rc") { // rc control
     if (this->data_.dbus_data_.s_r == this->data_.dbus_data_.DOWN) {
       return "passive";
-    } else if (this->data_.dbus_data_.s_r == this->data_.dbus_data_.MID) {
+    } else if (this->data_.dbus_data_.s_r == this->data_.dbus_data_.MID
+        || this->data_.dbus_data_.s_r == this->data_.dbus_data_.UP) {
       return "follow";
     } else {
       return "passive";

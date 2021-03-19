@@ -117,7 +117,7 @@ void StateAutomatic<T>::run() {
   }
   else {
     this->setChassis(this->data_->chassis_cmd_.RAW, -0.2, 0, 0);
-    this->setGimbal(this->data_->gimbal_cmd_.PASSIVE, 0, 0);
+    this->setGimbal(this->data_->gimbal_cmd_.PASSIVE, 0, 0, 0);
     time_counter++;
     if(time_counter>35)
     {

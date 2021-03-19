@@ -36,7 +36,7 @@ void StateFlySlope<T>::run() {
   }
 
   this->setChassis(this->data_->chassis_cmd_.FOLLOW, linear_x, linear_y, 0.0);
-  this->setGimbal(this->data_->gimbal_cmd_.RATE, rate_yaw, rate_pitch);
+  this->setGimbal(this->data_->gimbal_cmd_.RATE, rate_yaw, rate_pitch, 0);
   this->setShoot(this->data_->shoot_cmd_.PASSIVE, this->data_->shoot_cmd_.SPEED_10M_PER_SECOND, 0.0, now);
 }
 

@@ -60,11 +60,13 @@ void State<T>::setChassis(uint8_t chassis_mode,
 }
 
 template<typename T>
-void State<T>::setGimbal(uint8_t gimbal_mode, double rate_yaw, double rate_pitch) {
+void State<T>::setGimbal(uint8_t gimbal_mode, double rate_yaw, double rate_pitch, uint8_t target_id) {
   this->data_->gimbal_cmd_.mode = gimbal_mode;
 
   this->data_->gimbal_cmd_.rate_yaw = rate_yaw * coefficient_yaw_;
   this->data_->gimbal_cmd_.rate_pitch = rate_pitch * coefficient_pitch_;
+
+  this->data_->gimbal_cmd_.target_id = target_id;
 
   this->data_->gimbal_cmd_pub_.publish(this->data_->gimbal_cmd_);
 }

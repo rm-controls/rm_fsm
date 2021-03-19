@@ -41,6 +41,12 @@ void StateFollow<T>::run() {
                      this->data_->shooter_heat_limit_->output(), now);
     } else this->setShoot(this->data_->shoot_cmd_.PASSIVE, this->data_->shoot_cmd_.SPEED_10M_PER_SECOND, 0.0, now);
 
+    if (this->data_->dbus_data_.p_r) {
+      this->setGimbal(this->data_->gimbal_cmd_.TRACK, 0.0, 0.0, 8);
+    } else {
+      this->setGimbal(this->data_->gimbal_cmd_.RATE, rate_yaw, rate_pitch, 0);
+    }
+
   } else { // rc control
     linear_x = this->data_->dbus_data_.ch_r_y;
     linear_y = -this->data_->dbus_data_.ch_r_x;
@@ -55,6 +61,12 @@ void StateFollow<T>::run() {
     rate_yaw = -this->data_->dbus_data_.ch_l_x;
     rate_pitch = -this->data_->dbus_data_.ch_l_y;
 
+    if (this->data_->dbus_data_.s_l == this->data_->dbus_data_.UP) {
+      this->setGimbal(this->data_->gimbal_cmd_.TRACK, 0.0, 0.0, 8);
+    } else {
+      this->setGimbal(this->data_->gimbal_cmd_.RATE, rate_yaw, rate_pitch, 0);
+    }
+
     if (this->data_->dbus_data_.s_l == this->data_->dbus_data_.MID)
       this->setShoot(this->data_->shoot_cmd_.READY, this->data_->shoot_cmd_.SPEED_10M_PER_SECOND, 0.0, now);
     else if (this->data_->dbus_data_.s_l == this->data_->dbus_data_.UP) {
@@ -65,8 +77,6 @@ void StateFollow<T>::run() {
       this->setShoot(this->data_->shoot_cmd_.PASSIVE, this->data_->shoot_cmd_.SPEED_10M_PER_SECOND, 0.0, now);
     }
   }
-
-  this->setGimbal(this->data_->gimbal_cmd_.RATE, rate_yaw, rate_pitch);
 }
 template<typename T>
 void StateFollow<T>::onExit() {

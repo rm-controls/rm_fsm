@@ -28,6 +28,12 @@ void StateBurst<T>::run() {
     rate_yaw = -this->data_->dbus_data_.m_x;
     rate_pitch = this->data_->dbus_data_.m_y;
 
+    if (this->data_->dbus_data_.p_r) {
+      this->setGimbal(this->data_->gimbal_cmd_.TRACK, 0.0, 0.0, 8); // track sentry
+    } else {
+      this->setGimbal(this->data_->gimbal_cmd_.RATE, rate_yaw, rate_pitch, 0);
+    }
+
     if (this->data_->dbus_data_.p_l)
       this->setShoot(this->data_->shoot_cmd_.PUSH, this->data_->shoot_cmd_.SPEED_10M_PER_SECOND,
                      this->shoot_hz_, now);
@@ -39,6 +45,12 @@ void StateBurst<T>::run() {
     rate_yaw = -this->data_->dbus_data_.ch_l_x;
     rate_pitch = -this->data_->dbus_data_.ch_l_y;
 
+    if (this->data_->dbus_data_.s_r == this->data_->dbus_data_.UP) {
+      this->setGimbal(this->data_->gimbal_cmd_.TRACK, 0.0, 0.0, 8); // track sentry
+    } else {
+      this->setGimbal(this->data_->gimbal_cmd_.RATE, rate_yaw, rate_pitch, 0);
+    }
+
     if (this->data_->dbus_data_.s_l == this->data_->dbus_data_.MID)
       this->setShoot(this->data_->shoot_cmd_.READY, this->data_->shoot_cmd_.SPEED_10M_PER_SECOND, 0.0, now);
     else if (this->data_->dbus_data_.s_l == this->data_->dbus_data_.UP)
@@ -49,7 +61,6 @@ void StateBurst<T>::run() {
   }
 
   this->setChassis(this->data_->chassis_cmd_.GYRO, linear_x, linear_y, 0.0);
-  this->setGimbal(this->data_->gimbal_cmd_.RATE, rate_yaw, rate_pitch);
 }
 
 template<typename T>
