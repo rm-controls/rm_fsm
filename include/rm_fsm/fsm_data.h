@@ -6,13 +6,11 @@
 #define RM_BASE_RM_DECISION_INCLUDE_FSM_CONTROL_FSM_DATA_H_
 #include <ros/ros.h>
 #include <geometry_msgs/Twist.h>
-#include <sensor_msgs/Imu.h>
 #include <geometry_msgs/Vector3.h>
 #include "rm_msgs/DbusData.h"
 #include "rm_msgs/ChassisCmd.h"
 #include "rm_msgs/GimbalCmd.h"
 #include "rm_msgs/ShootCmd.h"
-#include "rm_msgs/Joint.h"
 #include "rm_fsm/referee.h"
 #include "rm_fsm/power_limit.h"
 #include "rm_fsm/shooter_heat_limit.h"

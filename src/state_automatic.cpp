@@ -40,7 +40,6 @@ template<typename T>
 void StateAutomatic<T>::run() {
   geometry_msgs::TransformStamped gimbal_transformStamped;
   geometry_msgs::TransformStamped chassis_transformStamped;
-  double shoot_hz = 0;
   static int time_counter = 0;
   double roll{}, pitch{}, yaw{};
   ros::Time now = ros::Time::now();
@@ -64,65 +63,51 @@ void StateAutomatic<T>::run() {
   speed_ = (current_position_- last_position_)*100;
   last_position_ = current_position_;
   if(calibration_) {
-    //shooter controler
-    this->setShoot(this->data_->shoot_cmd_.PASSIVE, this->data_->shoot_cmd_.SPEED_10M_PER_SECOND, shoot_hz, now);
-    //chassis controler
-    if((current_position_ >= end_) && (point_side_==1))
+    // set shooter
+    this->setShoot(rm_msgs::ShootCmd::PASSIVE, rm_msgs::ShootCmd::SPEED_10M_PER_SECOND, this->shoot_hz_, now);
+
+    // set chassis
+    if ((current_position_ >= end_) && (point_side_ == 1))
       point_side_ = 2;
-    else if((current_position_ <= start_) && (point_side_==3))
+    else if ((current_position_ <= start_) && (point_side_ == 3))
       point_side_ = 1;
 
     if (point_side_ == 1) {
-      this->data_->chassis_cmd_.mode = this->data_->chassis_cmd_.RAW;
-      this->data_->cmd_vel_.linear.x = auto_move_chassis_speed_;
-      this->data_->chassis_cmd_.accel.linear.x = auto_move_chassis_accel_;
-    }
-    else if(point_side_ == 2){
-      this->data_->chassis_cmd_.mode = this->data_->chassis_cmd_.PASSIVE;
+      this->accel_x_ = auto_move_chassis_accel_;
+      this->setChassis(rm_msgs::ChassisCmd::RAW, auto_move_chassis_speed_, 0.0, 0.0);
+    } else if (point_side_ == 2) {
+      this->setChassis(rm_msgs::ChassisCmd::PASSIVE, 0.0, 0.0, 0.0);
       if(speed_ <= 0)
         point_side_ = 3;
-    }
-    else if (point_side_ == 3) {
-      this->data_->chassis_cmd_.mode = this->data_->chassis_cmd_.RAW;
-      this->data_->cmd_vel_.linear.x = -auto_move_chassis_speed_;
-      this->data_->chassis_cmd_.accel.linear.x = auto_move_chassis_accel_;
-    }
-    else if(point_side_ == 4){
-      this->data_->chassis_cmd_.mode = this->data_->chassis_cmd_.PASSIVE;
-      if(speed_ >= 0)
+    } else if (point_side_ == 3) {
+      this->accel_x_ = auto_move_chassis_accel_;
+      this->setChassis(rm_msgs::ChassisCmd::RAW, -auto_move_chassis_speed_, 0.0, 0.0);
+    } else if (point_side_ == 4) {
+      this->setChassis(rm_msgs::ChassisCmd::PASSIVE, 0.0, 0.0, 0.0);
+      if (speed_ >= 0)
         point_side_ = 1;
     }
 
-    this->data_->chassis_cmd_.effort_limit = 0.5;
-    this->data_->vel_cmd_pub_.publish(this->data_->cmd_vel_);
-    this->data_->chassis_cmd_pub_.publish(this->data_->chassis_cmd_);
-    //gimbal controler
+    // set gimbal
     if (pitch > (0.9))
       gimbal_position_ = 1;
     else if (pitch < (-0.1))
       gimbal_position_ = 2;
+
     if (gimbal_position_ == 1) {
-      this->data_->gimbal_cmd_.mode = this->data_->gimbal_cmd_.RATE;
-      this->data_->gimbal_cmd_.rate_yaw = auto_move_yaw_speed_;
-      this->data_->gimbal_cmd_.rate_pitch = -auto_move_pitch_speed_;
+      this->setGimbal(rm_msgs::GimbalCmd::RATE, auto_move_yaw_speed_, -auto_move_pitch_speed_, 0);
     } else if (gimbal_position_ == 2) {
-      this->data_->gimbal_cmd_.mode = this->data_->gimbal_cmd_.RATE;
-      this->data_->gimbal_cmd_.rate_yaw = auto_move_yaw_speed_;
-      this->data_->gimbal_cmd_.rate_pitch = auto_move_pitch_speed_;
+      this->setGimbal(rm_msgs::GimbalCmd::RATE, auto_move_yaw_speed_, auto_move_pitch_speed_, 0);
+    } else if (point_side_ == 3) {
+      this->setGimbal(rm_msgs::GimbalCmd::PASSIVE, 0.0, 0.0, 0);
     }
-    else if(point_side_ == 3){
-      this->data_->gimbal_cmd_.mode = this->data_->gimbal_cmd_.PASSIVE;
-    }
-    this->data_->gimbal_cmd_pub_.publish(this->data_->gimbal_cmd_);
-  }
-  else {
-    this->setChassis(this->data_->chassis_cmd_.RAW, -0.2, 0, 0);
-    this->setGimbal(this->data_->gimbal_cmd_.PASSIVE, 0, 0, 0);
+
+  } else {
+    this->setChassis(rm_msgs::ChassisCmd::RAW, -0.2, 0, 0);
+    this->setGimbal(rm_msgs::GimbalCmd::PASSIVE, 0, 0, 0);
     time_counter++;
-    if(time_counter>35)
-    {
-      if((speed_ > -0.04)&&(speed_ < 0.04))
-      {
+    if (time_counter > 35) {
+      if ((speed_ > -0.04) && (speed_ < 0.04)) {
         calibration_ = 1;
         map2odom_.header.stamp = ros::Time::now();
         map2odom_.header.frame_id = "map";

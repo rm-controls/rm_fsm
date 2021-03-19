@@ -36,11 +36,11 @@ std::string FsmStandard<T>::getDesiredState() {
       return this->current_state_->state_name_;
     }
   } else if (this->control_mode_ == "rc") { // rc control
-    if (this->data_.dbus_data_.s_r == this->data_.dbus_data_.DOWN) {
+    if (this->data_.dbus_data_.s_r == rm_msgs::DbusData::DOWN) {
       return "passive";
-    } else if (this->data_.dbus_data_.s_r == this->data_.dbus_data_.MID) {
+    } else if (this->data_.dbus_data_.s_r == rm_msgs::DbusData::MID) {
       return "follow";
-    } else if (this->data_.dbus_data_.s_r == this->data_.dbus_data_.UP) {
+    } else if (this->data_.dbus_data_.s_r == rm_msgs::DbusData::UP) {
       return "follow";
     } else {
       return "passive";

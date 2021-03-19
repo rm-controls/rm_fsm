@@ -29,15 +29,16 @@ void StateBurst<T>::run() {
     rate_pitch = this->data_->dbus_data_.m_y;
 
     if (this->data_->dbus_data_.p_r) {
-      this->setGimbal(this->data_->gimbal_cmd_.TRACK, 0.0, 0.0, 8); // track sentry
+      this->setGimbal(rm_msgs::GimbalCmd::TRACK, 0.0, 0.0, 8); // track sentry
     } else {
-      this->setGimbal(this->data_->gimbal_cmd_.RATE, rate_yaw, rate_pitch, 0);
+      this->setGimbal(rm_msgs::GimbalCmd::RATE, rate_yaw, rate_pitch, 0);
     }
 
-    if (this->data_->dbus_data_.p_l)
-      this->setShoot(this->data_->shoot_cmd_.PUSH, this->data_->shoot_cmd_.SPEED_10M_PER_SECOND,
-                     this->shoot_hz_, now);
-    else this->setShoot(this->data_->shoot_cmd_.PASSIVE, this->data_->shoot_cmd_.SPEED_10M_PER_SECOND, 0.0, now);
+    if (this->data_->dbus_data_.p_l) {
+      this->setShoot(rm_msgs::ShootCmd::PUSH, rm_msgs::ShootCmd::SPEED_10M_PER_SECOND, this->shoot_hz_, now);
+    } else {
+      this->setShoot(rm_msgs::ShootCmd::PASSIVE, rm_msgs::ShootCmd::SPEED_10M_PER_SECOND, 0.0, now);
+    }
   } else { // rc control
     linear_x = this->data_->dbus_data_.ch_r_y;
     linear_y = -this->data_->dbus_data_.ch_r_x;
@@ -45,22 +46,22 @@ void StateBurst<T>::run() {
     rate_yaw = -this->data_->dbus_data_.ch_l_x;
     rate_pitch = -this->data_->dbus_data_.ch_l_y;
 
-    if (this->data_->dbus_data_.s_r == this->data_->dbus_data_.UP) {
-      this->setGimbal(this->data_->gimbal_cmd_.TRACK, 0.0, 0.0, 8); // track sentry
+    if (this->data_->dbus_data_.s_r == rm_msgs::DbusData::UP) {
+      this->setGimbal(rm_msgs::GimbalCmd::TRACK, 0.0, 0.0, 8); // track sentry
     } else {
-      this->setGimbal(this->data_->gimbal_cmd_.RATE, rate_yaw, rate_pitch, 0);
+      this->setGimbal(rm_msgs::GimbalCmd::RATE, rate_yaw, rate_pitch, 0);
     }
 
-    if (this->data_->dbus_data_.s_l == this->data_->dbus_data_.MID)
-      this->setShoot(this->data_->shoot_cmd_.READY, this->data_->shoot_cmd_.SPEED_10M_PER_SECOND, 0.0, now);
-    else if (this->data_->dbus_data_.s_l == this->data_->dbus_data_.UP)
-      this->setShoot(this->data_->shoot_cmd_.PUSH, this->data_->shoot_cmd_.SPEED_10M_PER_SECOND,
-                     this->shoot_hz_, now);
-    else if (this->data_->dbus_data_.s_l == this->data_->dbus_data_.DOWN)
-      this->setShoot(this->data_->shoot_cmd_.PASSIVE, this->data_->shoot_cmd_.SPEED_10M_PER_SECOND, 0.0, now);
+    if (this->data_->dbus_data_.s_l == rm_msgs::DbusData::UP) {
+      this->setShoot(rm_msgs::ShootCmd::PUSH, rm_msgs::ShootCmd::SPEED_10M_PER_SECOND, this->shoot_hz_, now);
+    } else if (this->data_->dbus_data_.s_l == rm_msgs::DbusData::MID) {
+      this->setShoot(rm_msgs::ShootCmd::READY, rm_msgs::ShootCmd::SPEED_10M_PER_SECOND, 0.0, now);
+    } else {
+      this->setShoot(rm_msgs::ShootCmd::PASSIVE, rm_msgs::ShootCmd::SPEED_10M_PER_SECOND, 0.0, now);
+    }
   }
 
-  this->setChassis(this->data_->chassis_cmd_.GYRO, linear_x, linear_y, 0.0);
+  this->setChassis(rm_msgs::ChassisCmd::FOLLOW, linear_x, linear_y, 0.0);
 }
 
 template<typename T>

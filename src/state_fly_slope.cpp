@@ -35,9 +35,9 @@ void StateFlySlope<T>::run() {
     rate_pitch = -this->data_->dbus_data_.ch_l_y;
   }
 
-  this->setChassis(this->data_->chassis_cmd_.FOLLOW, linear_x, linear_y, 0.0);
-  this->setGimbal(this->data_->gimbal_cmd_.RATE, rate_yaw, rate_pitch, 0);
-  this->setShoot(this->data_->shoot_cmd_.PASSIVE, this->data_->shoot_cmd_.SPEED_10M_PER_SECOND, 0.0, now);
+  this->setChassis(rm_msgs::ChassisCmd::FOLLOW, linear_x, linear_y, 0.0);
+  this->setGimbal(rm_msgs::GimbalCmd::RATE, rate_yaw, rate_pitch, 0);
+  this->setShoot(rm_msgs::ShootCmd::PASSIVE, rm_msgs::ShootCmd::SPEED_10M_PER_SECOND, 0.0, now);
 }
 
 template<typename T>

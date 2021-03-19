@@ -29,10 +29,10 @@ std::string FsmHero<T>::getDesiredState() {
     }
 
   } else if (this->control_mode_ == "rc") { // rc control
-    if (this->data_.dbus_data_.s_r == this->data_.dbus_data_.DOWN) {
+    if (this->data_.dbus_data_.s_r == rm_msgs::DbusData::DOWN) {
       return "passive";
-    } else if (this->data_.dbus_data_.s_r == this->data_.dbus_data_.MID
-        || this->data_.dbus_data_.s_r == this->data_.dbus_data_.UP) {
+    } else if (this->data_.dbus_data_.s_r == rm_msgs::DbusData::MID
+        || this->data_.dbus_data_.s_r == rm_msgs::DbusData::UP) {
       return "follow";
     } else {
       return "passive";

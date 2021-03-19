@@ -34,9 +34,9 @@ class State {
   virtual void onExit() = 0;
 
   // Base controllers.
-  void setChassis(uint8_t, double, double, double);
-  void setGimbal(uint8_t, double, double, uint8_t);
-  void setShoot(uint8_t, uint8_t, double, ros::Time);
+  void setChassis(uint8_t chassis_mode, double linear_x, double linear_y, double angular_z);
+  void setGimbal(uint8_t gimbal_mode, double rate_yaw, double rate_pitch, uint8_t target_id);
+  void setShoot(uint8_t shoot_mode, uint8_t shoot_speed, double shoot_hz, ros::Time now);
 
   // Holds all of the relevant control data
   FsmData<T> *data_;
