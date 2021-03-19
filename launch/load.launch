@@ -32,7 +32,7 @@
     <node if="$(arg camera_tf)" pkg="tf" type="static_transform_publisher" name="camera_tf_publisher"
           args="0.086 0 -0.046 0.5, 0.5, 0.5, 0.5 pitch camera 100"/>
 
-    <node name="dbus_node" pkg="rm_base" type="dbus_node" respawn="false"/>
+    <node name="rm_dbus" pkg="rm_dbus" type="rm_dbus" respawn="false"/>
     <node name="rm_fsm" pkg="rm_fsm" type="rm_fsm" respawn="false"/>
 
 </launch>
