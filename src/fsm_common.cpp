@@ -48,8 +48,12 @@ void State<T>::setChassis(uint8_t chassis_mode,
   this->data_->chassis_cmd_.accel.linear.y = accel_y_;
   this->data_->chassis_cmd_.accel.angular.z = accel_angular_;
 
-  this->data_->power_limit_->input(this->data_->referee_->referee_data_);
-  this->data_->chassis_cmd_.effort_limit = this->data_->power_limit_->output();
+  if (this->data_->referee_->flag) {
+    this->data_->power_limit_->input(this->data_->referee_->referee_data_);
+    this->data_->chassis_cmd_.effort_limit = this->data_->power_limit_->output();
+  } else {
+    this->data_->chassis_cmd_.effort_limit = 99;
+  }
 
   this->data_->cmd_vel_.linear.x = linear_x * coefficient_x_;
   this->data_->cmd_vel_.linear.y = linear_y * coefficient_y_;
