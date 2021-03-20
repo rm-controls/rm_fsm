@@ -35,7 +35,7 @@ void StateRaw<T>::run() {
   }
 
   if (this->data_->dbus_data_.s_l == rm_msgs::DbusData::UP) {
-    this->data_->shooter_heat_limit_->input(this->data_->referee_->referee_data_, this->shoot_hz_);
+    this->data_->shooter_heat_limit_->input(this->data_->referee_, this->shoot_hz_);
     this->setShoot(rm_msgs::ShootCmd::PUSH, rm_msgs::ShootCmd::SPEED_10M_PER_SECOND,
                    this->data_->shooter_heat_limit_->output(), now);
   } else if (this->data_->dbus_data_.s_l == rm_msgs::DbusData::MID) {
