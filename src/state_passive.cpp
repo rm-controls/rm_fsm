@@ -8,7 +8,7 @@ template<typename T>
 StatePassive<T>::StatePassive(FsmData<T> *fsm_data,
                               const std::string &state_string,
                               ros::NodeHandle &nh):
-    State<T>(fsm_data, state_string, nh) {
+    State<T>(nh, fsm_data, state_string) {
 }
 
 template<typename T>

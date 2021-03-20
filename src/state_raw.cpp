@@ -7,7 +7,7 @@
 template<typename T>
 StateRaw<T>::StateRaw(FsmData<T> *fsm_data,
                       const std::string &state_string,
-                      ros::NodeHandle &nh):State<T>(fsm_data, state_string, nh) {
+                      ros::NodeHandle &nh): State<T>(nh, fsm_data, state_string) {
 }
 
 template<typename T>
@@ -20,6 +20,8 @@ void StateRaw<T>::run() {
   double linear_x, linear_y;
   double rate_yaw, rate_pitch;
   ros::Time now = ros::Time::now();
+
+  this->loadParam();
 
   // rc control
   linear_x = this->data_->dbus_data_.ch_r_y;

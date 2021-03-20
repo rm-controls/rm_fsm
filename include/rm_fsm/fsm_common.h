@@ -22,7 +22,9 @@ template<typename T>
 class State {
  public:
   // Generic constructor fo all states
-  State(FsmData<T> *fsm_data, std::string state_string, ros::NodeHandle &nh);
+  State(ros::NodeHandle &nh, FsmData<T> *fsm_data, std::string state_string);
+
+  ros::NodeHandle nh_;
 
   // Behavior to be carried out when entering a state
   virtual void onEnter() = 0;
@@ -33,10 +35,15 @@ class State {
   // Behavior to be carried out when exiting a state
   virtual void onExit() = 0;
 
+  // Load params from yaml file
+  void loadParam();
+
   // Base controllers.
   void setChassis(uint8_t chassis_mode, double linear_x, double linear_y, double angular_z);
   void setGimbal(uint8_t gimbal_mode, double rate_yaw, double rate_pitch, uint8_t target_id);
   void setShoot(uint8_t shoot_mode, uint8_t shoot_speed, double shoot_hz, ros::Time now);
+
+  void setControlMode(const std::string &control_mode);
 
   // Holds all of the relevant control data
   FsmData<T> *data_;

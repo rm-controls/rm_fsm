@@ -1,6 +1,5 @@
 rm_fsm:
   robot_type: "standard"
-  control_mode: "rc"
   control_param:
     rc_param:
       accel_x: 10.0

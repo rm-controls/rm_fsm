@@ -6,7 +6,7 @@
 template<typename T>
 StateAutomatic<T>::StateAutomatic(FsmData<T> *fsm_data,
                                   const std::string &state_string,
-                                  ros::NodeHandle &nh):State<T>(fsm_data, state_string, nh) {
+                                  ros::NodeHandle &nh):State<T>(nh, fsm_data, state_string) {
   this->tf_listener_ = new tf2_ros::TransformListener(this->tf_);
   point_side_ = 1;
   gimbal_position_ = 1;
@@ -44,8 +44,10 @@ void StateAutomatic<T>::run() {
   double roll{}, pitch{}, yaw{};
   ros::Time now = ros::Time::now();
 
-  try{
-    gimbal_transformStamped = this->tf_.lookupTransform("odom", "link_pitch",ros::Time(0));
+  this->loadParam();
+
+  try {
+    gimbal_transformStamped = this->tf_.lookupTransform("odom", "link_pitch", ros::Time(0));
   }
   catch (tf2::TransformException &ex) {
     //ROS_ERROR("%s",ex.what());

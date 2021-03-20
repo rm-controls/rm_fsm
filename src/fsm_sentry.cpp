@@ -18,15 +18,16 @@ FsmSentry<T>::FsmSentry(ros::NodeHandle &node_handle) : Fsm<T>(node_handle) {
 
 template<typename T>
 std::string FsmSentry<T>::getDesiredState() {
-    if (this->data_.dbus_data_.s_r == rm_msgs::DbusData::DOWN) {
-      return "passive";
-    } else if (this->data_.dbus_data_.s_r == rm_msgs::DbusData::MID) {
-      return "raw";
-    } else if (this->data_.dbus_data_.s_r == rm_msgs::DbusData::UP) {
-      return "automatic";
-    } else {
-      return "passive";
-    }
+  this->control_mode_ = "rc";
+  if (this->data_.dbus_data_.s_r == rm_msgs::DbusData::DOWN) {
+    return "passive";
+  } else if (this->data_.dbus_data_.s_r == rm_msgs::DbusData::MID) {
+    return "raw";
+  } else if (this->data_.dbus_data_.s_r == rm_msgs::DbusData::UP) {
+    return "automatic";
+  } else {
+    return "passive";
+  }
 }
 
 template

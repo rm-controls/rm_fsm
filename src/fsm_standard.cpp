@@ -21,13 +21,13 @@ FsmStandard<T>::FsmStandard(ros::NodeHandle &node_handle) : Fsm<T>(node_handle) 
 
 template<typename T>
 std::string FsmStandard<T>::getDesiredState() {
-
-  if (this->control_mode_ == "pc") { // pc control
+  if (this->data_.dbus_data_.s_r == rm_msgs::DbusData::DOWN) { // pc control
+    this->control_mode_ = "pc";
     if (this->data_.dbus_data_.key_ctrl
         && this->data_.dbus_data_.key_q) { // ctrl + q change state to passive
       return "passive";
     } else if (this->data_.dbus_data_.key_ctrl
-        && this->data_.dbus_data_.key_w) { // ctrl + w change state to raw
+        && this->data_.dbus_data_.key_w) { // ctrl + w change state to follow
       return "follow";
     } else if (this->data_.dbus_data_.key_ctrl
         && this->data_.dbus_data_.key_e) { // ctrl + e change state to fly slope
@@ -35,17 +35,12 @@ std::string FsmStandard<T>::getDesiredState() {
     } else {
       return this->current_state_->state_name_;
     }
-  } else if (this->control_mode_ == "rc") { // rc control
-    if (this->data_.dbus_data_.s_r == rm_msgs::DbusData::DOWN) {
-      return "passive";
-    } else if (this->data_.dbus_data_.s_r == rm_msgs::DbusData::MID) {
-      return "follow";
-    } else if (this->data_.dbus_data_.s_r == rm_msgs::DbusData::UP) {
-      return "follow";
-    } else {
-      return "passive";
-    }
+  } else if (this->data_.dbus_data_.s_r == rm_msgs::DbusData::MID
+      || this->data_.dbus_data_.s_r == rm_msgs::DbusData::UP) { // follow mode
+    this->control_mode_ = "rc";
+    return "follow";
   } else {
+    this->control_mode_ = "rc";
     return "passive";
   }
 }
