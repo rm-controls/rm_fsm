@@ -5,6 +5,7 @@
     <arg name="odom_tf" default="true"/>
     <arg name="camera_tf" default="true"/>
 
+    <rosparam file="$(find rm_dbus)/config/dbus.yaml" command="load"/>
     <rosparam file="$(find rm_chassis_controllers)/config/$(arg robot_type).yaml" command="load"/>
     <rosparam file="$(find rm_gimbal_controllers)/config/$(arg robot_type).yaml" command="load"/>
     <rosparam file="$(find rm_shooter_controllers)/config/$(arg robot_type).yaml" command="load"/>
