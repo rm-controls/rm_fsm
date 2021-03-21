@@ -64,11 +64,7 @@ void StateFollow<T>::run() {
     rate_yaw = -this->data_->dbus_data_.ch_l_x;
     rate_pitch = -this->data_->dbus_data_.ch_l_y;
 
-    if (this->data_->dbus_data_.s_r == rm_msgs::DbusData::UP) {
-      this->setGimbal(rm_msgs::GimbalCmd::TRACK, 0.0, 0.0, 5);
-    } else {
-      this->setGimbal(rm_msgs::GimbalCmd::RATE, rate_yaw, rate_pitch, 0);
-    }
+    this->setGimbal(rm_msgs::GimbalCmd::RATE, rate_yaw, rate_pitch, 0);
 
     if (this->data_->dbus_data_.s_l == rm_msgs::DbusData::UP) {
       this->data_->shooter_heat_limit_->input(this->data_->referee_, this->shoot_hz_);
