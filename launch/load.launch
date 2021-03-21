@@ -5,6 +5,7 @@
     <arg name="odom_tf" default="true"/>
     <arg name="camera_tf" default="true"/>
 
+    <rosparam file="$(find rm_dbus)/config/dbus.yaml" command="load"/>
     <rosparam file="$(find rm_chassis_controllers)/config/$(arg robot_type).yaml" command="load"/>
     <rosparam file="$(find rm_gimbal_controllers)/config/$(arg robot_type).yaml" command="load"/>
     <rosparam file="$(find rm_shooter_controllers)/config/$(arg robot_type).yaml" command="load"/>
@@ -32,7 +33,7 @@
     <node if="$(arg camera_tf)" pkg="tf" type="static_transform_publisher" name="camera_tf_publisher"
           args="0.086 0 -0.046 0.5, 0.5, 0.5, 0.5 pitch camera 100"/>
 
-    <node name="dbus_node" pkg="rm_base" type="dbus_node" respawn="false"/>
+    <node name="rm_dbus" pkg="rm_dbus" type="rm_dbus" respawn="false"/>
     <node name="rm_fsm" pkg="rm_fsm" type="rm_fsm" respawn="false"/>
 
 </launch>
