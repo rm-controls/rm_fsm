@@ -39,7 +39,7 @@ void StateBurst<T>::run() {
     if (this->data_->dbus_data_.p_l) {
       this->setShoot(rm_msgs::ShootCmd::PUSH, rm_msgs::ShootCmd::SPEED_10M_PER_SECOND, this->shoot_hz_, now);
     } else {
-      this->setShoot(rm_msgs::ShootCmd::PASSIVE, rm_msgs::ShootCmd::SPEED_10M_PER_SECOND, 0.0, now);
+      this->setShoot(rm_msgs::ShootCmd::STOP, rm_msgs::ShootCmd::SPEED_10M_PER_SECOND, 0.0, now);
     }
   } else { // rc control
     linear_x = this->data_->dbus_data_.ch_r_y;
@@ -55,7 +55,7 @@ void StateBurst<T>::run() {
     } else if (this->data_->dbus_data_.s_l == rm_msgs::DbusData::MID) {
       this->setShoot(rm_msgs::ShootCmd::READY, rm_msgs::ShootCmd::SPEED_10M_PER_SECOND, 0.0, now);
     } else {
-      this->setShoot(rm_msgs::ShootCmd::PASSIVE, rm_msgs::ShootCmd::SPEED_10M_PER_SECOND, 0.0, now);
+      this->setShoot(rm_msgs::ShootCmd::STOP, rm_msgs::ShootCmd::SPEED_10M_PER_SECOND, 0.0, now);
     }
   }
 

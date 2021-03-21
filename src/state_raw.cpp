@@ -39,7 +39,7 @@ void StateRaw<T>::run() {
   } else if (this->data_->dbus_data_.s_l == rm_msgs::DbusData::MID) {
     this->setShoot(rm_msgs::ShootCmd::READY, rm_msgs::ShootCmd::SPEED_10M_PER_SECOND, 0.0, now);
   } else {
-    this->setShoot(rm_msgs::ShootCmd::PASSIVE, rm_msgs::ShootCmd::SPEED_10M_PER_SECOND, 0.0, now);
+    this->setShoot(rm_msgs::ShootCmd::STOP, rm_msgs::ShootCmd::SPEED_10M_PER_SECOND, 0.0, now);
   }
 
   this->setChassis(rm_msgs::ChassisCmd::RAW, linear_x, linear_y, 0.0);
