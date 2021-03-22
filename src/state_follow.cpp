@@ -46,7 +46,7 @@ void StateFollow<T>::run() {
 
     if (this->data_->dbus_data_.p_l) {
       this->data_->shooter_heat_limit_->input(this->data_->referee_, this->shoot_hz_);
-      this->setShoot(rm_msgs::ShootCmd::PUSH, rm_msgs::ShootCmd::SPEED_15M_PER_SECOND, 5, now);
+      this->setShoot(rm_msgs::ShootCmd::PUSH, rm_msgs::ShootCmd::SPEED_18M_PER_SECOND, 5, now);
     } else {
       this->setShoot(rm_msgs::ShootCmd::STOP, rm_msgs::ShootCmd::SPEED_15M_PER_SECOND, 0.0, now);
     }

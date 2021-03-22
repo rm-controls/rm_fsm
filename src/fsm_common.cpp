@@ -72,7 +72,7 @@ void State<T>::setGimbal(uint8_t gimbal_mode, double rate_yaw, double rate_pitch
   this->data_->gimbal_cmd_.rate_pitch = rate_pitch * coefficient_pitch_;
 
   this->data_->gimbal_cmd_.target_id = target_id;
-  this->data_->gimbal_cmd_.bullet_speed = 15;
+  this->data_->gimbal_cmd_.bullet_speed = 7;
   this->data_->gimbal_cmd_pub_.publish(this->data_->gimbal_cmd_);
 }
 
