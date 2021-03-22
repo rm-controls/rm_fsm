@@ -2,11 +2,11 @@ rm_fsm:
   robot_type: "sentry"
   control_param:
     rc_param:
-      accel_x: 10.0
-      accel_y: 10.0
+      accel_x: 5.0
+      accel_y: 5.0
       accel_angular: 10.0
-      coefficient_x: 3.5
-      coefficient_y: 3.5
+      coefficient_x: 1.0
+      coefficient_y: 1.0
       coefficient_angular: 6.0
       coefficient_yaw: 12.56
       coefficient_pitch: 12.56
@@ -21,4 +21,7 @@ rm_fsm:
     chassis_accel: 1.0
     pitch_speed: 0.5
     yaw_speed: 3.14
-    distance: 3.0
+    start: 0.4
+    end: 2.3
+    calibration_speed: 0.15
+
