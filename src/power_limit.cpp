@@ -55,20 +55,20 @@ void PowerLimit::input(referee::RefereeData referee) {
 
 
   if (chassis_power <= limit_power && w0 >= roll_back_buffer_) {
-    ROS_INFO_THROTTLE(1, "Didn't use buffer power.");
+//    ROS_INFO_THROTTLE(1, "Didn't use buffer power.");
     chassis_current_need = 99;
     this->current_ = chassis_current_need;
   } else {
     w1 = w0 - 0.1 * (chassis_power - limit_power);
     w2 = w1 - 0.1 * (chassis_power - limit_power);
     if (w2 < danger_surplus_) {
-      ROS_INFO_THROTTLE(1, "After 200ms later,buffer power less than 10J,begin to limit.");
+//      ROS_INFO_THROTTLE(1, "After 200ms later,buffer power less than 10J,begin to limit.");
       // GUET plan
       chassis_current_need = (chassis_current_limit + 5 * w0 / chassis_voltage);
       this->current_ = chassis_current_need * coeff;
     } else {
       this->current_ = (chassis_current_limit + multiple * w0 / chassis_voltage) * coeff;
-      ROS_INFO_THROTTLE(1, "After 200ms later,buffer power more than 10J,safe.");
+//      ROS_INFO_THROTTLE(1, "After 200ms later,buffer power more than 10J,safe.");
     }
   }
 }

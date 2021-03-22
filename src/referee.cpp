@@ -13,7 +13,7 @@ void Referee::init() {
     serial_.setPort("/dev/usbReferee");
     serial_.setBaudrate(115200);
     serial_.setTimeout(timeout);
-  } catch (serial::SerialException &e) {
+  } catch (std::exception &e) {
     ROS_ERROR("Cannot set serial port of referee system, check whether the serial library is installed.");
     return;
   }
@@ -31,7 +31,7 @@ void Referee::init() {
     }
   }
   if (this->flag) {
-    ROS_INFO("serial open successfully.\n");
+    ROS_INFO("Referee serial open successfully.\n");
     referee_unpack_obj.index = 0;
     referee_unpack_obj.unpack_step = kStepHeaderSof;
   } else {
@@ -42,7 +42,15 @@ void Referee::init() {
 void Referee::read() {
   if (serial_.waitReadable()) {
     std::vector<uint8_t> rx_buffer;
-    serial_.read(rx_buffer, serial_.available());
+    try {
+      serial_.read(rx_buffer, serial_.available());
+    } catch (serial::IOException &e) {
+      ROS_ERROR("Referee system disconnect.");
+      ROS_WARN("Run robot without power limit and heat limit.");
+      this->flag = false;
+      return;
+    }
+
     rx_len_ = rx_buffer.size();
     unpack(rx_buffer);
   }
