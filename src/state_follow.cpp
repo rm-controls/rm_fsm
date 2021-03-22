@@ -26,6 +26,7 @@ void StateFollow<T>::run() {
   if (this->control_mode_ == "pc") { // pc control
     linear_x = (this->data_->dbus_data_.key_w - this->data_->dbus_data_.key_s); // W/S
     linear_y = (this->data_->dbus_data_.key_a - this->data_->dbus_data_.key_d); // A/D
+    this->setChassis(rm_msgs::ChassisCmd::FOLLOW, linear_x, linear_y, 0.0);
     if (this->data_->dbus_data_.key_shift) {
       if (is_spin) { // enter follow
         this->setChassis(rm_msgs::ChassisCmd::FOLLOW, linear_x, linear_y, 0.0);
