@@ -14,6 +14,7 @@
 #include "rm_fsm/referee.h"
 #include "rm_fsm/power_limit.h"
 #include "rm_fsm/shooter_heat_limit.h"
+#include "rm_fsm/target_cost_function.h"
 
 template<typename T>
 class FsmData {
@@ -30,6 +31,7 @@ class FsmData {
   ros::Publisher vel_cmd_pub_;
   ros::Publisher chassis_cmd_pub_;
   PowerLimit *power_limit_{};
+  TargetCostFunction *target_cost_function_{};
 
   //gimbal
   rm_msgs::GimbalCmd gimbal_cmd_;
@@ -45,6 +47,7 @@ class FsmData {
   void init(ros::NodeHandle nh) {
     power_limit_ = new PowerLimit(nh);
     shooter_heat_limit_ = new ShooterHeatLimit(nh);
+    target_cost_function_ = new TargetCostFunction(nh);
     referee_ = new referee::Referee();
 
     referee_->init();
