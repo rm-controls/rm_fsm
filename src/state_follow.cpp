@@ -30,8 +30,10 @@ void StateFollow<T>::run() {
     if (this->data_->dbus_data_.key_shift) {
       if (is_spin) { // enter follow
         this->setChassis(rm_msgs::ChassisCmd::FOLLOW, linear_x, linear_y, 0.0);
+        this->is_spin = false;
       } else { // enter gyro
         this->setChassis(rm_msgs::ChassisCmd::GYRO, linear_x, linear_y, 1.0);
+        this->is_spin = true;
       }
     }
 
