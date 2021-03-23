@@ -71,6 +71,9 @@ class State {
   double coefficient_pitch_ = 0.0;
 
   double shoot_hz_ = 0.0;
+
+  uint8_t last_chassis_mode_;
+  uint8_t last_shoot_mode_;
 };
 
 /**
