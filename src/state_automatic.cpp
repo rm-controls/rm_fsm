@@ -45,9 +45,11 @@ void StateAutomatic<T>::run() {
   geometry_msgs::TransformStamped chassis_transformStamped;
   double now_effort = 0;
   static double sum_effort = 0;
+  static int time_counter1 = 0;
   static int time_counter2 = 0;
   double roll{}, pitch{}, yaw{};
   ros::Time now = ros::Time::now();
+
 
   this->loadParam();
 
@@ -67,18 +69,17 @@ void StateAutomatic<T>::run() {
   }
   sum_effort+=effort_data_.effort[0];
 
+  time_counter2++;
  if(time_counter2==10){
     current_position_ = chassis_transformStamped.transform.translation.x;
    std::cout << "position:" << current_position_;
     speed_ = effort_data_.velocity[0];
-    std::cout << "   speed:" << speed_ << std::endl;
+    std::cout << "   speed:" << speed_;
     now_effort = sum_effort/10.0;
+   std::cout << "   now_effort:" << now_effort << std::endl;
     last_position_ = current_position_;
     time_counter2=0;
     sum_effort = 0;
-  }
-  else{
-    time_counter2++;
   }
   if(calibration_) {
     // set shooter
@@ -120,10 +121,12 @@ void StateAutomatic<T>::run() {
     }
 
   } else {
+    time_counter1++;
     this->setChassis(rm_msgs::ChassisCmd::RAW, -calibration_speed_, 0, 0);
     this->setGimbal(rm_msgs::GimbalCmd::PASSIVE, 0, 0, 0);
-     if (now_effort<-1.0) {
-       std::cout << "calibration finish !!!!!!!"<<std::endl;
+    if(time_counter1>40) {
+      if (now_effort < -1.1) {
+        std::cout << "calibration finish !" << std::endl;
         calibration_ = 1;
         map2odom_.header.stamp = ros::Time::now();
         map2odom_.header.frame_id = "map";
@@ -142,6 +145,7 @@ void StateAutomatic<T>::run() {
         odom2baselink_.transform.translation.z = 0;
         odom2baselink_.transform.rotation.w = 1;
         br.sendTransform(odom2baselink_);
+        }
       }
     }
 }
