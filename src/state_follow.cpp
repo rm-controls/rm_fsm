@@ -19,6 +19,7 @@ template<typename T>
 void StateFollow<T>::run() {
   double linear_x, linear_y, angular_z;
   double rate_yaw, rate_pitch;
+  uint8_t bullet_speed;
   ros::Time now = ros::Time::now();
 
   this->loadParam();
@@ -28,12 +29,12 @@ void StateFollow<T>::run() {
     linear_y = (this->data_->dbus_data_.key_a - this->data_->dbus_data_.key_d); // A/D
     this->setChassis(rm_msgs::ChassisCmd::FOLLOW, linear_x, linear_y, 0.0);
     if (this->data_->dbus_data_.key_shift) {
-      if (is_spin) { // enter follow
+      if (is_spin_) { // enter follow
         this->setChassis(rm_msgs::ChassisCmd::FOLLOW, linear_x, linear_y, 0.0);
-        this->is_spin = false;
+        this->is_spin_ = false;
       } else { // enter gyro
         this->setChassis(rm_msgs::ChassisCmd::GYRO, linear_x, linear_y, 1.0);
-        this->is_spin = true;
+        this->is_spin_ = true;
       }
     }
 
@@ -46,11 +47,25 @@ void StateFollow<T>::run() {
       this->setGimbal(rm_msgs::GimbalCmd::RATE, rate_yaw, rate_pitch, 0);
     }
 
-    if (this->data_->dbus_data_.p_l) {
-      this->data_->shooter_heat_limit_->input(this->data_->referee_, this->shoot_hz_);
-      this->setShoot(rm_msgs::ShootCmd::PUSH, rm_msgs::ShootCmd::SPEED_18M_PER_SECOND, 5, now);
-    } else {
-      this->setShoot(rm_msgs::ShootCmd::STOP, rm_msgs::ShootCmd::SPEED_15M_PER_SECOND, 0.0, now);
+    bullet_speed = rm_msgs::ShootCmd::SPEED_18M_PER_SECOND;
+
+    if (this->data_->dbus_data_.key_f) {
+      if (this->is_friction_ready_) {
+        this->setShoot(rm_msgs::ShootCmd::STOP, bullet_speed, 0.0, now);
+        this->is_friction_ready_ = false;
+      } else {
+        this->setShoot(rm_msgs::ShootCmd::READY, bullet_speed, 0.0, now);
+        this->is_friction_ready_ = true;
+      }
+    }
+
+    if (this->is_friction_ready_) {
+      if (this->data_->dbus_data_.p_l) {
+        this->data_->shooter_heat_limit_->input(this->data_->referee_, this->shoot_hz_);
+        this->setShoot(rm_msgs::ShootCmd::PUSH, bullet_speed, 5.0, now);
+      } else {
+        this->setShoot(rm_msgs::ShootCmd::PASSIVE, bullet_speed, 0.0, now);
+      }
     }
 
   } else { // rc control

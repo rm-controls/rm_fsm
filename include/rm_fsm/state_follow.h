@@ -16,7 +16,8 @@ class StateFollow : public State<T> {
   void run() override;
   void onExit() override;
  private:
-  bool is_spin = false;
+  bool is_spin_ = false;
+  bool is_friction_ready_ = false;
 };
 
 #endif //SRC_RM_SOFTWARE_RM_FSM_INCLUDE_RM_FSM_STATE_FOLLOW_H_
