@@ -17,6 +17,7 @@ void State<T>::loadParam() {
     accel_x_ = getParam(nh_, "control_param/pc_param/accel_x", 10.0);
     accel_y_ = getParam(nh_, "control_param/pc_param/accel_y", 10.0);
     accel_angular_ = getParam(nh_, "control_param/pc_param/accel_angular", 10.0);
+    brake_multiple_ = getParam(nh_, "control_param/pc_param/brake_multiple", 1);
     coefficient_x_ = getParam(nh_, "control_param/pc_param/coefficient_x", 3.5);
     coefficient_y_ = getParam(nh_, "control_param/pc_param/coefficient_y", 3.5);
     coefficient_angular_ = getParam(nh_, "control_param/pc_param/coefficient_angular", 6.0);
@@ -27,6 +28,7 @@ void State<T>::loadParam() {
     accel_x_ = getParam(nh_, "control_param/rc_param/accel_x", 10.0);
     accel_y_ = getParam(nh_, "control_param/rc_param/accel_y", 10.0);
     accel_angular_ = getParam(nh_, "control_param/rc_param/accel_angular", 10.0);
+    brake_multiple_ = getParam(nh_, "control_param/rc_param/brake_multiple", 1);
     coefficient_x_ = getParam(nh_, "control_param/rc_param/coefficient_x", 3.5);
     coefficient_y_ = getParam(nh_, "control_param/rc_param/coefficient_y", 3.5);
     coefficient_angular_ = getParam(nh_, "control_param/rc_param/coefficient_angular", 6.0);
@@ -43,11 +45,24 @@ void State<T>::setChassis(uint8_t chassis_mode,
                           double linear_x,
                           double linear_y,
                           double angular_z) {
+  double accel_x = accel_x_;
+  double accel_y = accel_y_;
+  double accel_angular = accel_angular_;
+
   this->data_->chassis_cmd_.mode = chassis_mode;
 
-  this->data_->chassis_cmd_.accel.linear.x = accel_x_;
-  this->data_->chassis_cmd_.accel.linear.y = accel_y_;
-  this->data_->chassis_cmd_.accel.angular.z = accel_angular_;
+  if (linear_x == 0.0)
+    accel_x = accel_x_ * brake_multiple_;
+
+  if (linear_y == 0.0)
+    accel_y = accel_y_ * brake_multiple_;
+
+  if (angular_z == 0.0)
+    accel_angular = accel_angular_ * brake_multiple_;
+
+  this->data_->chassis_cmd_.accel.linear.x = accel_x;
+  this->data_->chassis_cmd_.accel.linear.y = accel_y;
+  this->data_->chassis_cmd_.accel.angular.z = accel_angular;
 
   if (this->data_->referee_->flag) {
     this->data_->power_limit_->input(this->data_->referee_->referee_data_);

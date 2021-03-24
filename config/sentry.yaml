@@ -5,6 +5,7 @@ rm_fsm:
       accel_x: 5.0
       accel_y: 5.0
       accel_angular: 10.0
+      brake_multiple: 2
       coefficient_x: 1.0
       coefficient_y: 1.0
       coefficient_angular: 6.0

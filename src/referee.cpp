@@ -31,7 +31,7 @@ void Referee::init() {
     }
   }
   if (this->flag) {
-    ROS_INFO("Referee serial open successfully.\n");
+    ROS_INFO("Referee serial open successfully.");
     referee_unpack_obj.index = 0;
     referee_unpack_obj.unpack_step = kStepHeaderSof;
   } else {

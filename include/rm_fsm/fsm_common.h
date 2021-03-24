@@ -60,6 +60,7 @@ class State {
   double accel_x_ = 0.0;
   double accel_y_ = 0.0;
   double accel_angular_ = 0.0;
+  int brake_multiple_ = 1;
 
   // chassis fsm control coefficient
   double coefficient_x_ = 0.0;
