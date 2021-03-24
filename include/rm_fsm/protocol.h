@@ -38,7 +38,7 @@ typedef struct {
   uint16_t data_length;
   uint8_t seq;
   uint8_t crc8;
-}__packed FrameHeaderStruct;
+} FrameHeaderStruct;
 
 // Unpacking order
 typedef enum {
