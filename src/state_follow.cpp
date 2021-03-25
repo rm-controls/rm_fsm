@@ -23,6 +23,7 @@ void StateFollow<T>::run() {
   double rate_yaw, rate_pitch;
   uint8_t chassis_mode, shoot_mode;
   uint8_t shoot_speed;
+  double shoot_hz = 0;
   ros::Time now = ros::Time::now();
 
   this->loadParam();
@@ -31,10 +32,10 @@ void StateFollow<T>::run() {
   if (this->control_mode_ == "pc") { // pc control
     linear_x = (this->data_->dbus_data_.key_w - this->data_->dbus_data_.key_s); // W/S
     linear_y = (this->data_->dbus_data_.key_a - this->data_->dbus_data_.key_d); // A/D
-    chassis_mode = rm_msgs::ChassisCmd::FOLLOW;
 
+    chassis_mode = this->last_chassis_mode_;
     if (this->data_->dbus_data_.key_shift) {
-      if (now - this->last_press_time_shift > ros::Duration(2)) { // check for press
+      if (now - this->last_press_time_shift > ros::Duration(0.5)) { // check for press
         if (is_spin_) { // enter follow
           chassis_mode = rm_msgs::ChassisCmd::FOLLOW;
           this->is_spin_ = false;
@@ -45,8 +46,6 @@ void StateFollow<T>::run() {
         this->last_press_time_shift = now;
         this->last_chassis_mode_ = chassis_mode;
       }
-    } else {
-      chassis_mode = this->last_chassis_mode_;
     }
 
     this->setChassis(chassis_mode, linear_x, linear_y, 1.0);
@@ -63,9 +62,10 @@ void StateFollow<T>::run() {
 
     shoot_speed = rm_msgs::ShootCmd::SPEED_18M_PER_SECOND;
 
+    shoot_mode = this->last_shoot_mode_;
     // Send cmd to shooter
     if (this->data_->dbus_data_.key_f) {
-      if (now - this->last_press_time_f > ros::Duration(2)) {
+      if (now - this->last_press_time_f > ros::Duration(0.5)) {
         if (this->is_friction_ready_) {
           shoot_mode = rm_msgs::ShootCmd::STOP;
           this->is_friction_ready_ = false;
@@ -76,20 +76,17 @@ void StateFollow<T>::run() {
         this->last_press_time_f = now;
         this->last_shoot_mode_ = shoot_mode;
       }
-    } else {
-      shoot_mode = this->last_shoot_mode_;
     }
-
-    this->setShoot(shoot_mode, shoot_speed, 0.0, now);
 
     if (this->is_friction_ready_) {
       if (this->data_->dbus_data_.p_l) {
         this->data_->shooter_heat_limit_->input(this->data_->referee_, this->shoot_hz_);
-        this->setShoot(rm_msgs::ShootCmd::PUSH, shoot_speed, this->shoot_hz_, now);
-      } else {
-        this->setShoot(rm_msgs::ShootCmd::READY, shoot_speed, 0.0, now);
+        shoot_hz = this->data_->shooter_heat_limit_->output();
+        shoot_mode = rm_msgs::ShootCmd::PUSH;
       }
     }
+
+    this->setShoot(shoot_mode, shoot_speed, shoot_hz, now);
 
   } else { // rc control
     linear_x = this->data_->dbus_data_.ch_r_y;
