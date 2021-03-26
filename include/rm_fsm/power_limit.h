@@ -12,8 +12,9 @@
 class PowerLimit {
  public:
   explicit PowerLimit(ros::NodeHandle &nh);
-  void input(referee::RefereeData referee);
+  void input(referee::RefereeData referee, bool k_shift = false);
   double output() const;
+  double getLimitPower(referee::RefereeData referee);
 
  private:
   double current_ = 99;

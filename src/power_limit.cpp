@@ -14,16 +14,61 @@ PowerLimit::PowerLimit(ros::NodeHandle &nh) {
 
 }
 
-void PowerLimit::input(referee::RefereeData referee) {
-  double chassis_power = referee.power_heat_data_.chassis_power;
-  double chassis_voltage = referee.power_heat_data_.chassis_volt;
-  double chassis_current_need = 99;
-  double chassis_current_limit;
-  uint16_t w0 = referee.power_heat_data_.chassis_power_buffer; //chassis power buffer now
+void PowerLimit::input(referee::RefereeData referee, bool k_shift) {
+  uint16_t w0 = referee.power_heat_data_.chassis_power_buffer;
   double w1, w2;              //chassis power buffer 100ms&200ms later
+  double chassis_power;
+  double chassis_voltage;
+  double chassis_capacity;
+  double chassis_current_limit;
+  double chassis_current_need = 99;
   double limit_power;
 
-  // Change limit power of different level and robot
+  if (referee.power_manager_ && k_shift) {
+    ROS_INFO("Enter over power mode!");
+    chassis_voltage = referee.power_parameter[0];    //volt
+    chassis_power = referee.power_parameter[1];      //power
+    chassis_capacity = referee.power_parameter[2];   //capacity
+    limit_power = referee.power_parameter[3];        //limit power
+    w0 = w0 + chassis_capacity;
+  } else if (referee.power_manager_) {
+    ROS_INFO("Enter normal mode,with power manage!");
+    chassis_voltage = referee.power_parameter[0];    //volt
+    chassis_power = referee.power_parameter[1];      //power
+    chassis_capacity = referee.power_parameter[2];   //capacity
+    limit_power = getLimitPower(referee);
+  } else {
+    ROS_INFO("Enter normal mode,without manage!");
+    chassis_voltage = referee.power_heat_data_.chassis_volt;
+    chassis_power = referee.power_heat_data_.chassis_power;
+    limit_power = getLimitPower(referee);
+    chassis_capacity = 0.0;
+  }
+
+  chassis_current_limit = limit_power / chassis_voltage;
+
+  if (chassis_power <= limit_power && w0 >= roll_back_buffer_) {
+    ROS_INFO_THROTTLE(1, "Didn't use buffer power.");
+    chassis_current_need = 99;
+    this->current_ = chassis_current_need;
+  } else {
+    w1 = w0 - 0.1 * (chassis_power - limit_power);
+    w2 = w1 - 0.1 * (chassis_power - limit_power);
+    if (w2 < danger_surplus_) {
+      ROS_INFO_THROTTLE(1, "After 200ms later,buffer power less than 10J,begin to limit.");
+      // GUET plan
+      chassis_current_need = (chassis_current_limit + 5 * w0 / chassis_voltage);
+      this->current_ = chassis_current_need * coeff;
+    } else {
+      this->current_ = (chassis_current_limit + multiple * w0 / chassis_voltage) * coeff;
+      ROS_INFO_THROTTLE(1, "After 200ms later,buffer power more than 10J,safe.");
+    }
+  }
+}
+
+// Change limit power of different level and robot
+double PowerLimit::getLimitPower(referee::RefereeData referee) {
+  double limit_power;
   if ((referee.game_robot_status_.robot_id >= 3
       && referee.game_robot_status_.robot_id <= 5)
       || (referee.game_robot_status_.robot_id >= 103
@@ -48,29 +93,7 @@ void PowerLimit::input(referee::RefereeData referee) {
   } else { // Other robots
     limit_power = 200;
   }
-
-  chassis_current_limit = limit_power / chassis_voltage;
-  //this->openCapacity();        //check the super capacity button open or not
-  //limit_power = limit_power + this->getCapacity();
-
-
-  if (chassis_power <= limit_power && w0 >= roll_back_buffer_) {
-//    ROS_INFO_THROTTLE(1, "Didn't use buffer power.");
-    chassis_current_need = 99;
-    this->current_ = chassis_current_need;
-  } else {
-    w1 = w0 - 0.1 * (chassis_power - limit_power);
-    w2 = w1 - 0.1 * (chassis_power - limit_power);
-    if (w2 < danger_surplus_) {
-//      ROS_INFO_THROTTLE(1, "After 200ms later,buffer power less than 10J,begin to limit.");
-      // GUET plan
-      chassis_current_need = (chassis_current_limit + 5 * w0 / chassis_voltage);
-      this->current_ = chassis_current_need * coeff;
-    } else {
-      this->current_ = (chassis_current_limit + multiple * w0 / chassis_voltage) * coeff;
-//      ROS_INFO_THROTTLE(1, "After 200ms later,buffer power more than 10J,safe.");
-    }
-  }
+  return limit_power;
 }
 
 double PowerLimit::output() const {

@@ -265,6 +265,18 @@ void Referee::getPowerData(unsigned char *rx_buffer, int rx_len) {
     rx_buffer++;
   }
   memcpy(power_parameter, Parameters, 4 * sizeof(int));
+
+  if(power_parameter[0] && power_parameter[1] && power_parameter[2] && power_parameter[3])
+    this->referee_data_.power_manager_ = true;
+  else
+    this->referee_data_.power_manager_ = false;
+
+  this->referee_data_.power_parameter[0] = power_parameter[0];
+  this->referee_data_.power_parameter[1] = power_parameter[1];
+  this->referee_data_.power_parameter[2] = power_parameter[2];
+  this->referee_data_.power_parameter[3] = power_parameter[3];
+
+
 }
 
 void Referee::drawGraphic(RobotId robot_id, ClientId client_id,
