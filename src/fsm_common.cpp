@@ -35,6 +35,7 @@ void State<T>::loadParam() {
     coefficient_yaw_ = getParam(nh_, "control_param/rc_param/coefficient_yaw", 12.56);
     coefficient_pitch_ = getParam(nh_, "control_param/rc_param/coefficient_pitch", 12.56);
     shoot_hz_ = getParam(nh_, "control_param/rc_param/shoot_hz", 5.0);
+    lowest_effort_ = getParam(nh_, "control_param/power_limit/lowest_effort_", 10);
   } else {
     ROS_ERROR("Cannot load control params.");
   }
@@ -65,10 +66,14 @@ void State<T>::setChassis(uint8_t chassis_mode,
   this->data_->chassis_cmd_.accel.angular.z = accel_angular;
 
   if (this->data_->referee_->flag) {
-    this->data_->power_limit_->input(this->data_->referee_->referee_data_);
-    this->data_->chassis_cmd_.effort_limit = this->data_->power_limit_->output();
+    if (this->data_->referee_->referee_data_.power_heat_data_.chassis_volt == 0) {
+      this->data_->chassis_cmd_.effort_limit = lowest_effort_;
+    } else {
+      this->data_->power_limit_->input(this->data_->referee_->referee_data_);
+      this->data_->chassis_cmd_.effort_limit = this->data_->power_limit_->output();
+    }
   } else {
-    this->data_->chassis_cmd_.effort_limit = 99;
+    this->data_->chassis_cmd_.effort_limit = lowest_effort_;
   }
 
   this->data_->cmd_vel_.linear.x = linear_x * coefficient_x_;
