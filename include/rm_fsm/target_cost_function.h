@@ -22,13 +22,6 @@ class TargetCostFunction {
   int id_;
   double cost_ = 1000000;
   double time_interval_;
-  geometry_msgs::Pose pose_self_;
-  ros::Subscriber self_pose_sub_;
-
-  tf2_ros::Buffer tf_;
-  tf2_ros::TransformListener *tf_listener_;
-  geometry_msgs::TransformStamped gimbal_transformStamped;
-
 };
 
 #endif //SRC_RM_SOFTWARE_RM_FSM_INCLUDE_RM_FSM_TARGET_COST_FUNCTION_H_
