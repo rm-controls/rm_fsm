@@ -63,6 +63,8 @@ void Referee::read() {
   referee_pub_data_.shooter_heat_cooling_limit = referee_data_.game_robot_status_.shooter_heat0_cooling_limit;
   referee_pub_data_.robot_hp = referee_data_.game_robot_status_.remain_HP;
 
+  referee_pub_data_.stamp = ros::Time::now();
+
   referee_pub_.publish(referee_pub_data_);
 }
 
