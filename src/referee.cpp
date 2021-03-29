@@ -4,11 +4,6 @@
 #include <ros/ros.h>
 #include "rm_fsm/referee.h"
 
-static unsigned char Receive_Buffer[128];
-static unsigned char PingPong_Buffer[128];
-unsigned int Receive_BufCounter = 0;
-float Parameters[4];
-
 void Referee::init() {
   serial::Timeout timeout = serial::Timeout::simpleTimeout(50);
   int count = 0;
@@ -255,15 +250,14 @@ void Referee::getData(uint8_t *frame) {
 
   index += referee_unpack_obj.data_len + sizeof(uint16_t);
 
-  getPowerData(frame + index, 128);
+  power_manager_data_.read(frame + index);
 }
 
-void Referee::getPowerData(unsigned char *rx_buffer, int rx_len) {
-  while (rx_len--) {
+void PowerManagerData::read(unsigned char *rx_buffer) {
+  while (!rx_flag) {
     DTP_Received_CallBack(*rx_buffer);
     rx_buffer++;
   }
-  memcpy(power_parameter, Parameters, 4 * sizeof(int));
 }
 
 void Referee::drawGraphic(RobotId robot_id, ClientId client_id,
@@ -500,21 +494,22 @@ void appendCRC16CheckSum(uint8_t *pchMessage, uint32_t dwLength) {
 }
 
 /***************************************** Power manager ****************************************************/
-void Receive_CallBack(unsigned char PID, unsigned char Data[8]) {
+void PowerManagerData::Receive_CallBack(unsigned char PID, unsigned char Data[8]) {
   if (PID == 0) {
     Parameters[0] = ((Data[0] << 8) | Data[1]);
     Parameters[1] = ((Data[2] << 8) | Data[3]);
     Parameters[2] = ((Data[4] << 8) | Data[5]);
     Parameters[3] = ((Data[6] << 8) | Data[7]);
+    rx_flag = true;
   }
 }
 
-void DTP_Received_CallBack(unsigned char Receive_Byte) {
+void PowerManagerData::DTP_Received_CallBack(unsigned char Receive_Byte) {
 
   unsigned char CheckFlag;
   unsigned int SOF_Pos, EOF_Pos, CheckCounter;
 
-  Receive_Buffer[Receive_BufCounter] = Receive_Byte;
+  this->Receive_Buffer[Receive_BufCounter] = Receive_Byte;
   Receive_BufCounter = Receive_BufCounter + 1;
 
   CheckFlag = 0;

@@ -36,6 +36,21 @@ struct RefereeData {
   int performance_system_; // Performance level system
 };
 
+class PowerManagerData {
+ public:
+  float Parameters[4];
+  void read(unsigned char *rx_buffer);
+
+ private:
+  void DTP_Received_CallBack(unsigned char Receive_Byte);
+  void Receive_CallBack(unsigned char PID, unsigned char Data[8]);
+
+  unsigned char Receive_Buffer[128];
+  unsigned char PingPong_Buffer[128];
+  unsigned int Receive_BufCounter = 0;
+  bool rx_flag = false;
+};
+
 class Referee {
  public:
   Referee() = default;
@@ -47,6 +62,7 @@ class Referee {
   void drawFloat(RobotId robot_id, ClientId client_id, float data, GraphicOperateType operate_type);
 
   RefereeData referee_data_{};
+  PowerManagerData power_manager_data_;
   uint16_t power_parameter[4] = {0};
   bool flag = false;
   ros::Publisher referee_pub_;
@@ -60,7 +76,6 @@ class Referee {
       kProtocolCmdIdLength = sizeof(uint16_t), kProtocolTailLength = 2;
   void unpack(const std::vector<uint8_t> &rx_buffer);
   void getData(uint8_t *frame);
-  void getPowerData(unsigned char *rx_buffer, int rx_len);
 };
 
 uint8_t getCRC8CheckSum(unsigned char *pch_message, unsigned int dw_length, unsigned char ucCRC8);
@@ -69,8 +84,5 @@ void appendCRC8CheckSum(unsigned char *pchMessage, unsigned int dwLength);
 uint32_t verifyCRC16CheckSum(uint8_t *pchMessage, uint32_t dwLength);
 uint16_t getCRC16CheckSum(uint8_t *pchMessage, uint32_t dwLength, uint16_t wCRC);
 void appendCRC16CheckSum(unsigned char *pchMessage, unsigned int dwLength);
-
-extern float Parameters[4];
-void DTP_Received_CallBack(unsigned char Receive_Byte);
 
 #endif //SRC_RM_BRIDGE_INCLUDE_RT_RT_REFEREE_H_
