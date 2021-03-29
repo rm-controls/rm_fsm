@@ -9,7 +9,6 @@
 #include <rm_msgs/Referee.h>
 #include "rm_fsm/protocol.h"
 
-namespace referee {
 struct RefereeData {
   GameStatus game_status_;
   GameResult game_result_;
@@ -63,7 +62,6 @@ class Referee {
   void getData(uint8_t *frame);
   void getPowerData(unsigned char *rx_buffer, int rx_len);
 };
-}
 
 uint8_t getCRC8CheckSum(unsigned char *pch_message, unsigned int dw_length, unsigned char ucCRC8);
 uint32_t verifyCRC8CheckSum(unsigned char *pch_message, unsigned int dw_length);

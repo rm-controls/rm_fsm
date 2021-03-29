@@ -9,7 +9,7 @@ ShooterHeatLimit::ShooterHeatLimit(ros::NodeHandle &nh) {
   ros::NodeHandle pid_nh = ros::NodeHandle(nh, "power_limit/pid_buffer");
 }
 
-void ShooterHeatLimit::input(referee::Referee *referee, double shoot_hz) {
+void ShooterHeatLimit::input(Referee *referee, double shoot_hz) {
   uint16_t shooter_heat_max = referee->referee_data_.game_robot_status_.shooter_heat0_cooling_limit;
   uint16_t shooter_cooling_rate = referee->referee_data_.game_robot_status_.shooter_heat0_cooling_rate;
   uint16_t shooter_heat = referee->referee_data_.power_heat_data_.shooter_heat0;

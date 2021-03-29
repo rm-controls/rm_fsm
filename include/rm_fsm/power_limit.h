@@ -12,7 +12,7 @@
 class PowerLimit {
  public:
   explicit PowerLimit(ros::NodeHandle &nh);
-  void input(referee::RefereeData referee);
+  void input(RefereeData referee);
   double output() const;
 
  private:

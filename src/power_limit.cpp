@@ -14,7 +14,7 @@ PowerLimit::PowerLimit(ros::NodeHandle &nh) {
 
 }
 
-void PowerLimit::input(referee::RefereeData referee) {
+void PowerLimit::input(RefereeData referee) {
   double chassis_power = referee.power_heat_data_.chassis_power;
   double chassis_voltage = referee.power_heat_data_.chassis_volt;
   double chassis_current_need = 99;

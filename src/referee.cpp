@@ -9,7 +9,6 @@ static unsigned char PingPong_Buffer[128];
 unsigned int Receive_BufCounter = 0;
 float Parameters[4];
 
-namespace referee {
 void Referee::init() {
   serial::Timeout timeout = serial::Timeout::simpleTimeout(50);
   int count = 0;
@@ -416,7 +415,7 @@ void Referee::drawCharacter(RobotId robot_id, ClientId client_id, int side,
   serial_.write(tx_buffer, sizeof(send_data));
 }
 
-}
+
 
 /******************* CRC Verify *************************/
 uint8_t getCRC8CheckSum(unsigned char *pch_message, unsigned int dw_length, unsigned char ucCRC8) {
