@@ -12,8 +12,8 @@ FsmSentry<T>::FsmSentry(ros::NodeHandle &node_handle) : Fsm<T>(node_handle) {
   this->string2state.insert(std::pair<std::string, State<T> *>("passive", state_passive_));
   this->string2state.insert(std::pair<std::string, State<T> *>("raw", state_raw_));
   this->string2state.insert(std::pair<std::string, State<T> *>("automatic", state_automatic_));
-  this->string2state.insert(std::pair<std::string, State<T> *>("attack_without_move", state_attack_without_move_));
-
+  this->string2state.insert(std::pair<std::string, State<T> *>("attack", state_attack_));
+  this->string2state.insert(std::pair<std::string, State<T> *>("escape", state_escape_));
   this->current_state_ = this->string2state["passive"];
 }
 
