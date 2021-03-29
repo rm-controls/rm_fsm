@@ -12,7 +12,7 @@ StateEscape<T>::StateEscape(FsmData<T> *fsm_data,
 
 template<typename T>
 void StateEscape<T>::onEnter() {
-  ROS_INFO("Enter attack without move mode");
+  ROS_INFO("Enter escape mode");
 }
 
 template<typename T>

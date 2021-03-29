@@ -12,7 +12,7 @@ StateAttack<T>::StateAttack(FsmData<T> *fsm_data,
 
 template<typename T>
 void StateAttack<T>::onEnter() {
-  ROS_INFO("Enter attack without move mode");
+  ROS_INFO("Enter attack mode");
 }
 
 template<typename T>
