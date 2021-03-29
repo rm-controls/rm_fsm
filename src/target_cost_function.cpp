@@ -10,26 +10,33 @@ TargetCostFunction::TargetCostFunction(ros::NodeHandle &nh) {
 
 }
 
-void TargetCostFunction::input(rm_msgs::TargetDetectionArray target_detection_array) {
+void TargetCostFunction::input(rm_msgs::TrackDataArray track_data_array) {
 
-  int target_numbers = target_detection_array.detections.size();
+  int target_numbers = track_data_array.tracks.size();
   double cost_temp;
   for (int i = 0; i < target_numbers; i++) {
-    cost_temp = calculateCost(target_detection_array.detections[i]);
+    cost_temp = calculateCost(track_data_array.tracks[i]);
     if (cost_temp <= cost_) {
       cost_ = cost_temp;
-      id_ = target_detection_array.detections[i].id;
+      id_ = track_data_array.tracks[i].id;
     }
   }
 }
 
-double TargetCostFunction::calculateCost(rm_msgs::TargetDetection target_detection) {
-  double delta_x_2 = pow(target_detection.pose.position.x, 2);
-  double delta_y_2 = pow(target_detection.pose.position.y, 2);
-  double delta_z_2 = pow(target_detection.pose.position.z, 2);
+double TargetCostFunction::calculateCost(rm_msgs::TrackData track_data) {
+  /*
+  double delta_x_2 = pow(track_data.pose.position.x + time_interval_ * track_data.speed.linear.x, 2);
+  double delta_y_2 = pow(track_data.pose.position.y + time_interval_ * track_data.speed.linear.y, 2);
+  double delta_z_2 = pow(track_data.pose.position.z + time_interval_ * track_data.speed.linear.z, 2);
+   */
+
+  //not speed
+  double delta_x_2 = pow(track_data.pose.position.x, 2);
+  double delta_y_2 = pow(track_data.pose.position.y, 2);
+  double delta_z_2 = pow(track_data.pose.position.z, 2);
 
   double distance = sqrt(delta_x_2 + delta_y_2 + delta_z_2);
-  double cost = distance * target_detection.confidence;
+  double cost = distance;
 
   return cost;
 }

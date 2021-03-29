@@ -8,15 +8,15 @@
 #include <ros/ros.h>
 #include <geometry_msgs/Twist.h>
 #include <tf2_ros/transform_listener.h>
-#include "rm_msgs/TargetDetection.h"
-#include "rm_msgs/TargetDetectionArray.h"
+#include "rm_msgs/TrackData.h"
+#include "rm_msgs/TrackDataArray.h"
 
 class TargetCostFunction {
  public:
   explicit TargetCostFunction(ros::NodeHandle &nh);
-  void input(rm_msgs::TargetDetectionArray target_detection_array);
+  void input(rm_msgs::TrackDataArray track_data_array);
   int output() const;
-  double calculateCost(rm_msgs::TargetDetection target_detection);
+  double calculateCost(rm_msgs::TrackData track_data);
 
  private:
   int id_;
