@@ -8,6 +8,8 @@ template<typename T>
 StateFollow<T>::StateFollow(FsmData<T> *fsm_data,
                             const std::string &state_string,
                             ros::NodeHandle &nh): State<T>(nh, fsm_data, state_string) {
+  this->last_chassis_mode_ = rm_msgs::ChassisCmd::FOLLOW;
+  this->last_shoot_mode_ = rm_msgs::ShootCmd::STOP;
 }
 
 template<typename T>
@@ -19,22 +21,36 @@ template<typename T>
 void StateFollow<T>::run() {
   double linear_x, linear_y, angular_z;
   double rate_yaw, rate_pitch;
+  uint8_t chassis_mode, shoot_mode;
+  uint8_t shoot_speed;
+  double shoot_hz = 0;
   ros::Time now = ros::Time::now();
 
   this->loadParam();
 
+  // Send cmd to chassis
   if (this->control_mode_ == "pc") { // pc control
     linear_x = (this->data_->dbus_data_.key_w - this->data_->dbus_data_.key_s); // W/S
     linear_y = (this->data_->dbus_data_.key_a - this->data_->dbus_data_.key_d); // A/D
-    this->setChassis(rm_msgs::ChassisCmd::FOLLOW, linear_x, linear_y, 0.0);
+
+    chassis_mode = this->last_chassis_mode_;
     if (this->data_->dbus_data_.key_shift) {
-      if (is_spin) { // enter follow
-        this->setChassis(rm_msgs::ChassisCmd::FOLLOW, linear_x, linear_y, 0.0);
-      } else { // enter gyro
-        this->setChassis(rm_msgs::ChassisCmd::GYRO, linear_x, linear_y, 1.0);
+      if (now - this->last_press_time_shift > ros::Duration(0.5)) { // check for press
+        if (is_spin_) { // enter follow
+          chassis_mode = rm_msgs::ChassisCmd::FOLLOW;
+          this->is_spin_ = false;
+        } else { // enter gyro
+          chassis_mode = rm_msgs::ChassisCmd::GYRO;
+          this->is_spin_ = true;
+        }
+        this->last_press_time_shift = now;
+        this->last_chassis_mode_ = chassis_mode;
       }
     }
 
+    this->setChassis(chassis_mode, linear_x, linear_y, 1.0);
+
+    // Send cmd to gimbal
     rate_yaw = -this->data_->dbus_data_.m_x;
     rate_pitch = this->data_->dbus_data_.m_y;
 
@@ -44,12 +60,33 @@ void StateFollow<T>::run() {
       this->setGimbal(rm_msgs::GimbalCmd::RATE, rate_yaw, rate_pitch, 0);
     }
 
-    if (this->data_->dbus_data_.p_l) {
-      this->data_->shooter_heat_limit_->input(this->data_->referee_, this->shoot_hz_);
-      this->setShoot(rm_msgs::ShootCmd::PUSH, rm_msgs::ShootCmd::SPEED_15M_PER_SECOND, 5, now);
-    } else {
-      this->setShoot(rm_msgs::ShootCmd::STOP, rm_msgs::ShootCmd::SPEED_15M_PER_SECOND, 0.0, now);
+    shoot_speed = rm_msgs::ShootCmd::SPEED_18M_PER_SECOND;
+
+    shoot_mode = this->last_shoot_mode_;
+    // Send cmd to shooter
+    if (this->data_->dbus_data_.key_f) {
+      if (now - this->last_press_time_f > ros::Duration(0.5)) {
+        if (this->is_friction_ready_) {
+          shoot_mode = rm_msgs::ShootCmd::STOP;
+          this->is_friction_ready_ = false;
+        } else {
+          shoot_mode = rm_msgs::ShootCmd::READY;
+          this->is_friction_ready_ = true;
+        }
+        this->last_press_time_f = now;
+        this->last_shoot_mode_ = shoot_mode;
+      }
     }
+
+    if (this->is_friction_ready_) {
+      if (this->data_->dbus_data_.p_l) {
+        this->data_->shooter_heat_limit_->input(this->data_->referee_, this->shoot_hz_);
+        shoot_hz = this->data_->shooter_heat_limit_->output();
+        shoot_mode = rm_msgs::ShootCmd::PUSH;
+      }
+    }
+
+    this->setShoot(shoot_mode, shoot_speed, shoot_hz, now);
 
   } else { // rc control
     linear_x = this->data_->dbus_data_.ch_r_y;
@@ -65,15 +102,17 @@ void StateFollow<T>::run() {
     rate_yaw = -this->data_->dbus_data_.ch_l_x;
     rate_pitch = -this->data_->dbus_data_.ch_l_y;
 
+    shoot_speed = rm_msgs::ShootCmd::SPEED_15M_PER_SECOND;
+
     this->setGimbal(rm_msgs::GimbalCmd::RATE, rate_yaw, rate_pitch, 0);
 
     if (this->data_->dbus_data_.s_l == rm_msgs::DbusData::UP) {
       this->data_->shooter_heat_limit_->input(this->data_->referee_, this->shoot_hz_);
-      this->setShoot(rm_msgs::ShootCmd::PUSH, rm_msgs::ShootCmd::SPEED_15M_PER_SECOND, 5, now);
+      this->setShoot(rm_msgs::ShootCmd::PUSH, shoot_speed, 5, now);
     } else if (this->data_->dbus_data_.s_l == rm_msgs::DbusData::MID) {
-      this->setShoot(rm_msgs::ShootCmd::READY, rm_msgs::ShootCmd::SPEED_15M_PER_SECOND, 0.0, now);
+      this->setShoot(rm_msgs::ShootCmd::READY, shoot_speed, 0.0, now);
     } else {
-      this->setShoot(rm_msgs::ShootCmd::STOP, rm_msgs::ShootCmd::SPEED_15M_PER_SECOND, 0.0, now);
+      this->setShoot(rm_msgs::ShootCmd::STOP, shoot_speed, 0.0, now);
     }
   }
 }

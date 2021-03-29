@@ -60,6 +60,7 @@ class State {
   double accel_x_ = 0.0;
   double accel_y_ = 0.0;
   double accel_angular_ = 0.0;
+  int brake_multiple_ = 1;
 
   // chassis fsm control coefficient
   double coefficient_x_ = 0.0;
@@ -71,6 +72,9 @@ class State {
   double coefficient_pitch_ = 0.0;
 
   double shoot_hz_ = 0.0;
+
+  uint8_t last_chassis_mode_;
+  uint8_t last_shoot_mode_;
 };
 
 /**

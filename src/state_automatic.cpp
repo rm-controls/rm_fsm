@@ -19,8 +19,8 @@ StateAutomatic<T>::StateAutomatic(FsmData<T> *fsm_data,
   auto_move_pitch_speed_ = getParam(nh, "auto_move/pitch_speed", 0.5);
   auto_move_yaw_speed_ = getParam(nh, "auto_move/yaw_speed", 3.14);
   start_ = getParam(nh, "auto_move/start", 0.3);
-  end_ = getParam(nh, "auto_move/end", 1.5);
-
+  end_ = getParam(nh, "auto_move/end", 2.5);
+  calibration_speed_ = getParam(nh, "auto_move/calibration_speed", 0.15);
   map2odom_.header.stamp = ros::Time::now();
   map2odom_.header.frame_id = "map";
   map2odom_.child_frame_id = "odom";
@@ -29,6 +29,8 @@ StateAutomatic<T>::StateAutomatic(FsmData<T> *fsm_data,
   map2odom_.transform.translation.z = 0;
   map2odom_.transform.rotation.w = 1;
   tf_broadcaster_.sendTransform(map2odom_);
+  effort_sub_ = nh.subscribe<sensor_msgs::JointState>(
+      "/joint_states", 10, &StateAutomatic::effortDataCallback, this);
 }
 
 template<typename T>
@@ -38,11 +40,16 @@ void StateAutomatic<T>::onEnter() {
 
 template<typename T>
 void StateAutomatic<T>::run() {
+
   geometry_msgs::TransformStamped gimbal_transformStamped;
   geometry_msgs::TransformStamped chassis_transformStamped;
-  static int time_counter = 0;
+  double now_effort = 0;
+  static double sum_effort = 0;
+  static int time_counter1 = 0;
+  static int time_counter2 = 0;
   double roll{}, pitch{}, yaw{};
   ros::Time now = ros::Time::now();
+
 
   this->loadParam();
 
@@ -60,10 +67,20 @@ void StateAutomatic<T>::run() {
   catch (tf2::TransformException &ex) {
     //ROS_WARN("%s", ex.what());
   }
+  sum_effort+=effort_data_.effort[0];
 
-  current_position_ = chassis_transformStamped.transform.translation.x;
-  speed_ = (current_position_- last_position_)*100;
-  last_position_ = current_position_;
+  time_counter2++;
+ if(time_counter2==10){
+    current_position_ = chassis_transformStamped.transform.translation.x;
+   std::cout << "position:" << current_position_;
+    speed_ = effort_data_.velocity[0];
+    std::cout << "   speed:" << speed_;
+    now_effort = sum_effort/10.0;
+   std::cout << "   now_effort:" << now_effort << std::endl;
+    last_position_ = current_position_;
+    time_counter2=0;
+    sum_effort = 0;
+  }
   if(calibration_) {
     // set shooter
     this->setShoot(rm_msgs::ShootCmd::PASSIVE, rm_msgs::ShootCmd::SPEED_10M_PER_SECOND, this->shoot_hz_, now);
@@ -73,43 +90,43 @@ void StateAutomatic<T>::run() {
       point_side_ = 2;
     else if ((current_position_ <= start_) && (point_side_ == 3))
       point_side_ = 1;
-
     if (point_side_ == 1) {
-      this->accel_x_ = auto_move_chassis_accel_;
+      std::cout << "Enter 1 state" << std::endl;
       this->setChassis(rm_msgs::ChassisCmd::RAW, auto_move_chassis_speed_, 0.0, 0.0);
     } else if (point_side_ == 2) {
+      std::cout << "Enter 2 state" << std::endl;
       this->setChassis(rm_msgs::ChassisCmd::PASSIVE, 0.0, 0.0, 0.0);
       if(speed_ <= 0)
         point_side_ = 3;
     } else if (point_side_ == 3) {
-      this->accel_x_ = auto_move_chassis_accel_;
+      std::cout << "Enter 3 state" << std::endl;
       this->setChassis(rm_msgs::ChassisCmd::RAW, -auto_move_chassis_speed_, 0.0, 0.0);
     } else if (point_side_ == 4) {
+      std::cout << "Enter 4 state" << std::endl;
       this->setChassis(rm_msgs::ChassisCmd::PASSIVE, 0.0, 0.0, 0.0);
       if (speed_ >= 0)
         point_side_ = 1;
     }
 
     // set gimbal
-    if (pitch > (0.9))
+    if (pitch > (0.75))
       gimbal_position_ = 1;
     else if (pitch < (-0.1))
       gimbal_position_ = 2;
 
     if (gimbal_position_ == 1) {
-      this->setGimbal(rm_msgs::GimbalCmd::RATE, auto_move_yaw_speed_, -auto_move_pitch_speed_, 0);
+      this->setGimbal(rm_msgs::GimbalCmd::PASSIVE, auto_move_yaw_speed_, -auto_move_pitch_speed_, 0);
     } else if (gimbal_position_ == 2) {
-      this->setGimbal(rm_msgs::GimbalCmd::RATE, auto_move_yaw_speed_, auto_move_pitch_speed_, 0);
-    } else if (point_side_ == 3) {
-      this->setGimbal(rm_msgs::GimbalCmd::PASSIVE, 0.0, 0.0, 0);
+      this->setGimbal(rm_msgs::GimbalCmd::PASSIVE, auto_move_yaw_speed_, auto_move_pitch_speed_, 0);
     }
 
   } else {
-    this->setChassis(rm_msgs::ChassisCmd::RAW, -0.2, 0, 0);
+    time_counter1++;
+    this->setChassis(rm_msgs::ChassisCmd::RAW, -calibration_speed_, 0, 0);
     this->setGimbal(rm_msgs::GimbalCmd::PASSIVE, 0, 0, 0);
-    time_counter++;
-    if (time_counter > 35) {
-      if ((speed_ > -0.04) && (speed_ < 0.04)) {
+    if(time_counter1>40) {
+      if (now_effort < -1.1) {
+        std::cout << "calibration finish !" << std::endl;
         calibration_ = 1;
         map2odom_.header.stamp = ros::Time::now();
         map2odom_.header.frame_id = "map";
@@ -128,10 +145,9 @@ void StateAutomatic<T>::run() {
         odom2baselink_.transform.translation.z = 0;
         odom2baselink_.transform.rotation.w = 1;
         br.sendTransform(odom2baselink_);
+        }
       }
-      time_counter = 0;
     }
-  }
 }
 
 template<typename T>

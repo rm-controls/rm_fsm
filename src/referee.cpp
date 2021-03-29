@@ -31,7 +31,7 @@ void Referee::init() {
     }
   }
   if (this->flag) {
-    ROS_INFO("Referee serial open successfully.\n");
+    ROS_INFO("Referee serial open successfully.");
     referee_unpack_obj.index = 0;
     referee_unpack_obj.unpack_step = kStepHeaderSof;
   } else {
@@ -62,6 +62,8 @@ void Referee::read() {
   referee_pub_data_.shooter_heat = referee_data_.power_heat_data_.shooter_heat0;
   referee_pub_data_.shooter_heat_cooling_limit = referee_data_.game_robot_status_.shooter_heat0_cooling_limit;
   referee_pub_data_.robot_hp = referee_data_.game_robot_status_.remain_HP;
+
+  referee_pub_data_.stamp = ros::Time::now();
 
   referee_pub_.publish(referee_pub_data_);
 }

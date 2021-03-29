@@ -5,6 +5,7 @@ rm_fsm:
       accel_x: 5.0
       accel_y: 5.0
       accel_angular: 5.0
+      brake_multiple: 2
       coefficient_x: 3.5
       coefficient_y: 3.5
       coefficient_angular: 6.0
@@ -15,6 +16,7 @@ rm_fsm:
       accel_x: 5.0
       accel_y: 5.0
       accel_angular: 5.0
+      brake_multiple: 2
       coefficient_x: 3.5
       coefficient_y: 3.5
       coefficient_angular: 6.0
@@ -22,7 +24,7 @@ rm_fsm:
       coefficient_pitch: 600.0
       shoot_hz: 5.0
   power_limit:
-    danger_surplus_: 5.0
-    roll_back_buffer_: 30.0
-    coeff: 0.08
-    multiple: 18
+    danger_surplus_: 28.0
+    roll_back_buffer_: 55.0
+    coeff: 0.03
+    multiple: 7.5
