@@ -39,7 +39,7 @@ struct RefereeData {
 class PowerManagerData {
  public:
   float Parameters[4];
-  void read(unsigned char *rx_buffer);
+  void read(const std::vector<uint8_t> &rx_buffer);
 
  private:
   void DTP_Received_CallBack(unsigned char Receive_Byte);
@@ -48,7 +48,7 @@ class PowerManagerData {
   unsigned char Receive_Buffer[128];
   unsigned char PingPong_Buffer[128];
   unsigned int Receive_BufCounter = 0;
-  bool rx_flag = false;
+  float Int16ToFloat(unsigned short data0);
 };
 
 class Referee {
@@ -63,7 +63,6 @@ class Referee {
 
   RefereeData referee_data_{};
   PowerManagerData power_manager_data_;
-  uint16_t power_parameter[4] = {0};
   bool flag = false;
   ros::Publisher referee_pub_;
   rm_msgs::Referee referee_pub_data_;

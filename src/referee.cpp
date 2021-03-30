@@ -39,8 +39,8 @@ void Referee::init() {
 }
 
 void Referee::read() {
+  std::vector<uint8_t> rx_buffer;
   if (serial_.waitReadable()) {
-    std::vector<uint8_t> rx_buffer;
     try {
       serial_.read(rx_buffer, serial_.available());
     } catch (serial::IOException &e) {
@@ -52,6 +52,8 @@ void Referee::read() {
 
     rx_len_ = rx_buffer.size();
     unpack(rx_buffer);
+
+    power_manager_data_.read(rx_buffer);
   }
 
   referee_pub_data_.chassis_volt = referee_data_.power_heat_data_.chassis_volt;
@@ -246,17 +248,6 @@ void Referee::getData(uint8_t *frame) {
       ROS_WARN("[Referee]Referee command ID not found.");
       break;
     }
-  }
-
-  index += referee_unpack_obj.data_len + sizeof(uint16_t);
-
-  power_manager_data_.read(frame + index);
-}
-
-void PowerManagerData::read(unsigned char *rx_buffer) {
-  while (!rx_flag) {
-    DTP_Received_CallBack(*rx_buffer);
-    rx_buffer++;
   }
 }
 
@@ -494,13 +485,21 @@ void appendCRC16CheckSum(uint8_t *pchMessage, uint32_t dwLength) {
 }
 
 /***************************************** Power manager ****************************************************/
+void PowerManagerData::read(const std::vector<uint8_t> &rx_buffer) {
+  memset(Receive_Buffer, 0x00, sizeof(Receive_Buffer));
+  memset(PingPong_Buffer, 0x00, sizeof(PingPong_Buffer));
+  Receive_BufCounter = 0;
+  for (unsigned char kI : rx_buffer) {
+    DTP_Received_CallBack(kI);
+  }
+}
+
 void PowerManagerData::Receive_CallBack(unsigned char PID, unsigned char Data[8]) {
   if (PID == 0) {
-    Parameters[0] = ((Data[0] << 8) | Data[1]);
-    Parameters[1] = ((Data[2] << 8) | Data[3]);
-    Parameters[2] = ((Data[4] << 8) | Data[5]);
-    Parameters[3] = ((Data[6] << 8) | Data[7]);
-    rx_flag = true;
+    Parameters[0] = Int16ToFloat((Data[0] << 8) | Data[1]);
+    Parameters[1] = Int16ToFloat((Data[2] << 8) | Data[3]);
+    Parameters[2] = Int16ToFloat((Data[4] << 8) | Data[5]);
+    Parameters[3] = Int16ToFloat((Data[6] << 8) | Data[7]);
   }
 }
 
@@ -509,7 +508,7 @@ void PowerManagerData::DTP_Received_CallBack(unsigned char Receive_Byte) {
   unsigned char CheckFlag;
   unsigned int SOF_Pos, EOF_Pos, CheckCounter;
 
-  this->Receive_Buffer[Receive_BufCounter] = Receive_Byte;
+  Receive_Buffer[Receive_BufCounter] = Receive_Byte;
   Receive_BufCounter = Receive_BufCounter + 1;
 
   CheckFlag = 0;
@@ -568,4 +567,15 @@ void PowerManagerData::DTP_Received_CallBack(unsigned char Receive_Byte) {
     memset(PingPong_Buffer, 0x00, sizeof(PingPong_Buffer));
     Receive_BufCounter = 0;
   }
+}
+
+float PowerManagerData::Int16ToFloat(unsigned short data0) {
+  if (data0 == 0)
+    return 0;
+  float *fp32;
+  unsigned int fInt32 = ((data0 & 0x8000) << 16) |
+      (((((data0 >> 10) & 0x1f) - 0x0f + 0x7f) & 0xff) << 23)
+      | ((data0 & 0x03FF) << 13);
+  fp32 = (float *) &fInt32;
+  return *fp32;
 }
