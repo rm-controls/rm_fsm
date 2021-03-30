@@ -21,6 +21,7 @@ void TargetCostFunction::input(rm_msgs::TrackDataArray track_data_array) {
       id_ = track_data_array.tracks[i].id;
     }
   }
+  cost_ = 10000000;
 }
 
 double TargetCostFunction::calculateCost(rm_msgs::TrackData track_data) {
