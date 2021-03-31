@@ -1,7 +1,7 @@
 <launch>
     <arg name="robot_type" default="$(env ROBOT_TYPE)" doc="Robot type [standard, hero, engineer]"/>
     <arg name="load_controller" default="true"/>
-    <arg name="ekf" default="true"/>
+    <arg name="ekf" default="false"/>
     <arg name="odom_tf" default="true"/>
     <arg name="camera_tf" default="true"/>
 
@@ -9,7 +9,7 @@
     <rosparam file="$(find rm_chassis_controllers)/config/$(arg robot_type).yaml" command="load"/>
     <rosparam file="$(find rm_gimbal_controllers)/config/$(arg robot_type).yaml" command="load"/>
     <rosparam file="$(find rm_shooter_controllers)/config/$(arg robot_type).yaml" command="load"/>
-    <rosparam if="$(arg ekf)" param="controllers/chassis_standard_controller/enable_odom_tf">false</rosparam>
+    <rosparam if="$(arg ekf)" param="controllers/chassis_controller/enable_odom_tf">false</rosparam>
     <rosparam file="$(find rm_fsm)/config/$(arg robot_type).yaml" command="load"/>
 
     <!-- load the controllers -->
@@ -19,8 +19,8 @@
           controllers/robot_state_controller
           controllers/joint_state_controller
           controllers/chassis_controller
-          controllers/gimbal_standard_controller
-          controllers/shooter_standard_controller
+          controllers/gimbal_controller
+          controllers/shooter_controller
           controllers/imu_sensor_controller
     "/>
     <node if="$(arg ekf)" pkg="robot_localization" type="ekf_localization_node" name="ekf_localization"

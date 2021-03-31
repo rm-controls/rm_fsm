@@ -77,6 +77,9 @@ void Referee::read() {
   referee_pub_data_.shooter_heat = referee_data_.power_heat_data_.shooter_heat0;
   referee_pub_data_.shooter_heat_cooling_limit = referee_data_.game_robot_status_.shooter_heat0_cooling_limit;
   referee_pub_data_.robot_hp = referee_data_.game_robot_status_.remain_HP;
+  referee_pub_data_.hurt_armor_id = referee_data_.robot_hurt_.armor_id;
+  referee_pub_data_.hurt_type = referee_data_.robot_hurt_.hurt_type;
+  referee_pub_data_.stamp = ros::Time::now();
 
   referee_pub_.publish(referee_pub_data_);
 }
@@ -283,18 +286,30 @@ void Referee::drawGraphic(RobotId robot_id, ClientId client_id,
   send_data.graphic_header_data_.send_ID = robot_id;
   send_data.graphic_header_data_.receiver_ID = client_id;
 
-  if (side) {
+  if (side==1) {//left
     send_data.graphic_data_struct_.graphic_name[0] = 1;
     send_data.graphic_data_struct_.start_x = 100;
     send_data.graphic_data_struct_.start_y = 800;
     send_data.graphic_data_struct_.end_x = 200;
     send_data.graphic_data_struct_.end_y = 900;
-  } else {
+  }else if(side==2) {//up
+    send_data.graphic_data_struct_.graphic_name[0] = 0;
+    send_data.graphic_data_struct_.start_x = 910;
+    send_data.graphic_data_struct_.start_y = 900;
+    send_data.graphic_data_struct_.end_x = 1010; // 11 bit
+    send_data.graphic_data_struct_.end_y = 950; // 11 bit
+  }else if(side==3) {//right
     send_data.graphic_data_struct_.graphic_name[0] = 0;
     send_data.graphic_data_struct_.start_x = 1720;
     send_data.graphic_data_struct_.start_y = 800;
     send_data.graphic_data_struct_.end_x = 1820; // 11 bit
     send_data.graphic_data_struct_.end_y = 900; // 11 bit
+  } else if(side==4) {//down
+    send_data.graphic_data_struct_.graphic_name[0] = 0;
+    send_data.graphic_data_struct_.start_x = 910;
+    send_data.graphic_data_struct_.start_y = 100;
+    send_data.graphic_data_struct_.end_x = 1010; // 11 bit
+    send_data.graphic_data_struct_.end_y = 150; // 11 bit
   }
 
   send_data.graphic_data_struct_.graphic_name[1] = 0;

@@ -2,21 +2,21 @@
 // Created by astro on 2021/3/23.
 //
 
-#include "rm_fsm/state_attack_without_move.h"
+#include "rm_fsm/state_attack.h"
 
 template<typename T>
-StateAttackWithoutMove<T>::StateAttackWithoutMove(FsmData<T> *fsm_data,
-                      const std::string &state_string,
-                      ros::NodeHandle &nh): State<T>(nh, fsm_data, state_string) {
+StateAttack<T>::StateAttack(FsmData<T> *fsm_data,
+                            const std::string &state_string,
+                            ros::NodeHandle &nh): State<T>(nh, fsm_data, state_string) {
 }
 
 template<typename T>
-void StateAttackWithoutMove<T>::onEnter() {
-  ROS_INFO("Enter attack without move mode");
+void StateAttack<T>::onEnter() {
+  ROS_INFO("Enter attack mode");
 }
 
 template<typename T>
-void StateAttackWithoutMove<T>::run() {
+void StateAttack<T>::run() {
   ros::Time now = ros::Time::now();
 
   this->loadParam();
@@ -29,12 +29,12 @@ void StateAttackWithoutMove<T>::run() {
                  5, now);
 }
 template<typename T>
-void StateAttackWithoutMove<T>::onExit() {
+void StateAttack<T>::onExit() {
   // Nothing to clean up when exiting
   ROS_INFO("Exit attack without move mode");
 }
 
 template
-class StateAttackWithoutMove<double>;
+class StateAttack<double>;
 template
-class StateAttackWithoutMove<float>;
+class StateAttack<float>;
