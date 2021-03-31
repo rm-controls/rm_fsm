@@ -7,6 +7,7 @@
 void Referee::init() {
   serial::Timeout timeout = serial::Timeout::simpleTimeout(50);
   int count = 0;
+  rx_data_.insert(rx_data_.begin(), 256, 0);
 
   try {
     serial_.setPort("/dev/usbReferee");
@@ -40,9 +41,13 @@ void Referee::init() {
 
 void Referee::read() {
   std::vector<uint8_t> rx_buffer;
+  std::vector<uint8_t> temp_buffer;
+  int rx_len;
+
   if (serial_.waitReadable()) {
     try {
-      serial_.read(rx_buffer, serial_.available());
+      rx_len = serial_.available();
+      serial_.read(rx_buffer, rx_len);
     } catch (serial::IOException &e) {
       ROS_ERROR("Referee system disconnect.");
       ROS_WARN("Run robot without power limit and heat limit.");
@@ -50,10 +55,19 @@ void Referee::read() {
       return;
     }
 
-    rx_len_ = rx_buffer.size();
-    unpack(rx_buffer);
-
+    // Unpack data from power manager
     power_manager_data_.read(rx_buffer);
+
+    // Unpack data from referee system
+    for (int kI = kUnpackLength; kI > rx_len; --kI) {
+      temp_buffer.insert(temp_buffer.begin(), rx_data_[kI - 1]);
+    }
+    temp_buffer.insert(temp_buffer.end(), rx_buffer.begin(), rx_buffer.end());
+
+    rx_data_.clear();
+    rx_data_.insert(rx_data_.begin(), temp_buffer.begin(), temp_buffer.end());
+
+    unpack(rx_data_);
   }
 
   referee_pub_data_.chassis_volt = referee_data_.power_heat_data_.chassis_volt;
@@ -68,9 +82,9 @@ void Referee::read() {
 }
 
 void Referee::unpack(const std::vector<uint8_t> &rx_buffer) {
-  int num = 0;
-  uint8_t byte = 0;
-  while (rx_len_) {
+  int num = 0, unpack_length = kUnpackLength;
+  uint8_t byte;
+  while (unpack_length) {
     byte = rx_buffer[num];
 
     switch (referee_unpack_obj.unpack_step) {
@@ -145,7 +159,7 @@ void Referee::unpack(const std::vector<uint8_t> &rx_buffer) {
         break;
     }
     num++;
-    rx_len_--;
+    unpack_length--;
   }
   referee_unpack_obj.unpack_step = kStepHeaderSof;
   memset(referee_unpack_obj.protocol_packet, 0, sizeof(referee_unpack_obj.protocol_packet));
@@ -496,10 +510,10 @@ void PowerManagerData::read(const std::vector<uint8_t> &rx_buffer) {
 
 void PowerManagerData::Receive_CallBack(unsigned char PID, unsigned char Data[8]) {
   if (PID == 0) {
-    Parameters[0] = Int16ToFloat((Data[0] << 8) | Data[1]);
-    Parameters[1] = Int16ToFloat((Data[2] << 8) | Data[3]);
-    Parameters[2] = Int16ToFloat((Data[4] << 8) | Data[5]);
-    Parameters[3] = Int16ToFloat((Data[6] << 8) | Data[7]);
+    parameters[0] = Int16ToFloat((Data[0] << 8) | Data[1]);
+    parameters[1] = Int16ToFloat((Data[2] << 8) | Data[3]);
+    parameters[2] = Int16ToFloat((Data[4] << 8) | Data[5]);
+    parameters[3] = Int16ToFloat((Data[6] << 8) | Data[7]);
   }
 }
 

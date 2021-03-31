@@ -38,7 +38,7 @@ struct RefereeData {
 
 class PowerManagerData {
  public:
-  float Parameters[4];
+  float parameters[4];
   void read(const std::vector<uint8_t> &rx_buffer);
 
  private:
@@ -69,7 +69,8 @@ class Referee {
 
  private:
   serial::Serial serial_;
-  int rx_len_{};
+  std::vector<uint8_t> rx_data_;
+  const int kUnpackLength = 160;
   UnpackData referee_unpack_obj{};
   const int kProtocolFrameLength = 128, kProtocolHeaderLength = sizeof(FrameHeaderStruct),
       kProtocolCmdIdLength = sizeof(uint16_t), kProtocolTailLength = 2;
