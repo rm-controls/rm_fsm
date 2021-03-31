@@ -274,7 +274,7 @@ void Referee::getData(uint8_t *frame) {
   }
 }
 
-void Referee::drawGraphic(RobotId robot_id, ClientId client_id,
+void Referee::drawGraphic(int robot_id, int client_id,
                           int side, GraphicOperateType operate_type) {
   uint8_t tx_buffer[128] = {0,};
   DrawClientGraphicData send_data;
@@ -339,7 +339,7 @@ void Referee::drawGraphic(RobotId robot_id, ClientId client_id,
   serial_.write(tx_buffer, sizeof(send_data));
 }
 
-void Referee::drawFloat(RobotId robot_id, ClientId client_id,
+void Referee::drawFloat(int robot_id, int client_id,
                         float data, GraphicOperateType operate_type) {
   uint8_t tx_buffer[128] = {0,};
   DrawClientGraphicData send_data;
@@ -382,7 +382,7 @@ void Referee::drawFloat(RobotId robot_id, ClientId client_id,
   serial_.write(tx_buffer, sizeof(send_data));
 }
 
-void Referee::drawCharacter(RobotId robot_id, ClientId client_id, int side,
+void Referee::drawCharacter(int robot_id, int client_id, int side,
                             GraphicOperateType operate_type, std::string data) {
   uint8_t tx_buffer[128] = {0,};
   DrawClientCharData send_data;

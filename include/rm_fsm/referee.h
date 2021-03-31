@@ -59,9 +59,9 @@ class Referee {
   ~Referee() = default;
   void init();
   void read();
-  void drawGraphic(RobotId robot_id, ClientId client_id, int side, GraphicOperateType operate_type);
-  void drawCharacter(RobotId robot_id, ClientId client_id, int side, GraphicOperateType operate_type, std::string data);
-  void drawFloat(RobotId robot_id, ClientId client_id, float data, GraphicOperateType operate_type);
+  void drawGraphic(int robot_id, int client_id, int side, GraphicOperateType operate_type);
+  void drawCharacter(int robot_id, int client_id, int side, GraphicOperateType operate_type, std::string data);
+  void drawFloat(int robot_id, int client_id, float data, GraphicOperateType operate_type);
 
   RefereeData referee_data_{};
   PowerManagerData power_manager_data_;

@@ -144,6 +144,22 @@ void Fsm<T>::run() {
   // run referee system and publish some referee data
   if (this->data_.referee_->flag) {
     data_.referee_->read();
+    robot_id_ = data_.referee_->referee_data_.game_robot_status_.robot_id;
+    switch (robot_id_) {
+      case kBlueHero:
+        client_id_ = kBlueHeroClientId;
+        break;
+      case kBlueStandard1:
+        client_id_ = kBlueStandard1ClientId;
+        break;
+      case kRedHero:
+        client_id_ = kRedHeroClientId;
+        break;
+      case kRedStandard1:
+        client_id_ = kRedStandard1ClientId;
+        break;
+    }
+    data_.referee_->drawFloat(robot_id_,client_id_,data_.referee_->power_manager_data_.parameters[3],kAdd);
   }
 
   // Run the robot control code if operating mode is not unsafe
