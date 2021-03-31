@@ -47,13 +47,13 @@ class FsmData {
   ros::Publisher shooter_cmd_pub_;
   ShooterHeatLimit *shooter_heat_limit_{};
 
-  referee::Referee *referee_{};
+  Referee *referee_{};
 
   void init(ros::NodeHandle nh) {
     power_limit_ = new PowerLimit(nh);
     shooter_heat_limit_ = new ShooterHeatLimit(nh);
     target_cost_function_ = new TargetCostFunction(nh);
-    referee_ = new referee::Referee();
+    referee_ = new Referee();
 
     referee_->init();
     // sub
