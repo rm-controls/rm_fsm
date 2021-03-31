@@ -24,6 +24,7 @@ void State<T>::loadParam() {
     coefficient_yaw_ = getParam(nh_, "control_param/pc_param/coefficient_yaw", 125.6);
     coefficient_pitch_ = getParam(nh_, "control_param/pc_param/coefficient_pitch", 125.6);
     shoot_hz_ = getParam(nh_, "control_param/pc_param/shoot_hz", 5.0);
+    gimbal_error_limit_ = getParam(nh_, "control_param/pc_param/gimbal_error_limit", 2.0);
   } else if (control_mode_ == "rc") { // rc mode
     accel_x_ = getParam(nh_, "control_param/rc_param/accel_x", 10.0);
     accel_y_ = getParam(nh_, "control_param/rc_param/accel_y", 10.0);

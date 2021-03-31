@@ -70,6 +70,7 @@ class State {
   // gimbal fsm control coefficient
   double coefficient_yaw_ = 0.0;
   double coefficient_pitch_ = 0.0;
+  double gimbal_error_limit_ = 2.0;
 
   double shoot_hz_ = 0.0;
 

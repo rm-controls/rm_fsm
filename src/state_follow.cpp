@@ -84,11 +84,11 @@ void StateFollow<T>::run() {
         shoot_hz = this->data_->shooter_heat_limit_->output();
         shoot_mode = rm_msgs::ShootCmd::PUSH;
         if (this->data_->dbus_data_.p_r) {
-          if (this->data_->gimbal_des_error_.error_yaw >= 2) {
+          if (this->data_->gimbal_des_error_.error_yaw >= this->gimbal_error_limit_) {
             shoot_mode = rm_msgs::ShootCmd::READY;
             ROS_WARN("Gimbal track yaw error is too big, stop shooting");
           }
-          if (this->data_->gimbal_des_error_.error_pitch >= 2) {
+          if (this->data_->gimbal_des_error_.error_pitch >= this->gimbal_error_limit_) {
             shoot_mode = rm_msgs::ShootCmd::READY;
             ROS_WARN("Gimbal track pitch error is too big, stop shooting");
           }
