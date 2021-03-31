@@ -38,15 +38,17 @@ struct RefereeData {
 
 class PowerManagerData {
  public:
-  float parameters[4];
+  PowerManagerData() = default;
+  ~PowerManagerData() = default;
+  float parameters[4] = {0};
   void read(const std::vector<uint8_t> &rx_buffer);
 
  private:
   void DTP_Received_CallBack(unsigned char Receive_Byte);
   void Receive_CallBack(unsigned char PID, unsigned char Data[8]);
 
-  unsigned char Receive_Buffer[128];
-  unsigned char PingPong_Buffer[128];
+  unsigned char Receive_Buffer[128] = {0};
+  unsigned char PingPong_Buffer[128] = {0};
   unsigned int Receive_BufCounter = 0;
   float Int16ToFloat(unsigned short data0);
 };
@@ -76,6 +78,7 @@ class Referee {
       kProtocolCmdIdLength = sizeof(uint16_t), kProtocolTailLength = 2;
   void unpack(const std::vector<uint8_t> &rx_buffer);
   void getData(uint8_t *frame);
+  bool use_power_manager_ = false;
 };
 
 uint8_t getCRC8CheckSum(unsigned char *pch_message, unsigned int dw_length, unsigned char ucCRC8);

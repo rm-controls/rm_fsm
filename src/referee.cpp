@@ -55,8 +55,10 @@ void Referee::read() {
       return;
     }
 
-    // Unpack data from power manager
-    power_manager_data_.read(rx_buffer);
+    if (use_power_manager_) {
+      // Unpack data from power manager
+      power_manager_data_.read(rx_buffer);
+    }
 
     // Unpack data from referee system
     for (int kI = kUnpackLength; kI > rx_len; --kI) {
