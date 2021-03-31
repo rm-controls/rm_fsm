@@ -85,9 +85,9 @@ void Referee::read() {
 }
 
 void Referee::unpack(const std::vector<uint8_t> &rx_buffer) {
-  int num = 0, unpack_length = kUnpackLength;
+  int num = 0, count = kUnpackLength;
   uint8_t byte;
-  while (unpack_length) {
+  while (count) {
     byte = rx_buffer[num];
 
     switch (referee_unpack_obj.unpack_step) {
@@ -109,7 +109,8 @@ void Referee::unpack(const std::vector<uint8_t> &rx_buffer) {
       case kStepLengthHigh: {
         referee_unpack_obj.data_len |= (byte << 8);
         referee_unpack_obj.protocol_packet[referee_unpack_obj.index++] = byte;
-        if (referee_unpack_obj.data_len < kProtocolFrameLength - kProtocolCmdIdLength - kProtocolCmdIdLength) {
+        // Check for abnormal data length
+        if (referee_unpack_obj.data_len < kProtocolFrameLength - kProtocolCmdIdLength - kProtocolTailLength) {
           referee_unpack_obj.unpack_step = kStepFrameSeq;
         } else {
           referee_unpack_obj.unpack_step = kStepHeaderSof;
@@ -123,33 +124,36 @@ void Referee::unpack(const std::vector<uint8_t> &rx_buffer) {
       }
         break;
       case kStepHeaderCrc8: {
-        referee_unpack_obj.protocol_packet[referee_unpack_obj.index++] = byte;
+        referee_unpack_obj.protocol_packet[referee_unpack_obj.index] = byte;
+        // Check if the check bit is being read
         if (referee_unpack_obj.index == (kProtocolHeaderLength - 1)) {
           if (verifyCRC8CheckSum(referee_unpack_obj.protocol_packet, kProtocolHeaderLength)) {
             referee_unpack_obj.unpack_step = kStepDataCrc16;
+            referee_unpack_obj.index++;
           } else {
             referee_unpack_obj.unpack_step = kStepHeaderSof;
             referee_unpack_obj.index = 0;
           }
+        } else {
+          referee_unpack_obj.unpack_step = kStepHeaderSof;
+          referee_unpack_obj.index = 0;
         }
       }
         break;
       case kStepDataCrc16: {
+        // Read the remain data and check CRC16
         if (referee_unpack_obj.index
-            < (kProtocolHeaderLength + kProtocolTailLength + kProtocolCmdIdLength + referee_unpack_obj.data_len - 1)) {
+            < (kProtocolHeaderLength + kProtocolTailLength + kProtocolCmdIdLength + referee_unpack_obj.data_len)) {
           referee_unpack_obj.protocol_packet[referee_unpack_obj.index++] = byte;
-        }
-        if (referee_unpack_obj.index
-            >= (kProtocolHeaderLength + kProtocolTailLength + kProtocolCmdIdLength + referee_unpack_obj.data_len - 1)) {
-          referee_unpack_obj.unpack_step = kStepHeaderSof;
-          referee_unpack_obj.index = 0;
+        } else {
           if (verifyCRC16CheckSum(referee_unpack_obj.protocol_packet,
                                   kProtocolHeaderLength + kProtocolTailLength + kProtocolCmdIdLength
                                       + referee_unpack_obj.data_len)) {
             getData(referee_unpack_obj.protocol_packet);
             memset(referee_unpack_obj.protocol_packet, 0, sizeof(referee_unpack_obj.protocol_packet));
-            referee_unpack_obj.unpack_step = kStepHeaderSof;
           }
+          referee_unpack_obj.unpack_step = kStepHeaderSof;
+          referee_unpack_obj.index = 0;
         }
       }
         break;
@@ -162,7 +166,7 @@ void Referee::unpack(const std::vector<uint8_t> &rx_buffer) {
         break;
     }
     num++;
-    unpack_length--;
+    count--;
   }
   referee_unpack_obj.unpack_step = kStepHeaderSof;
   memset(referee_unpack_obj.protocol_packet, 0, sizeof(referee_unpack_obj.protocol_packet));
@@ -171,7 +175,7 @@ void Referee::unpack(const std::vector<uint8_t> &rx_buffer) {
 void Referee::getData(uint8_t *frame) {
   uint16_t cmd_id = 0;
   uint8_t index = 0;
-  index += (sizeof(FrameHeaderStruct) - 1);
+  index += (sizeof(FrameHeaderStruct));
   memcpy(&cmd_id, frame + index, sizeof(uint16_t));
 
   index += sizeof(uint16_t);
@@ -262,7 +266,7 @@ void Referee::getData(uint8_t *frame) {
       break;
     }
     default: {
-      ROS_WARN("[Referee]Referee command ID not found.");
+      ROS_WARN("Referee command ID not found.");
       break;
     }
   }
@@ -451,7 +455,7 @@ uint32_t verifyCRC8CheckSum(unsigned char *pch_message, unsigned int dw_length) 
   if ((pch_message == nullptr) || (dw_length <= 2)) {
     return 0;
   }
-  ucExpected = getCRC8CheckSum(pch_message, dw_length - 1, CRC8_INIT);
+  ucExpected = getCRC8CheckSum(pch_message, dw_length - 1, kCrc8Init);
   return (ucExpected == pch_message[dw_length - 1]);
 }
 
@@ -463,7 +467,7 @@ uint32_t verifyCRC8CheckSum(unsigned char *pch_message, unsigned int dw_length) 
 void appendCRC8CheckSum(unsigned char *pchMessage, unsigned int dwLength) {
   unsigned char ucCRC = 0;
   if ((pchMessage == nullptr) || (dwLength <= 2)) return;
-  ucCRC = getCRC8CheckSum((unsigned char *) pchMessage, dwLength - 1, CRC8_INIT);
+  ucCRC = getCRC8CheckSum((unsigned char *) pchMessage, dwLength - 1, kCrc8Init);
   pchMessage[dwLength - 1] = ucCRC;
 }
 
@@ -494,7 +498,7 @@ uint32_t verifyCRC16CheckSum(uint8_t *pchMessage, uint32_t dwLength) {
   if ((pchMessage == nullptr) || (dwLength <= 2)) {
     return 0;
   }
-  wExpected = getCRC16CheckSum(pchMessage, dwLength - 2, CRC16_INIT);
+  wExpected = getCRC16CheckSum(pchMessage, dwLength - 2, kCrc16Init);
   return ((wExpected & 0xff) == pchMessage[dwLength - 2] && ((wExpected >> 8) & 0xff) == pchMessage[dwLength - 1]);
 }
 
@@ -508,7 +512,7 @@ void appendCRC16CheckSum(uint8_t *pchMessage, uint32_t dwLength) {
   if ((pchMessage == nullptr) || (dwLength <= 2)) {
     return;
   }
-  wCRC = getCRC16CheckSum((uint8_t *) pchMessage, dwLength - 2, CRC16_INIT);
+  wCRC = getCRC16CheckSum((uint8_t *) pchMessage, dwLength - 2, kCrc16Init);
   pchMessage[dwLength - 2] = (uint8_t) (wCRC & 0x00ff);
   pchMessage[dwLength - 1] = (uint8_t) ((wCRC >> 8) & 0x00ff);
 }
