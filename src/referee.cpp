@@ -39,6 +39,7 @@ void Referee::init() {
   }
 }
 
+/******************* Receive data from referee system *************************/
 void Referee::read() {
   std::vector<uint8_t> rx_buffer;
   std::vector<uint8_t> temp_buffer;
@@ -274,6 +275,14 @@ void Referee::getData(uint8_t *frame) {
   }
 }
 
+/******************* Send data to referee system *************************/
+/**
+ * Draw a graph on client
+ * @param robot_id
+ * @param client_id
+ * @param side
+ * @param operate_type
+ */
 void Referee::drawGraphic(int robot_id, int client_id,
                           int side, GraphicOperateType operate_type) {
   uint8_t tx_buffer[128] = {0,};
@@ -434,8 +443,6 @@ void Referee::drawCharacter(int robot_id, int client_id, int side,
 
   serial_.write(tx_buffer, sizeof(send_data));
 }
-
-
 
 /******************* CRC Verify *************************/
 uint8_t getCRC8CheckSum(unsigned char *pch_message, unsigned int dw_length, unsigned char ucCRC8) {
