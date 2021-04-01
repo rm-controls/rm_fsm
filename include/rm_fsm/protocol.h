@@ -302,7 +302,7 @@ typedef struct {
 
 typedef struct {
   StudentInteractiveHeaderData student_interactive_header_data_;
-  uint8_t *data;
+  uint8_t data[113];
 }__packed StudentInteractiveData;
 
 /********************** Robot Interactive data ----0x0302 *******************************************/
