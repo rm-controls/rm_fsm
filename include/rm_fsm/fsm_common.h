@@ -99,7 +99,6 @@ class Fsm {
 
   // Runs the FSM logic and handles the state transitions and normal runs
   void run();
-  void getId();
   // Get desired state decided by control fsm data.
   virtual std::string getDesiredState() = 0;
 
@@ -110,8 +109,6 @@ class Fsm {
   State<T> *next_state_;       // next FSM state
   std::string next_state_name_;  // next FSM state name
 
-  int robot_id_;
-  int client_id_;
   tf2_ros::Buffer tf_;
   tf2_ros::TransformListener *tf_listener_;
 

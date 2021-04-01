@@ -85,6 +85,8 @@ void Referee::read() {
   referee_pub_data_.stamp = ros::Time::now();
 
   referee_pub_.publish(referee_pub_data_);
+
+  getId();
 }
 
 void Referee::unpack(const std::vector<uint8_t> &rx_buffer) {
@@ -283,6 +285,34 @@ void Referee::getData(uint8_t *frame) {
   }
 }
 
+void Referee::getId() {
+  if (robot_id_ == 0) {
+    robot_id_ = referee_data_.game_robot_status_.robot_id;
+    switch (robot_id_) {
+      case kBlueHero:client_id_ = kBlueHeroClientId;
+        break;
+      case kBlueEngineer:client_id_ = kBlueEngineerClientId;
+        break;
+      case kBlueStandard1:client_id_ = kBlueStandard1ClientId;
+        break;
+      case kBlueStandard2:client_id_ = kBlueStandard2ClientId;
+        break;
+      case kBlueStandard3:client_id_ = kBlueStandard3ClientId;
+        break;
+      case kRedHero:client_id_ = kRedHeroClientId;
+        break;
+      case kRedEngineer:client_id_ = kRedEngineerClientId;
+        break;
+      case kRedStandard1:client_id_ = kRedStandard1ClientId;
+        break;
+      case kRedStandard2:client_id_ = kRedStandard2ClientId;
+        break;
+      case kRedStandard3:client_id_ = kRedStandard3ClientId;
+        break;
+    }
+  }
+}
+
 /******************* Send data to referee system *************************/
 /**
  * Draw a graph on client
@@ -309,30 +339,30 @@ void Referee::drawGraphic(int robot_id, int client_id,
   send_data.graphic_header_data_.send_ID = robot_id;
   send_data.graphic_header_data_.receiver_ID = client_id;
 
-  if (side == 1) {//left
+  if (side == 0) { // up
+    send_data.graphic_data_struct_.graphic_name[0] = 0;
+    send_data.graphic_data_struct_.start_x = 910;
+    send_data.graphic_data_struct_.start_y = 850;
+    send_data.graphic_data_struct_.end_x = 1010; // 11 bit
+    send_data.graphic_data_struct_.end_y = 900; // 11 bit
+  } else if (side == 1) { // left
     send_data.graphic_data_struct_.graphic_name[0] = 1;
     send_data.graphic_data_struct_.start_x = 100;
     send_data.graphic_data_struct_.start_y = 540;
     send_data.graphic_data_struct_.end_x = 150;
     send_data.graphic_data_struct_.end_y = 640;
-  } else if (side == 2) {//up
+  } else if (side == 2) { // down
     send_data.graphic_data_struct_.graphic_name[0] = 2;
     send_data.graphic_data_struct_.start_x = 910;
-    send_data.graphic_data_struct_.start_y = 850;
+    send_data.graphic_data_struct_.start_y = 0;
     send_data.graphic_data_struct_.end_x = 1010; // 11 bit
-    send_data.graphic_data_struct_.end_y = 900; // 11 bit
-  } else if (side == 3) {//right
+    send_data.graphic_data_struct_.end_y = 50; // 11 bit
+  } else if (side == 3) { // right
     send_data.graphic_data_struct_.graphic_name[0] = 3;
     send_data.graphic_data_struct_.start_x = 1770;
     send_data.graphic_data_struct_.start_y = 540;
     send_data.graphic_data_struct_.end_x = 1820; // 11 bit
     send_data.graphic_data_struct_.end_y = 640; // 11 bit
-  } else if (side == 4) {//down
-    send_data.graphic_data_struct_.graphic_name[0] = 4;
-    send_data.graphic_data_struct_.start_x = 910;
-    send_data.graphic_data_struct_.start_y = 0;
-    send_data.graphic_data_struct_.end_x = 1010; // 11 bit
-    send_data.graphic_data_struct_.end_y = 50; // 11 bit
   }
 
   send_data.graphic_data_struct_.graphic_name[1] = 0;
