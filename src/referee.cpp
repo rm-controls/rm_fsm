@@ -309,30 +309,30 @@ void Referee::drawGraphic(int robot_id, int client_id,
   send_data.graphic_header_data_.send_ID = robot_id;
   send_data.graphic_header_data_.receiver_ID = client_id;
 
-  if (side==1) {//left
+  if (side == 1) {//left
     send_data.graphic_data_struct_.graphic_name[0] = 1;
     send_data.graphic_data_struct_.start_x = 100;
-    send_data.graphic_data_struct_.start_y = 800;
-    send_data.graphic_data_struct_.end_x = 200;
-    send_data.graphic_data_struct_.end_y = 900;
-  }else if(side==2) {//up
-    send_data.graphic_data_struct_.graphic_name[0] = 0;
+    send_data.graphic_data_struct_.start_y = 540;
+    send_data.graphic_data_struct_.end_x = 150;
+    send_data.graphic_data_struct_.end_y = 640;
+  } else if (side == 2) {//up
+    send_data.graphic_data_struct_.graphic_name[0] = 2;
     send_data.graphic_data_struct_.start_x = 910;
-    send_data.graphic_data_struct_.start_y = 900;
+    send_data.graphic_data_struct_.start_y = 850;
     send_data.graphic_data_struct_.end_x = 1010; // 11 bit
-    send_data.graphic_data_struct_.end_y = 950; // 11 bit
-  }else if(side==3) {//right
-    send_data.graphic_data_struct_.graphic_name[0] = 0;
-    send_data.graphic_data_struct_.start_x = 1720;
-    send_data.graphic_data_struct_.start_y = 800;
-    send_data.graphic_data_struct_.end_x = 1820; // 11 bit
     send_data.graphic_data_struct_.end_y = 900; // 11 bit
-  } else if(side==4) {//down
-    send_data.graphic_data_struct_.graphic_name[0] = 0;
+  } else if (side == 3) {//right
+    send_data.graphic_data_struct_.graphic_name[0] = 3;
+    send_data.graphic_data_struct_.start_x = 1770;
+    send_data.graphic_data_struct_.start_y = 540;
+    send_data.graphic_data_struct_.end_x = 1820; // 11 bit
+    send_data.graphic_data_struct_.end_y = 640; // 11 bit
+  } else if (side == 4) {//down
+    send_data.graphic_data_struct_.graphic_name[0] = 4;
     send_data.graphic_data_struct_.start_x = 910;
-    send_data.graphic_data_struct_.start_y = 100;
+    send_data.graphic_data_struct_.start_y = 0;
     send_data.graphic_data_struct_.end_x = 1010; // 11 bit
-    send_data.graphic_data_struct_.end_y = 150; // 11 bit
+    send_data.graphic_data_struct_.end_y = 50; // 11 bit
   }
 
   send_data.graphic_data_struct_.graphic_name[1] = 0;
