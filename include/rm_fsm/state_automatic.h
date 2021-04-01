@@ -28,6 +28,7 @@ class StateAutomatic : public State<T> {
   double end_;
   double calibration_speed_,end_speed_;
   int calibration_;
+  int attack_id_;
   double speed_;
   double last_position_;
   double current_position_;

@@ -68,7 +68,6 @@ void StateAutomatic<T>::run() {
     //ROS_WARN("%s", ex.what());
   }
   sum_effort+=effort_data_.effort[0];
-
   time_counter2++;
  if(time_counter2==10){
     current_position_ = chassis_transformStamped.transform.translation.x;
@@ -82,8 +81,17 @@ void StateAutomatic<T>::run() {
     sum_effort = 0;
   }
   if(calibration_) {
+    this->data_->shooter_heat_limit_->input(this->data_->referee_, this->shoot_hz_);
+    this->data_->target_cost_function_->input(this->data_->track_data_array_);
+    attack_id_ = this->data_->target_cost_function_->output();
     // set shooter
-    this->setShoot(rm_msgs::ShootCmd::PASSIVE, rm_msgs::ShootCmd::SPEED_10M_PER_SECOND, this->shoot_hz_, now);
+    if(this->data_->gimbal_des_error_.error_yaw<0.5 && this->data_->gimbal_des_error_.error_pitch<0.5)
+    {
+      this->setShoot(rm_msgs::ShootCmd::PUSH, rm_msgs::ShootCmd::SPEED_10M_PER_SECOND, this->data_->shooter_heat_limit_->output(), now);
+    }
+    else{
+      this->setShoot(rm_msgs::ShootCmd::READY, rm_msgs::ShootCmd::SPEED_10M_PER_SECOND, 0, now);
+    }
 
     // set chassis
     if ((current_position_ >= end_) && (point_side_ == 1))
@@ -109,15 +117,20 @@ void StateAutomatic<T>::run() {
     }
 
     // set gimbal
-    if (pitch > (0.75))
-      gimbal_position_ = 1;
-    else if (pitch < (-0.1))
-      gimbal_position_ = 2;
-
-    if (gimbal_position_ == 1) {
-      this->setGimbal(rm_msgs::GimbalCmd::PASSIVE, auto_move_yaw_speed_, -auto_move_pitch_speed_, 0);
-    } else if (gimbal_position_ == 2) {
-      this->setGimbal(rm_msgs::GimbalCmd::PASSIVE, auto_move_yaw_speed_, auto_move_pitch_speed_, 0);
+    if(attack_id_!=0)
+    {
+      this->setGimbal(rm_msgs::GimbalCmd::TRACK, 0, 0, attack_id_);
+    }
+    else {
+      if (pitch > 0.443)
+        gimbal_position_ = 1;
+      else if (pitch < (-0.537))
+        gimbal_position_ = 2;
+      if (gimbal_position_ == 1) {
+        this->setGimbal(rm_msgs::GimbalCmd::PASSIVE, auto_move_yaw_speed_, -auto_move_pitch_speed_, 0);
+      } else if (gimbal_position_ == 2) {
+        this->setGimbal(rm_msgs::GimbalCmd::PASSIVE, auto_move_yaw_speed_, auto_move_pitch_speed_, 0);
+      }
     }
 
   } else {

@@ -7,7 +7,7 @@
 TargetCostFunction::TargetCostFunction(ros::NodeHandle &nh) {
   ros::NodeHandle cost_nh = ros::NodeHandle(nh, "target_cost_function");
   cost_nh.param("time_interval_", time_interval_, 0.1);
-
+  id_=0;
 }
 
 void TargetCostFunction::input(rm_msgs::TrackDataArray track_data_array) {
