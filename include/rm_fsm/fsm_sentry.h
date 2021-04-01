@@ -9,7 +9,6 @@
 #include "rm_fsm/state_raw.h"
 #include "rm_fsm/state_passive.h"
 #include "rm_fsm/state_automatic.h"
-#include "rm_fsm/state_attack.h"
 #include "rm_fsm/state_escape.h"
 template<typename T>
 class FsmSentry : public Fsm<T> {
@@ -19,7 +18,6 @@ class FsmSentry : public Fsm<T> {
   StatePassive<T> *state_passive_;
   StateRaw<T> *state_raw_;
   StateAutomatic<T> *state_automatic_;
-  StateAttack<T> *state_attack_;
   StateEscape<T> *state_escape_;
 };
 

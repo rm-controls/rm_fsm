@@ -99,7 +99,7 @@ class Fsm {
 
   // Runs the FSM logic and handles the state transitions and normal runs
   void run();
-
+  void getId();
   // Get desired state decided by control fsm data.
   virtual std::string getDesiredState() = 0;
 
