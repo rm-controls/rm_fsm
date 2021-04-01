@@ -79,8 +79,7 @@ class Referee {
   UnpackData referee_unpack_obj{};
 
   const int kUnpackLength = 160;
-  const int kProtocolFrameLength = 128, kProtocolHeaderLength = sizeof(FrameHeaderStruct),
-      kProtocolCmdIdLength = 2, kProtocolTailLength = 2;
+  const int kProtocolFrameLength = 128, kProtocolHeaderLength = 5, kProtocolCmdIdLength = 2, kProtocolTailLength = 2;
 
   int data_len_ = 0;
   bool use_power_manager_ = false;

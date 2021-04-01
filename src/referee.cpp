@@ -453,11 +453,11 @@ void Referee::drawCharacter(int robot_id, int client_id, int side,
 }
 
 void Referee::sendInteractiveData(int data_cmd_id, int sender_id, int receiver_id, const std::vector<uint8_t> &data) {
-  uint8_t tx_buffer[128] = {0,};
+  uint8_t tx_buffer[128] = {0};
   SendInteractiveData send_data;
-  uint8_t interactive_data[data.size()];
   int tx_len = kProtocolHeaderLength + kProtocolCmdIdLength + sizeof(StudentInteractiveHeaderData) + data.size()
       + kProtocolTailLength;
+  int index = 0;
 
   // Frame header
   send_data.tx_frame_header_.sof = 0xA5;
@@ -465,22 +465,24 @@ void Referee::sendInteractiveData(int data_cmd_id, int sender_id, int receiver_i
   send_data.tx_frame_header_.data_length = sizeof(StudentInteractiveHeaderData) + data.size();
   memcpy(tx_buffer, &send_data.tx_frame_header_, kProtocolHeaderLength);
   appendCRC8CheckSum(tx_buffer, kProtocolHeaderLength);
+  index += kProtocolHeaderLength;
 
   // Command ID
   send_data.cmd_id_ = kStudentInteractiveDataCmdId;
-  memcpy(tx_buffer, &send_data.cmd_id_, sizeof(kProtocolCmdIdLength));
+  memcpy(tx_buffer + index, &send_data.cmd_id_, sizeof(kProtocolCmdIdLength));
+  index += kProtocolCmdIdLength;
 
   // Data
   // Interactive data header
   send_data.student_interactive_header_data_.data_cmd_id = data_cmd_id;
   send_data.student_interactive_header_data_.send_ID = sender_id;
   send_data.student_interactive_header_data_.receiver_ID = receiver_id;
-  memcpy(tx_buffer, &send_data.student_interactive_header_data_, sizeof(StudentInteractiveHeaderData));
+  memcpy(tx_buffer + index, &send_data.student_interactive_header_data_, sizeof(StudentInteractiveHeaderData));
+  index += sizeof(StudentInteractiveHeaderData);
   // Interactive data
   for (int kI = 0; kI < (int) data.size(); ++kI) {
-    interactive_data[kI] = data[kI];
+    tx_buffer[index + kI] = data[kI];
   }
-  memcpy(tx_buffer, interactive_data, data.size());
 
   // Frame tail
   appendCRC16CheckSum(tx_buffer, tx_len);
