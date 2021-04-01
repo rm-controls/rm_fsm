@@ -62,6 +62,7 @@ class Referee {
   void drawGraphic(int robot_id, int client_id, int side, GraphicOperateType operate_type);
   void drawCharacter(int robot_id, int client_id, int side, GraphicOperateType operate_type, std::string data);
   void drawFloat(int robot_id, int client_id, float data, GraphicOperateType operate_type);
+  void sendInteractiveData(int data_cmd_id, int sender_id, int receiver_id, const std::vector<uint8_t> &data);
 
   RefereeData referee_data_{};
   PowerManagerData power_manager_data_;
@@ -75,7 +76,7 @@ class Referee {
   const int kUnpackLength = 160;
   UnpackData referee_unpack_obj{};
   const int kProtocolFrameLength = 128, kProtocolHeaderLength = sizeof(FrameHeaderStruct),
-      kProtocolCmdIdLength = sizeof(uint16_t), kProtocolTailLength = 2;
+      kProtocolCmdIdLength = 2, kProtocolTailLength = 2;
   void unpack(const std::vector<uint8_t> &rx_buffer);
   void getData(uint8_t *frame);
   bool use_power_manager_ = false;
