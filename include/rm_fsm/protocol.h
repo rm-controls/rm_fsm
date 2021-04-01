@@ -300,6 +300,11 @@ typedef struct {
   uint16_t frame_tail_;
 }__packed SendInteractiveData;
 
+typedef struct {
+  StudentInteractiveHeaderData student_interactive_header_data_;
+  uint8_t *data;
+}__packed StudentInteractiveData;
+
 /********************** Robot Interactive data ----0x0302 *******************************************/
 typedef struct {
   uint8_t *data;

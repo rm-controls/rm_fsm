@@ -29,7 +29,7 @@ struct RefereeData {
   BulletRemaining bullet_remaining_;
   RfidStatus rfid_status_;
   DartClientCmd dart_client_cmd_;
-  StudentInteractiveHeaderData student_interactive_header_data_;
+  StudentInteractiveData student_interactive_data_;
   GraphicDataStruct graphic_data_struct_;
   RobotInteractiveData robot_interactive_data_;
   RobotCommand robot_command_;
@@ -71,14 +71,18 @@ class Referee {
   rm_msgs::Referee referee_pub_data_;
 
  private:
-  serial::Serial serial_;
-  std::vector<uint8_t> rx_data_;
-  const int kUnpackLength = 160;
-  UnpackData referee_unpack_obj{};
-  const int kProtocolFrameLength = 128, kProtocolHeaderLength = sizeof(FrameHeaderStruct),
-      kProtocolCmdIdLength = 2, kProtocolTailLength = 2;
   void unpack(const std::vector<uint8_t> &rx_buffer);
   void getData(uint8_t *frame);
+
+  serial::Serial serial_;
+  std::vector<uint8_t> rx_data_;
+  UnpackData referee_unpack_obj{};
+
+  const int kUnpackLength = 160;
+  const int kProtocolFrameLength = 128, kProtocolHeaderLength = sizeof(FrameHeaderStruct),
+      kProtocolCmdIdLength = 2, kProtocolTailLength = 2;
+
+  int data_len_ = 0;
   bool use_power_manager_ = false;
 };
 

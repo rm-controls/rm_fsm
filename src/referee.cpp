@@ -118,6 +118,7 @@ void Referee::unpack(const std::vector<uint8_t> &rx_buffer) {
         } else {
           referee_unpack_obj.unpack_step = kStepHeaderSof;
           referee_unpack_obj.index = 0;
+          data_len_ = 0;
         }
       }
         break;
@@ -136,10 +137,12 @@ void Referee::unpack(const std::vector<uint8_t> &rx_buffer) {
           } else {
             referee_unpack_obj.unpack_step = kStepHeaderSof;
             referee_unpack_obj.index = 0;
+            data_len_ = 0;
           }
         } else {
           referee_unpack_obj.unpack_step = kStepHeaderSof;
           referee_unpack_obj.index = 0;
+          data_len_ = 0;
         }
       }
         break;
@@ -152,6 +155,7 @@ void Referee::unpack(const std::vector<uint8_t> &rx_buffer) {
           if (verifyCRC16CheckSum(referee_unpack_obj.protocol_packet,
                                   kProtocolHeaderLength + kProtocolTailLength + kProtocolCmdIdLength
                                       + referee_unpack_obj.data_len)) {
+            data_len_ = referee_unpack_obj.data_len;
             getData(referee_unpack_obj.protocol_packet);
             memset(referee_unpack_obj.protocol_packet, 0, sizeof(referee_unpack_obj.protocol_packet));
           }
@@ -164,6 +168,7 @@ void Referee::unpack(const std::vector<uint8_t> &rx_buffer) {
         referee_unpack_obj.unpack_step = kStepHeaderSof;
         memset(referee_unpack_obj.protocol_packet, 0, sizeof(referee_unpack_obj.protocol_packet));
         referee_unpack_obj.index = 0;
+        data_len_ = 0;
         num = 0;
       }
         break;
@@ -179,9 +184,9 @@ void Referee::getData(uint8_t *frame) {
   uint16_t cmd_id = 0;
   uint8_t index = 0;
   index += (sizeof(FrameHeaderStruct));
-  memcpy(&cmd_id, frame + index, sizeof(uint16_t));
+  memcpy(&cmd_id, frame + index, kProtocolCmdIdLength);
 
-  index += sizeof(uint16_t);
+  index += kProtocolCmdIdLength;
 
   switch (cmd_id) {
     case kGameStatusCmdId: {
@@ -263,6 +268,9 @@ void Referee::getData(uint8_t *frame) {
     case kDartClientCmdId: {
       memcpy(&referee_data_.dart_client_cmd_, frame + index, sizeof(DartClientCmd));
       break;
+    }
+    case kStudentInteractiveDataCmdId: {
+      memcpy(&referee_data_.student_interactive_data_, frame + index, data_len_);
     }
     case kRobotCommandCmdId: {
       memcpy(&referee_data_.robot_command_, frame + index, sizeof(RobotCommand));
@@ -469,7 +477,7 @@ void Referee::sendInteractiveData(int data_cmd_id, int sender_id, int receiver_i
   send_data.student_interactive_header_data_.receiver_ID = receiver_id;
   memcpy(tx_buffer, &send_data.student_interactive_header_data_, sizeof(StudentInteractiveHeaderData));
   // Interactive data
-  for (int kI = 0; kI < data.size(); ++kI) {
+  for (int kI = 0; kI < (int) data.size(); ++kI) {
     interactive_data[kI] = data[kI];
   }
   memcpy(tx_buffer, interactive_data, data.size());
