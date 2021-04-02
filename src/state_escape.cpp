@@ -23,7 +23,7 @@ void StateEscape<T>::run() {
 
   this->setChassis(rm_msgs::ChassisCmd::RAW, 0.0, 0.0, 0.0);
 
-  this->setGimbal(rm_msgs::GimbalCmd::TRACK, 0.0, 0.0, 0);
+  this->setGimbal(rm_msgs::GimbalCmd::TRACK, 0.0, 0.0, 0, 0.0);
 
   this->setShoot(rm_msgs::ShootCmd::PUSH, rm_msgs::ShootCmd::SPEED_10M_PER_SECOND,
                  5, now);

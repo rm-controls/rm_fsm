@@ -22,6 +22,8 @@ void StateFollow<T>::run() {
   double linear_x, linear_y, angular_z;
   double rate_yaw, rate_pitch;
   uint8_t chassis_mode, shoot_mode;
+  uint8_t target_id;
+  double bullet_speed = 7;
   uint8_t shoot_speed;
   double shoot_hz = 0;
   ros::Time now = ros::Time::now();
@@ -55,9 +57,15 @@ void StateFollow<T>::run() {
     rate_pitch = this->data_->dbus_data_.m_y;
 
     if (this->data_->dbus_data_.p_r) {
-      this->setGimbal(rm_msgs::GimbalCmd::TRACK, 0.0, 0.0, 5);
+      this->data_->target_cost_function_->input(this->data_->track_data_array_);
+      target_id = this->data_->target_cost_function_->output();
+      if (target_id == 0) {
+        this->setGimbal(rm_msgs::GimbalCmd::RATE, rate_yaw, rate_pitch, 0, 0.0);
+      } else {
+        this->setGimbal(rm_msgs::GimbalCmd::TRACK, 0.0, 0.0, target_id, bullet_speed);
+      }
     } else {
-      this->setGimbal(rm_msgs::GimbalCmd::RATE, rate_yaw, rate_pitch, 0);
+      this->setGimbal(rm_msgs::GimbalCmd::RATE, rate_yaw, rate_pitch, 0, 0.0);
     }
 
     shoot_speed = rm_msgs::ShootCmd::SPEED_18M_PER_SECOND;
@@ -119,7 +127,7 @@ void StateFollow<T>::run() {
 
     shoot_speed = rm_msgs::ShootCmd::SPEED_15M_PER_SECOND;
 
-    this->setGimbal(rm_msgs::GimbalCmd::RATE, rate_yaw, rate_pitch, 0);
+    this->setGimbal(rm_msgs::GimbalCmd::RATE, rate_yaw, rate_pitch, 0, 0.0);
 
     if (this->data_->dbus_data_.s_l == rm_msgs::DbusData::UP) {
       this->data_->shooter_heat_limit_->input(this->data_->referee_, this->shoot_hz_);
