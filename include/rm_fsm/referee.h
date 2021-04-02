@@ -29,7 +29,7 @@ struct RefereeData {
   BulletRemaining bullet_remaining_;
   RfidStatus rfid_status_;
   DartClientCmd dart_client_cmd_;
-  StudentInteractiveHeaderData student_interactive_header_data_;
+  StudentInteractiveData student_interactive_data_;
   GraphicDataStruct graphic_data_struct_;
   RobotInteractiveData robot_interactive_data_;
   RobotCommand robot_command_;
@@ -59,25 +59,32 @@ class Referee {
   ~Referee() = default;
   void init();
   void read();
-  void drawGraphic(RobotId robot_id, ClientId client_id, int side, GraphicOperateType operate_type);
-  void drawCharacter(RobotId robot_id, ClientId client_id, int side, GraphicOperateType operate_type, std::string data);
-  void drawFloat(RobotId robot_id, ClientId client_id, float data, GraphicOperateType operate_type);
-
+  void drawGraphic(int robot_id, int client_id, int side, GraphicOperateType operate_type);
+  void drawCharacter(int robot_id, int client_id, int side, GraphicOperateType operate_type, std::string data);
+  void drawFloat(int robot_id, int client_id, float data, GraphicOperateType operate_type);
+  void sendInteractiveData(int data_cmd_id, int sender_id, int receiver_id, const std::vector<uint8_t> &data);
+  void getId();
   RefereeData referee_data_{};
   PowerManagerData power_manager_data_;
+
   bool flag = false;
+  int robot_id_ = 0;
+  int client_id_;
   ros::Publisher referee_pub_;
   rm_msgs::Referee referee_pub_data_;
 
  private:
-  serial::Serial serial_;
-  std::vector<uint8_t> rx_data_;
-  const int kUnpackLength = 160;
-  UnpackData referee_unpack_obj{};
-  const int kProtocolFrameLength = 128, kProtocolHeaderLength = sizeof(FrameHeaderStruct),
-      kProtocolCmdIdLength = sizeof(uint16_t), kProtocolTailLength = 2;
   void unpack(const std::vector<uint8_t> &rx_buffer);
   void getData(uint8_t *frame);
+
+  serial::Serial serial_;
+  std::vector<uint8_t> rx_data_;
+  UnpackData referee_unpack_obj{};
+
+  const int kUnpackLength = 160;
+  const int kProtocolFrameLength = 128, kProtocolHeaderLength = 5, kProtocolCmdIdLength = 2, kProtocolTailLength = 2;
+
+  int data_len_ = 0;
   bool use_power_manager_ = false;
 };
 

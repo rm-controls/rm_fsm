@@ -39,6 +39,7 @@ void Referee::init() {
   }
 }
 
+/******************* Receive data from referee system *************************/
 void Referee::read() {
   std::vector<uint8_t> rx_buffer;
   std::vector<uint8_t> temp_buffer;
@@ -84,6 +85,8 @@ void Referee::read() {
   referee_pub_data_.stamp = ros::Time::now();
 
   referee_pub_.publish(referee_pub_data_);
+
+  getId();
 }
 
 void Referee::unpack(const std::vector<uint8_t> &rx_buffer) {
@@ -117,6 +120,7 @@ void Referee::unpack(const std::vector<uint8_t> &rx_buffer) {
         } else {
           referee_unpack_obj.unpack_step = kStepHeaderSof;
           referee_unpack_obj.index = 0;
+          data_len_ = 0;
         }
       }
         break;
@@ -135,10 +139,12 @@ void Referee::unpack(const std::vector<uint8_t> &rx_buffer) {
           } else {
             referee_unpack_obj.unpack_step = kStepHeaderSof;
             referee_unpack_obj.index = 0;
+            data_len_ = 0;
           }
         } else {
           referee_unpack_obj.unpack_step = kStepHeaderSof;
           referee_unpack_obj.index = 0;
+          data_len_ = 0;
         }
       }
         break;
@@ -151,6 +157,7 @@ void Referee::unpack(const std::vector<uint8_t> &rx_buffer) {
           if (verifyCRC16CheckSum(referee_unpack_obj.protocol_packet,
                                   kProtocolHeaderLength + kProtocolTailLength + kProtocolCmdIdLength
                                       + referee_unpack_obj.data_len)) {
+            data_len_ = referee_unpack_obj.data_len;
             getData(referee_unpack_obj.protocol_packet);
             memset(referee_unpack_obj.protocol_packet, 0, sizeof(referee_unpack_obj.protocol_packet));
           }
@@ -163,6 +170,7 @@ void Referee::unpack(const std::vector<uint8_t> &rx_buffer) {
         referee_unpack_obj.unpack_step = kStepHeaderSof;
         memset(referee_unpack_obj.protocol_packet, 0, sizeof(referee_unpack_obj.protocol_packet));
         referee_unpack_obj.index = 0;
+        data_len_ = 0;
         num = 0;
       }
         break;
@@ -178,9 +186,9 @@ void Referee::getData(uint8_t *frame) {
   uint16_t cmd_id = 0;
   uint8_t index = 0;
   index += (sizeof(FrameHeaderStruct));
-  memcpy(&cmd_id, frame + index, sizeof(uint16_t));
+  memcpy(&cmd_id, frame + index, kProtocolCmdIdLength);
 
-  index += sizeof(uint16_t);
+  index += kProtocolCmdIdLength;
 
   switch (cmd_id) {
     case kGameStatusCmdId: {
@@ -263,6 +271,9 @@ void Referee::getData(uint8_t *frame) {
       memcpy(&referee_data_.dart_client_cmd_, frame + index, sizeof(DartClientCmd));
       break;
     }
+    case kStudentInteractiveDataCmdId: {
+      memcpy(&referee_data_.student_interactive_data_, frame + index, data_len_);
+    }
     case kRobotCommandCmdId: {
       memcpy(&referee_data_.robot_command_, frame + index, sizeof(RobotCommand));
       break;
@@ -274,7 +285,43 @@ void Referee::getData(uint8_t *frame) {
   }
 }
 
-void Referee::drawGraphic(RobotId robot_id, ClientId client_id,
+void Referee::getId() {
+  if (robot_id_ == 0) {
+    robot_id_ = referee_data_.game_robot_status_.robot_id;
+    switch (robot_id_) {
+      case kBlueHero:client_id_ = kBlueHeroClientId;
+        break;
+      case kBlueEngineer:client_id_ = kBlueEngineerClientId;
+        break;
+      case kBlueStandard1:client_id_ = kBlueStandard1ClientId;
+        break;
+      case kBlueStandard2:client_id_ = kBlueStandard2ClientId;
+        break;
+      case kBlueStandard3:client_id_ = kBlueStandard3ClientId;
+        break;
+      case kRedHero:client_id_ = kRedHeroClientId;
+        break;
+      case kRedEngineer:client_id_ = kRedEngineerClientId;
+        break;
+      case kRedStandard1:client_id_ = kRedStandard1ClientId;
+        break;
+      case kRedStandard2:client_id_ = kRedStandard2ClientId;
+        break;
+      case kRedStandard3:client_id_ = kRedStandard3ClientId;
+        break;
+    }
+  }
+}
+
+/******************* Send data to referee system *************************/
+/**
+ * Draw a graph on client
+ * @param robot_id
+ * @param client_id
+ * @param side
+ * @param operate_type
+ */
+void Referee::drawGraphic(int robot_id, int client_id,
                           int side, GraphicOperateType operate_type) {
   uint8_t tx_buffer[128] = {0,};
   DrawClientGraphicData send_data;
@@ -292,30 +339,30 @@ void Referee::drawGraphic(RobotId robot_id, ClientId client_id,
   send_data.graphic_header_data_.send_ID = robot_id;
   send_data.graphic_header_data_.receiver_ID = client_id;
 
-  if (side==1) {//left
+  if (side == 0) { // up
+    send_data.graphic_data_struct_.graphic_name[0] = 0;
+    send_data.graphic_data_struct_.start_x = 910;
+    send_data.graphic_data_struct_.start_y = 850;
+    send_data.graphic_data_struct_.end_x = 1010; // 11 bit
+    send_data.graphic_data_struct_.end_y = 900; // 11 bit
+  } else if (side == 1) { // left
     send_data.graphic_data_struct_.graphic_name[0] = 1;
     send_data.graphic_data_struct_.start_x = 100;
-    send_data.graphic_data_struct_.start_y = 800;
-    send_data.graphic_data_struct_.end_x = 200;
-    send_data.graphic_data_struct_.end_y = 900;
-  }else if(side==2) {//up
-    send_data.graphic_data_struct_.graphic_name[0] = 0;
+    send_data.graphic_data_struct_.start_y = 540;
+    send_data.graphic_data_struct_.end_x = 150;
+    send_data.graphic_data_struct_.end_y = 640;
+  } else if (side == 2) { // down
+    send_data.graphic_data_struct_.graphic_name[0] = 2;
     send_data.graphic_data_struct_.start_x = 910;
-    send_data.graphic_data_struct_.start_y = 900;
+    send_data.graphic_data_struct_.start_y = 0;
     send_data.graphic_data_struct_.end_x = 1010; // 11 bit
-    send_data.graphic_data_struct_.end_y = 950; // 11 bit
-  }else if(side==3) {//right
-    send_data.graphic_data_struct_.graphic_name[0] = 0;
-    send_data.graphic_data_struct_.start_x = 1720;
-    send_data.graphic_data_struct_.start_y = 800;
+    send_data.graphic_data_struct_.end_y = 50; // 11 bit
+  } else if (side == 3) { // right
+    send_data.graphic_data_struct_.graphic_name[0] = 3;
+    send_data.graphic_data_struct_.start_x = 1770;
+    send_data.graphic_data_struct_.start_y = 540;
     send_data.graphic_data_struct_.end_x = 1820; // 11 bit
-    send_data.graphic_data_struct_.end_y = 900; // 11 bit
-  } else if(side==4) {//down
-    send_data.graphic_data_struct_.graphic_name[0] = 0;
-    send_data.graphic_data_struct_.start_x = 910;
-    send_data.graphic_data_struct_.start_y = 100;
-    send_data.graphic_data_struct_.end_x = 1010; // 11 bit
-    send_data.graphic_data_struct_.end_y = 150; // 11 bit
+    send_data.graphic_data_struct_.end_y = 640; // 11 bit
   }
 
   send_data.graphic_data_struct_.graphic_name[1] = 0;
@@ -339,7 +386,7 @@ void Referee::drawGraphic(RobotId robot_id, ClientId client_id,
   serial_.write(tx_buffer, sizeof(send_data));
 }
 
-void Referee::drawFloat(RobotId robot_id, ClientId client_id,
+void Referee::drawFloat(int robot_id, int client_id,
                         float data, GraphicOperateType operate_type) {
   uint8_t tx_buffer[128] = {0,};
   DrawClientGraphicData send_data;
@@ -382,7 +429,7 @@ void Referee::drawFloat(RobotId robot_id, ClientId client_id,
   serial_.write(tx_buffer, sizeof(send_data));
 }
 
-void Referee::drawCharacter(RobotId robot_id, ClientId client_id, int side,
+void Referee::drawCharacter(int robot_id, int client_id, int side,
                             GraphicOperateType operate_type, std::string data) {
   uint8_t tx_buffer[128] = {0,};
   DrawClientCharData send_data;
@@ -435,7 +482,44 @@ void Referee::drawCharacter(RobotId robot_id, ClientId client_id, int side,
   serial_.write(tx_buffer, sizeof(send_data));
 }
 
+void Referee::sendInteractiveData(int data_cmd_id, int sender_id, int receiver_id, const std::vector<uint8_t> &data) {
+  uint8_t tx_buffer[128] = {0};
+  SendInteractiveData send_data;
+  int tx_len = kProtocolHeaderLength + kProtocolCmdIdLength + sizeof(StudentInteractiveHeaderData) + data.size()
+      + kProtocolTailLength;
+  int index = 0;
 
+  // Frame header
+  send_data.tx_frame_header_.sof = 0xA5;
+  send_data.tx_frame_header_.seq = 0;
+  send_data.tx_frame_header_.data_length = sizeof(StudentInteractiveHeaderData) + data.size();
+  memcpy(tx_buffer, &send_data.tx_frame_header_, kProtocolHeaderLength);
+  appendCRC8CheckSum(tx_buffer, kProtocolHeaderLength);
+  index += kProtocolHeaderLength;
+
+  // Command ID
+  send_data.cmd_id_ = kStudentInteractiveDataCmdId;
+  memcpy(tx_buffer + index, &send_data.cmd_id_, sizeof(kProtocolCmdIdLength));
+  index += kProtocolCmdIdLength;
+
+  // Data
+  // Interactive data header
+  send_data.student_interactive_header_data_.data_cmd_id = data_cmd_id;
+  send_data.student_interactive_header_data_.send_ID = sender_id;
+  send_data.student_interactive_header_data_.receiver_ID = receiver_id;
+  memcpy(tx_buffer + index, &send_data.student_interactive_header_data_, sizeof(StudentInteractiveHeaderData));
+  index += sizeof(StudentInteractiveHeaderData);
+  // Interactive data
+  for (int kI = 0; kI < (int) data.size(); ++kI) {
+    tx_buffer[index + kI] = data[kI];
+  }
+
+  // Frame tail
+  appendCRC16CheckSum(tx_buffer, tx_len);
+
+  // Send
+  serial_.write(tx_buffer, tx_len);
+}
 
 /******************* CRC Verify *************************/
 uint8_t getCRC8CheckSum(unsigned char *pch_message, unsigned int dw_length, unsigned char ucCRC8) {

@@ -292,6 +292,19 @@ typedef struct {
   uint16_t frame_tail_;
 }__packed DrawClientCharData;
 
+typedef struct {
+  FrameHeaderStruct tx_frame_header_;
+  uint16_t cmd_id_;
+  StudentInteractiveHeaderData student_interactive_header_data_;
+  uint8_t *data;
+  uint16_t frame_tail_;
+}__packed SendInteractiveData;
+
+typedef struct {
+  StudentInteractiveHeaderData student_interactive_header_data_;
+  uint8_t data[113];
+}__packed StudentInteractiveData;
+
 /********************** Robot Interactive data ----0x0302 *******************************************/
 typedef struct {
   uint8_t *data;

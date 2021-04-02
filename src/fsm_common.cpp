@@ -122,7 +122,6 @@ Fsm<T>::Fsm(ros::NodeHandle &node_handle):nh_(node_handle) {
   this->data_.init(nh_);
 
   string2state.insert(std::make_pair("invalid", nullptr));
-
   // Initialize a new FSM State with the control data
   current_state_ = string2state["invalid"];
 
@@ -145,6 +144,8 @@ void Fsm<T>::run() {
   // run referee system and publish some referee data
   if (this->data_.referee_->flag) {
     data_.referee_->read();
+    getId();
+    data_.referee_->drawFloat(robot_id_,client_id_,data_.referee_->power_manager_data_.parameters[3],kAdd);
   }
 
   // Run the robot control code if operating mode is not unsafe
