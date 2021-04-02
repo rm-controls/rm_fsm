@@ -21,7 +21,7 @@ void Referee::init() {
   while (!serial_.isOpen()) {
     try {
       serial_.open();
-      this->flag = true;
+      flag_ = true;
     } catch (serial::IOException &e) {
       ROS_WARN("Referee system serial cannot open [%s]", e.what());
     }
@@ -30,7 +30,7 @@ void Referee::init() {
       break;
     }
   }
-  if (this->flag) {
+  if (flag_) {
     ROS_INFO("Referee serial open successfully.");
     referee_unpack_obj.index = 0;
     referee_unpack_obj.unpack_step = kStepHeaderSof;
@@ -52,7 +52,7 @@ void Referee::read() {
     } catch (serial::IOException &e) {
       ROS_ERROR("Referee system disconnect.");
       ROS_WARN("Run robot without power limit and heat limit.");
-      this->flag = false;
+      flag_ = false;
       return;
     }
 
@@ -233,9 +233,9 @@ void Referee::getData(uint8_t *frame) {
     }
     case kPowerHeatDataCmdId: {
       memcpy(&referee_data_.power_heat_data_, frame + index, sizeof(PowerHeatData));
-      this->referee_data_.power_heat_data_.chassis_volt =
+      referee_data_.power_heat_data_.chassis_volt =
           referee_data_.power_heat_data_.chassis_volt / 1000;       //mV->V
-      this->referee_data_.power_heat_data_.chassis_current =
+      referee_data_.power_heat_data_.chassis_current =
           referee_data_.power_heat_data_.chassis_current / 1000;    //mA->A
       break;
     }

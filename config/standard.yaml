@@ -29,4 +29,4 @@ rm_fsm:
     roll_back_buffer_: 55.0
     coeff: 0.3
     multiple: 7.5
-    lowest_effort_: 20
+    lowest_effort_: 6

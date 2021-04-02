@@ -64,12 +64,13 @@ class Referee {
   void drawFloat(int robot_id, int client_id, float data, GraphicOperateType operate_type);
   void sendInteractiveData(int data_cmd_id, int sender_id, int receiver_id, const std::vector<uint8_t> &data);
   void getId();
+
   RefereeData referee_data_{};
   PowerManagerData power_manager_data_;
 
-  bool flag = false;
+  bool flag_ = false;
   int robot_id_ = 0;
-  int client_id_;
+  int client_id_ = 0;
   ros::Publisher referee_pub_;
   rm_msgs::Referee referee_pub_data_;
 

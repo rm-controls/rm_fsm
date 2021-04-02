@@ -2,7 +2,7 @@
 // Created by bruce on 2021/1/17.
 //
 
-#include <rm_fsm/state_burst.h>
+#include "rm_fsm/state_burst.h"
 
 template<typename T>
 StateBurst<T>::StateBurst(FsmData<T> *fsm_data,

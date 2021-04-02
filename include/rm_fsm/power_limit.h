@@ -7,7 +7,7 @@
 
 #include <ros/ros.h>
 #include <control_toolbox/pid.h>
-#include <rm_fsm/referee.h>
+#include "rm_fsm/referee.h"
 
 class PowerLimit {
  public:
@@ -17,8 +17,8 @@ class PowerLimit {
 
  private:
   double current_ = 99;
-  double coeff{};
-  double multiple{};
+  double coeff_{};
+  double multiple_{};
   double danger_surplus_{};
   double roll_back_buffer_{};
 };
