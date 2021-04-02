@@ -87,14 +87,18 @@ void State<T>::setChassis(uint8_t chassis_mode,
 }
 
 template<typename T>
-void State<T>::setGimbal(uint8_t gimbal_mode, double rate_yaw, double rate_pitch, uint8_t target_id) {
+void State<T>::setGimbal(uint8_t gimbal_mode,
+                         double rate_yaw,
+                         double rate_pitch,
+                         uint8_t target_id,
+                         double bullet_speed) {
   data_->gimbal_cmd_.mode = gimbal_mode;
 
   data_->gimbal_cmd_.rate_yaw = rate_yaw * coefficient_yaw_;
   data_->gimbal_cmd_.rate_pitch = rate_pitch * coefficient_pitch_;
 
   data_->gimbal_cmd_.target_id = target_id;
-  data_->gimbal_cmd_.bullet_speed = 7;
+  data_->gimbal_cmd_.bullet_speed = bullet_speed;
   data_->gimbal_cmd_pub_.publish(data_->gimbal_cmd_);
 }
 
