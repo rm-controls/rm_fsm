@@ -74,6 +74,8 @@ class State {
 
   double shoot_hz_ = 0.0;
 
+  double lowest_effort_;
+
   uint8_t last_chassis_mode_;
   uint8_t last_shoot_mode_;
 };
