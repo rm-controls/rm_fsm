@@ -23,7 +23,7 @@ void TargetCostFunction::input(rm_msgs::TrackDataArray track_data_array) {
       }
     }
     cost_ = 10000000;
-  } else id_ = -1;
+  } else id_ = 0;
 
 }
 
