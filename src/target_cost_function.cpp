@@ -14,14 +14,17 @@ void TargetCostFunction::input(rm_msgs::TrackDataArray track_data_array) {
 
   int target_numbers = track_data_array.tracks.size();
   double cost_temp;
-  for (int i = 0; i < target_numbers; i++) {
-    cost_temp = calculateCost(track_data_array.tracks[i]);
-    if (cost_temp <= cost_) {
-      cost_ = cost_temp;
-      id_ = track_data_array.tracks[i].id;
+  if (target_numbers) {
+    for (int i = 0; i < target_numbers; i++) {
+      cost_temp = calculateCost(track_data_array.tracks[i]);
+      if (cost_temp <= cost_) {
+        cost_ = cost_temp;
+        id_ = track_data_array.tracks[i].id;
+      }
     }
-  }
-  cost_ = 10000000;
+    cost_ = 10000000;
+  } else id_ = -1;
+
 }
 
 double TargetCostFunction::calculateCost(rm_msgs::TrackData track_data) {
