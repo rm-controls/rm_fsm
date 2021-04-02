@@ -115,15 +115,15 @@ void StateAutomatic<T>::run() {
       gimbal_position_ = 2;
 
     if (gimbal_position_ == 1) {
-      this->setGimbal(rm_msgs::GimbalCmd::PASSIVE, auto_move_yaw_speed_, -auto_move_pitch_speed_, 0);
+      this->setGimbal(rm_msgs::GimbalCmd::PASSIVE, auto_move_yaw_speed_, -auto_move_pitch_speed_, 0, 0.0);
     } else if (gimbal_position_ == 2) {
-      this->setGimbal(rm_msgs::GimbalCmd::PASSIVE, auto_move_yaw_speed_, auto_move_pitch_speed_, 0);
+      this->setGimbal(rm_msgs::GimbalCmd::PASSIVE, auto_move_yaw_speed_, auto_move_pitch_speed_, 0, 0.0);
     }
 
   } else {
     time_counter1++;
     this->setChassis(rm_msgs::ChassisCmd::RAW, -calibration_speed_, 0, 0);
-    this->setGimbal(rm_msgs::GimbalCmd::PASSIVE, 0, 0, 0);
+    this->setGimbal(rm_msgs::GimbalCmd::PASSIVE, 0, 0, 0, 0.0);
     if(time_counter1>40) {
       if (now_effort < -1.1) {
         std::cout << "calibration finish !" << std::endl;

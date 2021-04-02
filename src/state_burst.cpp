@@ -19,6 +19,8 @@ template<typename T>
 void StateBurst<T>::run() {
   double linear_x, linear_y;
   double rate_yaw, rate_pitch;
+  uint8_t target_id;
+  double bullet_speed = 7;
   ros::Time now = ros::Time::now();
 
   this->loadParam();
@@ -31,9 +33,15 @@ void StateBurst<T>::run() {
     rate_pitch = this->data_->dbus_data_.m_y;
 
     if (this->data_->dbus_data_.p_r) {
-      this->setGimbal(rm_msgs::GimbalCmd::TRACK, 0.0, 0.0, 8); // track sentry
+      this->data_->target_cost_function_->input(this->data_->track_data_array_);
+      target_id = this->data_->target_cost_function_->output();
+      if (target_id == 0) {
+        this->setGimbal(rm_msgs::GimbalCmd::RATE, rate_yaw, rate_pitch, 0, 0.0);
+      } else {
+        this->setGimbal(rm_msgs::GimbalCmd::TRACK, 0.0, 0.0, target_id, bullet_speed);
+      }
     } else {
-      this->setGimbal(rm_msgs::GimbalCmd::RATE, rate_yaw, rate_pitch, 0);
+      this->setGimbal(rm_msgs::GimbalCmd::RATE, rate_yaw, rate_pitch, 0, 0.0);
     }
 
     if (this->data_->dbus_data_.p_l) {
@@ -48,7 +56,7 @@ void StateBurst<T>::run() {
     rate_yaw = -this->data_->dbus_data_.ch_l_x;
     rate_pitch = -this->data_->dbus_data_.ch_l_y;
 
-    this->setGimbal(rm_msgs::GimbalCmd::RATE, rate_yaw, rate_pitch, 0);
+    this->setGimbal(rm_msgs::GimbalCmd::RATE, rate_yaw, rate_pitch, 0, 0.0);
 
     if (this->data_->dbus_data_.s_l == rm_msgs::DbusData::UP) {
       this->setShoot(rm_msgs::ShootCmd::PUSH, rm_msgs::ShootCmd::SPEED_10M_PER_SECOND, this->shoot_hz_, now);
