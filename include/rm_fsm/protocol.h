@@ -259,6 +259,18 @@ typedef enum {
   kDelete = 3
 } GraphicOperateType;
 
+typedef enum {
+  kMainColor = 0,
+  kYellow = 1,
+  kGreen = 2,
+  kOrange = 3,
+  kPurple = 4,
+  kPink = 5,
+  kCyan = 6,
+  kBlack = 7,
+  kWhite = 8
+} GraphicColorType;
+
 typedef struct {
   uint8_t graphic_name[3];
   uint32_t operate_type: 3;

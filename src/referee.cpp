@@ -429,7 +429,7 @@ void Referee::drawFloat(int robot_id, int client_id,
   serial_.write(tx_buffer, sizeof(send_data));
 }
 
-void Referee::drawCharacter(int robot_id, int client_id, int side,
+void Referee::drawCharacter(int robot_id, int client_id, int side, GraphicColorType color,
                             GraphicOperateType operate_type, std::string data) {
   uint8_t tx_buffer[128] = {0,};
   DrawClientCharData send_data;
@@ -465,7 +465,7 @@ void Referee::drawCharacter(int robot_id, int client_id, int side,
   send_data.graphic_data_struct_.operate_type = operate_type;
   send_data.graphic_data_struct_.graphic_type = 7;
   send_data.graphic_data_struct_.layer = 1;
-  send_data.graphic_data_struct_.color = 3; // orange
+  send_data.graphic_data_struct_.color = color; // orange
   send_data.graphic_data_struct_.end_angle = (int) data.size(); // 9 bit
   send_data.graphic_data_struct_.width = 5; // 10 bit
 
