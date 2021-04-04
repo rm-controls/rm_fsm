@@ -605,11 +605,18 @@ void appendCRC16CheckSum(uint8_t *pchMessage, uint32_t dwLength) {
 
 /***************************************** Power manager ****************************************************/
 void PowerManagerData::read(const std::vector<uint8_t> &rx_buffer) {
+  int count = 0;
   memset(Receive_Buffer, 0x00, sizeof(Receive_Buffer));
   memset(PingPong_Buffer, 0x00, sizeof(PingPong_Buffer));
   Receive_BufCounter = 0;
   for (unsigned char kI : rx_buffer) {
     DTP_Received_CallBack(kI);
+    count++;
+    if (count >= (int) sizeof(Receive_Buffer)) {
+      memset(Receive_Buffer, 0x00, sizeof(Receive_Buffer));
+      memset(PingPong_Buffer, 0x00, sizeof(PingPong_Buffer));
+      Receive_BufCounter = 0;
+    }
   }
 }
 

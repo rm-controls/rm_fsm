@@ -47,8 +47,8 @@ class PowerManagerData {
   void DTP_Received_CallBack(unsigned char Receive_Byte);
   void Receive_CallBack(unsigned char PID, unsigned char Data[8]);
 
-  unsigned char Receive_Buffer[128] = {0};
-  unsigned char PingPong_Buffer[128] = {0};
+  unsigned char Receive_Buffer[1024] = {0};
+  unsigned char PingPong_Buffer[1024] = {0};
   unsigned int Receive_BufCounter = 0;
   float Int16ToFloat(unsigned short data0);
 };
@@ -86,7 +86,7 @@ class Referee {
   const int kProtocolFrameLength = 128, kProtocolHeaderLength = 5, kProtocolCmdIdLength = 2, kProtocolTailLength = 2;
 
   int data_len_ = 0;
-  bool use_power_manager_ = false;
+  bool use_power_manager_ = true;
 };
 
 uint8_t getCRC8CheckSum(unsigned char *pch_message, unsigned int dw_length, unsigned char ucCRC8);
