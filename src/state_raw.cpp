@@ -34,12 +34,12 @@ void StateRaw<T>::run() {
 
   if (this->data_->dbus_data_.s_l == rm_msgs::DbusData::UP) {
     this->data_->shooter_heat_limit_->input(this->data_->referee_, this->shoot_hz_);
-    this->setShoot(rm_msgs::ShootCmd::PUSH, rm_msgs::ShootCmd::SPEED_10M_PER_SECOND,
+    this->setShoot(rm_msgs::ShootCmd::PUSH, rm_msgs::ShootCmd::SPEED_15M_PER_SECOND,
                    this->data_->shooter_heat_limit_->output(), now);
   } else if (this->data_->dbus_data_.s_l == rm_msgs::DbusData::MID) {
-    this->setShoot(rm_msgs::ShootCmd::READY, rm_msgs::ShootCmd::SPEED_10M_PER_SECOND, 0.0, now);
+    this->setShoot(rm_msgs::ShootCmd::READY, rm_msgs::ShootCmd::SPEED_15M_PER_SECOND, 0.0, now);
   } else {
-    this->setShoot(rm_msgs::ShootCmd::STOP, rm_msgs::ShootCmd::SPEED_10M_PER_SECOND, 0.0, now);
+    this->setShoot(rm_msgs::ShootCmd::STOP, rm_msgs::ShootCmd::SPEED_15M_PER_SECOND, 0.0, now);
   }
 
   this->setChassis(rm_msgs::ChassisCmd::RAW, linear_x, linear_y, 0.0);

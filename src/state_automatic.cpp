@@ -71,11 +71,11 @@ void StateAutomatic<T>::run() {
   time_counter2++;
  if(time_counter2==10){
     current_position_ = chassis_transformStamped.transform.translation.x;
-   std::cout << "position:" << current_position_;
+   //std::cout << "position:" << current_position_;
     speed_ = effort_data_.velocity[0];
-    std::cout << "   speed:" << speed_;
+   //std::cout << "   speed:" << speed_;
     now_effort = sum_effort/10.0;
-   std::cout << "   now_effort:" << now_effort << std::endl;
+   //std::cout << "   now_effort:" << now_effort << std::endl;
     last_position_ = current_position_;
     time_counter2=0;
     sum_effort = 0;
@@ -87,10 +87,13 @@ void StateAutomatic<T>::run() {
     // set shooter
     if(this->data_->gimbal_des_error_.error_yaw<0.5 && this->data_->gimbal_des_error_.error_pitch<0.5)
     {
-      this->setShoot(rm_msgs::ShootCmd::PUSH, rm_msgs::ShootCmd::SPEED_10M_PER_SECOND, this->data_->shooter_heat_limit_->output(), now);
+      this->setShoot(rm_msgs::ShootCmd::PUSH,
+                     rm_msgs::ShootCmd::SPEED_30M_PER_SECOND,
+                     this->data_->shooter_heat_limit_->output(),
+                     now);
     }
     else{
-      this->setShoot(rm_msgs::ShootCmd::READY, rm_msgs::ShootCmd::SPEED_10M_PER_SECOND, 0, now);
+      this->setShoot(rm_msgs::ShootCmd::READY, rm_msgs::ShootCmd::SPEED_30M_PER_SECOND, 0, now);
     }
 
     // set chassis
@@ -99,18 +102,18 @@ void StateAutomatic<T>::run() {
     else if ((current_position_ <= start_) && (point_side_ == 3))
       point_side_ = 1;
     if (point_side_ == 1) {
-      std::cout << "Enter 1 state" << std::endl;
+      //std::cout << "Enter 1 state" << std::endl;
       this->setChassis(rm_msgs::ChassisCmd::RAW, auto_move_chassis_speed_, 0.0, 0.0);
     } else if (point_side_ == 2) {
-      std::cout << "Enter 2 state" << std::endl;
+      //std::cout << "Enter 2 state" << std::endl;
       this->setChassis(rm_msgs::ChassisCmd::PASSIVE, 0.0, 0.0, 0.0);
       if(speed_ <= 0)
         point_side_ = 3;
     } else if (point_side_ == 3) {
-      std::cout << "Enter 3 state" << std::endl;
+      //std::cout << "Enter 3 state" << std::endl;
       this->setChassis(rm_msgs::ChassisCmd::RAW, -auto_move_chassis_speed_, 0.0, 0.0);
     } else if (point_side_ == 4) {
-      std::cout << "Enter 4 state" << std::endl;
+      //std::cout << "Enter 4 state" << std::endl;
       this->setChassis(rm_msgs::ChassisCmd::PASSIVE, 0.0, 0.0, 0.0);
       if (speed_ >= 0)
         point_side_ = 1;
@@ -122,14 +125,14 @@ void StateAutomatic<T>::run() {
       this->setGimbal(rm_msgs::GimbalCmd::TRACK, 0, 0, attack_id_);
     }
     else {
-      if (pitch > 0.443)
+      if (pitch > 0.872)
         gimbal_position_ = 1;
-      else if (pitch < (-0.537))
+      else if (pitch < (0.192))
         gimbal_position_ = 2;
       if (gimbal_position_ == 1) {
-        this->setGimbal(rm_msgs::GimbalCmd::PASSIVE, auto_move_yaw_speed_, -auto_move_pitch_speed_, 0);
+        this->setGimbal(rm_msgs::GimbalCmd::RATE, auto_move_yaw_speed_, -auto_move_pitch_speed_, 0);
       } else if (gimbal_position_ == 2) {
-        this->setGimbal(rm_msgs::GimbalCmd::PASSIVE, auto_move_yaw_speed_, auto_move_pitch_speed_, 0);
+        this->setGimbal(rm_msgs::GimbalCmd::RATE, auto_move_yaw_speed_, auto_move_pitch_speed_, 0);
       }
     }
 
