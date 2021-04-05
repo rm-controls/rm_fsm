@@ -35,18 +35,27 @@ void Referee::init() {
 void Referee::run() {
   char power_string[30];
   float power_float;
+  uint8_t operate_type;
   serial::Timeout timeout = serial::Timeout::simpleTimeout(50);
 
   if (flag_) {
     read();
     power_float = power_manager_data_.parameters[3] * 100;
-    sprintf(power_string, "%.2f", power_float);
-    if (power_float >= 0.6)
-      drawCharacter(1, kGreen, kAdd, power_string);
-    else if (power_float < 0.6 && power_float >= 0.3)
-      drawCharacter(1, kYellow, kAdd, power_string);
-    else if (power_float < 0.3)
-      drawCharacter(1, kOrange, kAdd, power_string);
+    sprintf(power_string, "%1.0f%%", power_float);
+
+    if (count_ >= 10) {
+      if (first_send_)
+        operate_type = kAdd;
+      else
+        operate_type = kModify;
+
+      if (power_float >= 0.6)
+        drawCharacter(2, kGreen, operate_type, power_string);
+      else if (power_float < 0.6 && power_float >= 0.3)
+        drawCharacter(2, kYellow, operate_type, power_string);
+      else if (power_float < 0.3)
+        drawCharacter(2, kOrange, operate_type, power_string);
+    }
   } else {
     try {
       serial_.setPort(serial_port_);
@@ -64,6 +73,7 @@ void Referee::run() {
     }
 
     if (flag_) {
+      first_send_ = true;
       ROS_INFO("Referee system reconnected.");
     }
   }
@@ -411,6 +421,12 @@ void Referee::drawGraphic(int side, GraphicColorType color, GraphicOperateType o
     send_data.graphic_data_struct_.start_y = 540;
     send_data.graphic_data_struct_.end_x = 1820; // 11 bit
     send_data.graphic_data_struct_.end_y = 640; // 11 bit
+  } else if (side == 4) {
+    send_data.graphic_data_struct_.graphic_name[0] = 4;
+    send_data.graphic_data_struct_.start_x = 910;
+    send_data.graphic_data_struct_.start_y = 540;
+    send_data.graphic_data_struct_.end_x = 1010; // 11 bit
+    send_data.graphic_data_struct_.end_y = 640; // 11 bit
   }
   send_data.graphic_data_struct_.graphic_name[1] = 0;
   send_data.graphic_data_struct_.graphic_name[2] = 0;
@@ -434,8 +450,7 @@ void Referee::drawGraphic(int side, GraphicColorType color, GraphicOperateType o
   }
 }
 
-void Referee::drawCharacter(int side, GraphicColorType color, GraphicOperateType operate_type,
-                            std::string data) {
+void Referee::drawCharacter(int side, GraphicColorType color, uint8_t operate_type, std::string data) {
   uint8_t tx_buffer[128] = {0};
   DrawClientCharData send_data;
   int index = 0;
@@ -477,8 +492,8 @@ void Referee::drawCharacter(int side, GraphicColorType color, GraphicOperateType
     send_data.graphic_data_struct_.start_y = 100;
   } else if (side == 3) { // right
     send_data.graphic_data_struct_.graphic_name[1] = 3;
-    send_data.graphic_data_struct_.start_x = 1770;
-    send_data.graphic_data_struct_.start_y = 540;
+    send_data.graphic_data_struct_.start_x = 1670;
+    send_data.graphic_data_struct_.start_y = 840;
   }
   send_data.graphic_data_struct_.graphic_name[0] = 1;
   send_data.graphic_data_struct_.graphic_name[2] = 0;
@@ -497,7 +512,7 @@ void Referee::drawCharacter(int side, GraphicColorType color, GraphicOperateType
     if (kI < (int) data.size())
       send_data.data_[kI] = data[kI];
     else
-      send_data.data_[kI] = '0';
+      send_data.data_[kI] = ' ';
   }
   memcpy(tx_buffer + index, send_data.data_, 30);
 

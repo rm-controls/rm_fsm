@@ -63,7 +63,7 @@ class Referee {
   void run();
 
   void drawGraphic(int side, GraphicColorType color, GraphicOperateType operate_type);
-  void drawCharacter(int side, GraphicColorType color, GraphicOperateType operate_type, std::string data);
+  void drawCharacter(int side, GraphicColorType color, uint8_t operate_type, std::string data);
   void sendInteractiveData(int data_cmd_id, int sender_id, int receiver_id, const std::vector<uint8_t> &data);
 
 
@@ -72,6 +72,8 @@ class Referee {
   PowerManagerData power_manager_data_;
 
   bool flag_ = false;
+  bool first_send_ = true;
+  int count_ = 0;
   int robot_id_ = 0;
   int client_id_ = 0;
   ros::Publisher referee_pub_;
