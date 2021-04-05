@@ -8,8 +8,8 @@
 #include <ros/ros.h>
 #include <geometry_msgs/Twist.h>
 #include <tf2_ros/transform_listener.h>
-#include "rm_msgs/TrackData.h"
-#include "rm_msgs/TrackDataArray.h"
+#include <rm_msgs/TrackData.h>
+#include <rm_msgs/TrackDataArray.h>
 
 class TargetCostFunction {
  public:
@@ -19,9 +19,9 @@ class TargetCostFunction {
   double calculateCost(rm_msgs::TrackData track_data);
 
  private:
-  int id_;
+  int id_{};
   double cost_ = 1000000;
-  double time_interval_;
+  double time_interval_{};
 };
 
 #endif //SRC_RM_SOFTWARE_RM_FSM_INCLUDE_RM_FSM_TARGET_COST_FUNCTION_H_

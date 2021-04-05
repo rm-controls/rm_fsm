@@ -2,7 +2,7 @@
 // Created by bruce on 2021/1/17.
 //
 
-#include <rm_fsm/state_fly_slope.h>
+#include "rm_fsm/state_fly_slope.h"
 
 template<typename T>
 StateFlySlope<T>::StateFlySlope(FsmData<T> *fsm_data,
@@ -39,7 +39,7 @@ void StateFlySlope<T>::run() {
   }
 
   this->setChassis(rm_msgs::ChassisCmd::FOLLOW, linear_x, linear_y, 0.0);
-  this->setGimbal(rm_msgs::GimbalCmd::RATE, rate_yaw, rate_pitch, 0);
+  this->setGimbal(rm_msgs::GimbalCmd::RATE, rate_yaw, rate_pitch, 0, 0.0);
   this->setShoot(rm_msgs::ShootCmd::STOP, rm_msgs::ShootCmd::SPEED_10M_PER_SECOND, 0.0, now);
 }
 

@@ -6,12 +6,12 @@
 #define SRC_RM_SOFTWARE_RM_DECISION_SRC_FSM_FSM_STATE_H_
 
 #include <iostream>
-#include <tf/transform_listener.h>
 #include <queue>
+#include <utility>
+#include <tf/transform_listener.h>
+#include <control_toolbox/pid.h>
 #include <rm_common/ros_utilities.h>
 #include "rm_common/ori_tool.h"
-#include <utility>
-#include <control_toolbox/pid.h>
 #include "rm_fsm/fsm_data.h"
 
 /**
@@ -40,7 +40,7 @@ class State {
 
   // Base controllers.
   void setChassis(uint8_t chassis_mode, double linear_x, double linear_y, double angular_z);
-  void setGimbal(uint8_t gimbal_mode, double rate_yaw, double rate_pitch, uint8_t target_id);
+  void setGimbal(uint8_t gimbal_mode, double rate_yaw, double rate_pitch, uint8_t target_id, double bullet_speed);
   void setShoot(uint8_t shoot_mode, uint8_t shoot_speed, double shoot_hz, ros::Time now);
 
   void setControlMode(const std::string &control_mode);
@@ -70,8 +70,11 @@ class State {
   // gimbal fsm control coefficient
   double coefficient_yaw_ = 0.0;
   double coefficient_pitch_ = 0.0;
+  double gimbal_error_limit_ = 2.0;
 
   double shoot_hz_ = 0.0;
+
+  double lowest_effort_;
 
   uint8_t last_chassis_mode_;
   uint8_t last_shoot_mode_;
@@ -99,7 +102,6 @@ class Fsm {
 
   // Runs the FSM logic and handles the state transitions and normal runs
   void run();
-  void getId();
   // Get desired state decided by control fsm data.
   virtual std::string getDesiredState() = 0;
 
@@ -110,8 +112,6 @@ class Fsm {
   State<T> *next_state_;       // next FSM state
   std::string next_state_name_;  // next FSM state name
 
-  int robot_id_;
-  int client_id_;
   tf2_ros::Buffer tf_;
   tf2_ros::TransformListener *tf_listener_;
 
