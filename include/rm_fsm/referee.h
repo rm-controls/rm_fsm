@@ -66,7 +66,7 @@ class Referee {
   void drawCharacter(int side, GraphicColorType color, GraphicOperateType operate_type, std::string data);
   void sendInteractiveData(int data_cmd_id, int sender_id, int receiver_id, const std::vector<uint8_t> &data);
 
-  bool getUsePowerManager() { return use_power_manager_; };
+
 
   RefereeData referee_data_{};
   PowerManagerData power_manager_data_;
