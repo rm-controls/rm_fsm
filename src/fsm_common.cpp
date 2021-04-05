@@ -149,10 +149,25 @@ Fsm<T>::Fsm(ros::NodeHandle &node_handle):nh_(node_handle) {
  */
 template<typename T>
 void Fsm<T>::run() {
+  uint8_t operate_type;
   // TODO: Safety check
 
   // run referee system
   data_.referee_->run();
+
+  if (data_.referee_->flag_) {
+    if (data_.referee_->count_ >= 10) { // 10hz
+      data_.referee_->count_ = 0;
+      if (data_.referee_->first_send_) {
+        operate_type = kAdd;
+        data_.referee_->first_send_ = false;
+      } else {
+        operate_type = kModify;
+      }
+      data_.referee_->drawCharacter(3, kYellow, operate_type, current_state_->state_name_);
+    }
+    data_.referee_->count_++;
+  }
 
   // Run the robot control code if operating mode is not unsafe
   if (operating_mode_ != FsmOperatingMode::kEStop) {
