@@ -34,6 +34,8 @@ struct RefereeData {
   RobotInteractiveData robot_interactive_data_;
   RobotCommand robot_command_;
   int performance_system_; // Performance level system
+  bool power_manager_;
+  uint16_t power_parameter[4];
 };
 
 class PowerManagerData {
@@ -63,6 +65,8 @@ class Referee {
   void drawGraphic(int side, GraphicColorType color, GraphicOperateType operate_type);
   void drawCharacter(int side, GraphicColorType color, uint8_t operate_type, std::string data);
   void sendInteractiveData(int data_cmd_id, int sender_id, int receiver_id, const std::vector<uint8_t> &data);
+
+
 
   RefereeData referee_data_{};
   PowerManagerData power_manager_data_;

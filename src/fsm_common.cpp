@@ -71,7 +71,9 @@ void State<T>::setChassis(uint8_t chassis_mode,
     if (data_->referee_->referee_data_.power_heat_data_.chassis_volt == 0) {
       data_->chassis_cmd_.effort_limit = lowest_effort_;
     } else {
-      data_->power_limit_->input(data_->referee_->referee_data_);
+      data_->power_limit_->input(data_->referee_->referee_data_,
+                                 data_->referee_->power_manager_data_,
+                                 true);
       data_->chassis_cmd_.effort_limit = data_->power_limit_->output();
     }
   } else {
