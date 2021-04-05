@@ -34,6 +34,8 @@ struct RefereeData {
   RobotInteractiveData robot_interactive_data_;
   RobotCommand robot_command_;
   int performance_system_; // Performance level system
+  bool power_manager_;
+  uint16_t power_parameter[4];
 };
 
 class PowerManagerData {
@@ -58,23 +60,28 @@ class Referee {
   Referee() = default;
   ~Referee() = default;
   void init();
-  void read();
-  void drawGraphic(int robot_id, int client_id, int side, GraphicOperateType operate_type);
-  void drawCharacter(int robot_id, int client_id, int side, GraphicOperateType operate_type, std::string data);
-  void drawFloat(int robot_id, int client_id, float data, GraphicOperateType operate_type);
+  void run();
+
+  void drawGraphic(int side, GraphicColorType color, GraphicOperateType operate_type);
+  void drawCharacter(int side, GraphicColorType color, uint8_t operate_type, std::string data);
   void sendInteractiveData(int data_cmd_id, int sender_id, int receiver_id, const std::vector<uint8_t> &data);
-  void getId();
+
+
 
   RefereeData referee_data_{};
   PowerManagerData power_manager_data_;
 
   bool flag_ = false;
+  bool first_send_ = true;
+  int count_ = 0;
   int robot_id_ = 0;
   int client_id_ = 0;
   ros::Publisher referee_pub_;
   rm_msgs::Referee referee_pub_data_;
 
  private:
+  void read();
+  void getId();
   void unpack(const std::vector<uint8_t> &rx_buffer);
   void getData(uint8_t *frame);
 
@@ -82,11 +89,11 @@ class Referee {
   std::vector<uint8_t> rx_data_;
   UnpackData referee_unpack_obj{};
 
+  const std::string serial_port_ = "/dev/usbReferee";
   const int kUnpackLength = 160;
   const int kProtocolFrameLength = 128, kProtocolHeaderLength = 5, kProtocolCmdIdLength = 2, kProtocolTailLength = 2;
 
   int data_len_ = 0;
-  bool use_power_manager_ = true;
 };
 
 uint8_t getCRC8CheckSum(unsigned char *pch_message, unsigned int dw_length, unsigned char ucCRC8);
