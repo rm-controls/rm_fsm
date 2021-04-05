@@ -290,7 +290,7 @@ typedef struct {
 typedef struct {
   FrameHeaderStruct tx_frame_header_;
   uint16_t cmd_id_;
-  StudentInteractiveHeaderData graphic_header_data_;
+  StudentInteractiveHeaderData student_interactive_header_data_;
   GraphicDataStruct graphic_data_struct_;
   uint16_t frame_tail_;
 }__packed DrawClientGraphicData;
@@ -298,7 +298,7 @@ typedef struct {
 typedef struct {
   FrameHeaderStruct tx_frame_header_;
   uint16_t cmd_id_;
-  StudentInteractiveHeaderData graphic_header_data_;
+  StudentInteractiveHeaderData student_interactive_header_data_;
   GraphicDataStruct graphic_data_struct_;
   uint8_t data_[30];
   uint16_t frame_tail_;

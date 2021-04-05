@@ -321,24 +321,33 @@ void Referee::getId() {
  * @param side
  * @param operate_type
  */
-void Referee::drawGraphic(int robot_id, int client_id,
-                          int side, GraphicOperateType operate_type) {
-  uint8_t tx_buffer[128] = {0,};
+void Referee::drawGraphic(int side, GraphicColorType color, GraphicOperateType operate_type) {
+  uint8_t tx_buffer[128] = {0};
   DrawClientGraphicData send_data;
+  int index = 0;
 
+  // Frame header
   send_data.tx_frame_header_.sof = 0xA5;
   send_data.tx_frame_header_.seq = 0;
   send_data.tx_frame_header_.data_length = sizeof(StudentInteractiveHeaderData) + sizeof(GraphicDataStruct);
+  memcpy(tx_buffer, &send_data.tx_frame_header_, kProtocolHeaderLength);
+  appendCRC8CheckSum(tx_buffer, kProtocolHeaderLength);
+  index += kProtocolHeaderLength;
 
-  memcpy(tx_buffer, &send_data.tx_frame_header_, sizeof(FrameHeaderStruct));
-  appendCRC8CheckSum(tx_buffer, sizeof(FrameHeaderStruct));
-
+  // Command ID
   send_data.cmd_id_ = kStudentInteractiveDataCmdId;
+  memcpy(tx_buffer + index, &send_data.cmd_id_, sizeof(kProtocolCmdIdLength));
+  index += kProtocolCmdIdLength;
 
-  send_data.graphic_header_data_.data_cmd_id = kClientGraphicSingleCmdId;
-  send_data.graphic_header_data_.send_ID = robot_id;
-  send_data.graphic_header_data_.receiver_ID = client_id;
+  // Data
+  // Graph data header
+  send_data.student_interactive_header_data_.data_cmd_id = kClientGraphicSingleCmdId;
+  send_data.student_interactive_header_data_.send_ID = robot_id_;
+  send_data.student_interactive_header_data_.receiver_ID = client_id_;
+  memcpy(tx_buffer + index, &send_data.student_interactive_header_data_, sizeof(StudentInteractiveHeaderData));
+  index += sizeof(StudentInteractiveHeaderData);
 
+  // Graph data
   if (side == 0) { // up
     send_data.graphic_data_struct_.graphic_name[0] = 0;
     send_data.graphic_data_struct_.start_x = 910;
@@ -364,121 +373,93 @@ void Referee::drawGraphic(int robot_id, int client_id,
     send_data.graphic_data_struct_.end_x = 1820; // 11 bit
     send_data.graphic_data_struct_.end_y = 640; // 11 bit
   }
-
   send_data.graphic_data_struct_.graphic_name[1] = 0;
   send_data.graphic_data_struct_.graphic_name[2] = 0;
   send_data.graphic_data_struct_.operate_type = operate_type;
-  send_data.graphic_data_struct_.graphic_type = 1;
+  send_data.graphic_data_struct_.graphic_type = 1; // rectangle
   send_data.graphic_data_struct_.layer = 0;
-  send_data.graphic_data_struct_.color = 1; // yellow
-  send_data.graphic_data_struct_.start_angle = 0; // take the lower 9 bit
-  send_data.graphic_data_struct_.end_angle = 0; // 9 bit
-  send_data.graphic_data_struct_.width = 10; // 10 bit
-  send_data.graphic_data_struct_.radius = 0; // 11 bit
+  send_data.graphic_data_struct_.color = color;
+  send_data.graphic_data_struct_.width = 10;
+  memcpy(tx_buffer + index, &send_data.graphic_data_struct_, sizeof(GraphicDataStruct));
 
-
-  memcpy(tx_buffer + sizeof(FrameHeaderStruct), (uint8_t *) &send_data.cmd_id_,
-         sizeof(send_data.cmd_id_) + sizeof(send_data.graphic_header_data_)
-             + sizeof(send_data.graphic_data_struct_));
-
+  // Frame tail
   appendCRC16CheckSum(tx_buffer, sizeof(send_data));
 
+  // Send
   serial_.write(tx_buffer, sizeof(send_data));
 }
 
-void Referee::drawFloat(int robot_id, int client_id,
-                        float data, GraphicOperateType operate_type) {
-  uint8_t tx_buffer[128] = {0,};
-  DrawClientGraphicData send_data;
-
-  send_data.tx_frame_header_.sof = 0xA5;
-  send_data.tx_frame_header_.seq = 0;
-  send_data.tx_frame_header_.data_length = sizeof(StudentInteractiveHeaderData) + sizeof(GraphicDataStruct);
-
-  memcpy(tx_buffer, &send_data.tx_frame_header_, sizeof(FrameHeaderStruct));
-  appendCRC8CheckSum(tx_buffer, sizeof(FrameHeaderStruct));
-
-  send_data.cmd_id_ = kStudentInteractiveDataCmdId;
-
-  send_data.graphic_header_data_.data_cmd_id = kClientGraphicSingleCmdId;
-  send_data.graphic_header_data_.send_ID = robot_id;
-  send_data.graphic_header_data_.receiver_ID = client_id;
-
-  send_data.graphic_data_struct_.graphic_name[0] = 0;
-  send_data.graphic_data_struct_.graphic_name[1] = 0;
-  send_data.graphic_data_struct_.graphic_name[2] = 1;
-
-  send_data.graphic_data_struct_.operate_type = operate_type;
-  send_data.graphic_data_struct_.graphic_type = 5;
-  send_data.graphic_data_struct_.start_angle = 20;
-  send_data.graphic_data_struct_.start_x = 910;
-  send_data.graphic_data_struct_.start_y = 300;
-  send_data.graphic_data_struct_.layer = 2;
-  send_data.graphic_data_struct_.color = 1; // yellow
-  send_data.graphic_data_struct_.end_angle = 2; // 9 bit
-  send_data.graphic_data_struct_.width = 5; // 10 bit
-
-  memcpy(tx_buffer + sizeof(FrameHeaderStruct), (uint8_t *) &send_data.cmd_id_,
-         sizeof(send_data.cmd_id_) + sizeof(send_data.graphic_header_data_)
-             + sizeof(send_data.graphic_data_struct_));
-  memcpy(tx_buffer + sizeof(send_data) - 6, (uint8_t *) &data,
-         sizeof(float));
-
-  appendCRC16CheckSum(tx_buffer, sizeof(send_data));
-
-  serial_.write(tx_buffer, sizeof(send_data));
-}
-
-void Referee::drawCharacter(int robot_id, int client_id, int side, GraphicColorType color,
-                            GraphicOperateType operate_type, std::string data) {
-  uint8_t tx_buffer[128] = {0,};
+void Referee::drawCharacter(int side, GraphicColorType color, GraphicOperateType operate_type,
+                            std::string data) {
+  uint8_t tx_buffer[128] = {0};
   DrawClientCharData send_data;
+  int index = 0;
 
+  // Frame header
   send_data.tx_frame_header_.sof = 0xA5;
-  send_data.tx_frame_header_.seq = 0;
+  send_data.tx_frame_header_.seq = 1;
   send_data.tx_frame_header_.data_length =
-      sizeof(StudentInteractiveHeaderData) + sizeof(GraphicDataStruct) + sizeof(send_data.data_);
+      sizeof(StudentInteractiveHeaderData) + sizeof(GraphicDataStruct) + 30;
+  memcpy(tx_buffer, &send_data.tx_frame_header_, kProtocolHeaderLength);
+  appendCRC8CheckSum(tx_buffer, kProtocolHeaderLength);
+  index += kProtocolHeaderLength;
 
-  memcpy(tx_buffer, &send_data.tx_frame_header_, sizeof(FrameHeaderStruct));
-  appendCRC8CheckSum(tx_buffer, sizeof(FrameHeaderStruct));
-
+  // Command ID
   send_data.cmd_id_ = kStudentInteractiveDataCmdId;
+  memcpy(tx_buffer + index, &send_data.cmd_id_, sizeof(kProtocolCmdIdLength));
+  index += kProtocolCmdIdLength;
 
-  send_data.graphic_header_data_.data_cmd_id = kClientCharacterCmdId;
-  send_data.graphic_header_data_.send_ID = robot_id;
-  send_data.graphic_header_data_.receiver_ID = client_id;
+  // Data
+  // Graph data header
+  send_data.student_interactive_header_data_.data_cmd_id = kClientCharacterCmdId;
+  send_data.student_interactive_header_data_.send_ID = robot_id_;
+  send_data.student_interactive_header_data_.receiver_ID = client_id_;
+  memcpy(tx_buffer + index, &send_data.student_interactive_header_data_, sizeof(StudentInteractiveHeaderData));
+  index += sizeof(StudentInteractiveHeaderData);
 
-  if (side) {
-    send_data.graphic_data_struct_.graphic_name[0] = 1;
-    send_data.graphic_data_struct_.start_angle = 20;
+  // Graph data
+  if (side == 0) { // up
+    send_data.graphic_data_struct_.graphic_name[1] = 0;
+    send_data.graphic_data_struct_.start_x = 910;
+    send_data.graphic_data_struct_.start_y = 850;
+  } else if (side == 1) { // left
+    send_data.graphic_data_struct_.graphic_name[1] = 1;
     send_data.graphic_data_struct_.start_x = 100;
-    send_data.graphic_data_struct_.start_y = 800;
-  } else {
-    send_data.graphic_data_struct_.graphic_name[0] = 0;
-    send_data.graphic_data_struct_.start_angle = 20;
-    send_data.graphic_data_struct_.start_x = 1720;
-    send_data.graphic_data_struct_.start_y = 800;
+    send_data.graphic_data_struct_.start_y = 540;
+  } else if (side == 2) { // down
+    send_data.graphic_data_struct_.graphic_name[1] = 2;
+    send_data.graphic_data_struct_.start_x = 910;
+    send_data.graphic_data_struct_.start_y = 100;
+  } else if (side == 3) { // right
+    send_data.graphic_data_struct_.graphic_name[1] = 3;
+    send_data.graphic_data_struct_.start_x = 1770;
+    send_data.graphic_data_struct_.start_y = 540;
   }
-
-  send_data.graphic_data_struct_.graphic_name[1] = 1;
+  send_data.graphic_data_struct_.graphic_name[0] = 1;
   send_data.graphic_data_struct_.graphic_name[2] = 0;
+  send_data.graphic_data_struct_.graphic_type = 7; // char
   send_data.graphic_data_struct_.operate_type = operate_type;
-  send_data.graphic_data_struct_.graphic_type = 7;
-  send_data.graphic_data_struct_.layer = 1;
-  send_data.graphic_data_struct_.color = color; // orange
-  send_data.graphic_data_struct_.end_angle = (int) data.size(); // 9 bit
-  send_data.graphic_data_struct_.width = 5; // 10 bit
+  send_data.graphic_data_struct_.start_angle = 20; // char size
+  send_data.graphic_data_struct_.end_angle = (int) data.size(); // string length
+  send_data.graphic_data_struct_.width = 5; // line width
+  send_data.graphic_data_struct_.layer = 0;
+  send_data.graphic_data_struct_.color = color;
+  memcpy(tx_buffer + index, &send_data.graphic_data_struct_, sizeof(GraphicDataStruct));
+  index += sizeof(GraphicDataStruct);
 
-  for (int i = 0; i < (int) data.size() && i < 30; ++i) {
-    send_data.data_[i] = data[i];
+  // Char data
+  for (int kI = 0; kI < 30; ++kI) {
+    if (kI < (int) data.size())
+      send_data.data_[kI] = data[kI];
+    else
+      send_data.data_[kI] = '0';
   }
+  memcpy(tx_buffer + index, send_data.data_, 30);
 
-  memcpy(tx_buffer + sizeof(FrameHeaderStruct), (uint8_t *) &send_data.cmd_id_,
-         sizeof(send_data.cmd_id_) + sizeof(send_data.graphic_header_data_)
-             + sizeof(send_data.graphic_data_struct_) + sizeof(send_data.data_));
-
+  // Frame tail
   appendCRC16CheckSum(tx_buffer, sizeof(send_data));
 
+  // Send
   serial_.write(tx_buffer, sizeof(send_data));
 }
 
