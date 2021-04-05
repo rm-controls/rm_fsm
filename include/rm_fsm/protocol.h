@@ -59,11 +59,11 @@ typedef struct {
   uint16_t index;
 } UnpackData;
 
-/*------------------------REFEREE_GAME_CMD---- 0x40 -------------------*/
 typedef struct {
   uint8_t game_type: 4;
   uint8_t game_progress: 4;
   uint16_t stage_remain_time;
+  uint64_t SyncTimeStamp;
 } __packed GameStatus;
 
 typedef struct {
@@ -107,9 +107,12 @@ typedef struct {
   uint8_t F5_zone_buff_debuff_status: 3;
   uint8_t F6_zone_status: 1;
   uint8_t F6_zone_buff_debuff_status: 3;
+  uint16_t red1_bullet_left;
+  uint16_t red2_bullet_left;
+  uint16_t blue1_bullet_left;
+  uint16_t blue2_bullet_left;
 } __packed IcraBuffDebuffZoneStatus;
 
-/*-------------------REFEREE_BATTLEFIELD_CMD_SET---- 0x41 -------------*/
 typedef struct {
   uint32_t event_type;
 } __packed EventData;
@@ -130,16 +133,21 @@ typedef struct {
   uint8_t dart_remaining_time;
 } __packed DartRemainingTime;
 
-/*------------------------REFEREE_ROBOT_CMD---- 0x42 -------------------*/
 typedef struct {
   uint8_t robot_id;
   uint8_t robot_level;
   uint16_t remain_HP;
   uint16_t max_HP;
-  uint16_t shooter_heat0_cooling_rate;
-  uint16_t shooter_heat0_cooling_limit;
-  uint16_t shooter_heat1_cooling_rate;
-  uint16_t shooter_heat1_cooling_limit;
+  uint16_t shooter_id1_17mm_cooling_rate;
+  uint16_t shooter_id1_17mm_cooling_limit;
+  uint16_t shooter_id1_17mm_speed_limit;
+  uint16_t shooter_id2_17mm_cooling_rate;
+  uint16_t shooter_id2_17mm_cooling_limit;
+  uint16_t shooter_id2_17mm_speed_limit;
+  uint16_t shooter_id1_42mm_cooling_rate;
+  uint16_t shooter_id1_42mm_cooling_limit;
+  uint16_t shooter_id1_42mm_speed_limit;
+  uint16_t chassis_power_limit;
   uint8_t mains_power_gimbal_output: 1;
   uint8_t mains_power_chassis_output: 1;
   uint8_t mains_power_shooter_output: 1;
@@ -150,8 +158,9 @@ typedef struct {
   uint16_t chassis_current;
   float chassis_power;
   uint16_t chassis_power_buffer;
-  uint16_t shooter_heat0;
-  uint16_t shooter_heat1;
+  uint16_t shooter_id1_17mm_cooling_heat;
+  uint16_t shooter_id2_17mm_cooling_heat;
+  uint16_t shooter_id1_42mm_cooling_heat;
 } __packed PowerHeatData;
 
 typedef struct {
@@ -166,7 +175,6 @@ typedef struct {
 } __packed Buff;
 
 typedef struct {
-  uint8_t energy_point;
   uint8_t attack_time;
 } __packed AerialRobotEnergy;
 
@@ -177,12 +185,15 @@ typedef struct {
 
 typedef struct {
   uint8_t bullet_type;
+  uint8_t shooter_id;
   uint8_t bullet_freq;
   float bullet_speed;
 } __packed ShootData;
 
 typedef struct {
-  uint8_t bullet_remaining_num;
+  uint16_t bullet_remaining_num_17mm;
+  uint16_t bullet_remaining_num_42mm;
+  uint16_t coin_remaining_num;
 } __packed BulletRemaining;
 
 typedef struct {
@@ -247,17 +258,29 @@ typedef enum {
   kBlueAerialClientId = 0x016A,
 } ClientId;
 
-typedef struct {
-  uint16_t data_cmd_id;
-  uint16_t send_ID;
-  uint16_t receiver_ID;
-}__packed StudentInteractiveHeaderData;
-
 typedef enum {
   kAdd = 1,
   kModify = 2,
   kDelete = 3
 } GraphicOperateType;
+
+typedef enum {
+  kMainColor = 0,
+  kYellow = 1,
+  kGreen = 2,
+  kOrange = 3,
+  kPurple = 4,
+  kPink = 5,
+  kCyan = 6,
+  kBlack = 7,
+  kWhite = 8
+} GraphicColorType;
+
+typedef struct {
+  uint16_t data_cmd_id;
+  uint16_t send_ID;
+  uint16_t receiver_ID;
+}__packed StudentInteractiveHeaderData;
 
 typedef struct {
   uint8_t graphic_name[3];
@@ -278,7 +301,7 @@ typedef struct {
 typedef struct {
   FrameHeaderStruct tx_frame_header_;
   uint16_t cmd_id_;
-  StudentInteractiveHeaderData graphic_header_data_;
+  StudentInteractiveHeaderData student_interactive_header_data_;
   GraphicDataStruct graphic_data_struct_;
   uint16_t frame_tail_;
 }__packed DrawClientGraphicData;
@@ -286,7 +309,7 @@ typedef struct {
 typedef struct {
   FrameHeaderStruct tx_frame_header_;
   uint16_t cmd_id_;
-  StudentInteractiveHeaderData graphic_header_data_;
+  StudentInteractiveHeaderData student_interactive_header_data_;
   GraphicDataStruct graphic_data_struct_;
   uint8_t data_[30];
   uint16_t frame_tail_;

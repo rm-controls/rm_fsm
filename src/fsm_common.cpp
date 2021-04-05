@@ -153,10 +153,8 @@ template<typename T>
 void Fsm<T>::run() {
   // TODO: Safety check
 
-  // run referee system and publish some referee data
-  if (data_.referee_->flag_) {
-    data_.referee_->read();
-  }
+  // run referee system
+  data_.referee_->run();
 
   // Run the robot control code if operating mode is not unsafe
   if (operating_mode_ != FsmOperatingMode::kEStop) {
