@@ -9,8 +9,8 @@ rm_fsm:
       coefficient_x: 1.0
       coefficient_y: 1.0
       coefficient_angular: 6.0
-      coefficient_yaw: 12.56
-      coefficient_pitch: 12.56
+      coefficient_yaw: 1.0
+      coefficient_pitch: 1.0
       shoot_hz: 5
   power_limit:
     danger_surplus_: 20.0
@@ -18,11 +18,10 @@ rm_fsm:
     coeff: 0.3
     multiple: 15.0
   auto_move:
-    chassis_speed: 1.0
-    chassis_accel: 1.0
+    chassis_speed: 0.7
     pitch_speed: 0.5
-    yaw_speed: 3.14
-    start: 0.3
-    end: 2.2
+    yaw_speed: 2.5
+    start: 0.6
+    end: 2.0
     calibration_speed: 0.15
 
