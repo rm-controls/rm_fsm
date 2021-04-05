@@ -6,12 +6,12 @@
 #define SRC_RM_SOFTWARE_RM_FSM_INCLUDE_RM_FSM_SHOOTER_HEAT_LIMIT_H_
 
 #include "ros/ros.h"
-#include "referee.h"
+#include "rm_fsm/referee.h"
 
 class ShooterHeatLimit {
  public:
   explicit ShooterHeatLimit(ros::NodeHandle &nh);
-  void input(referee::Referee *referee, double shoot_hz);
+  void input(Referee *referee, double shoot_hz);
   double output() const;
 
  private:

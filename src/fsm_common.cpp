@@ -24,6 +24,8 @@ void State<T>::loadParam() {
     coefficient_yaw_ = getParam(nh_, "control_param/pc_param/coefficient_yaw", 125.6);
     coefficient_pitch_ = getParam(nh_, "control_param/pc_param/coefficient_pitch", 125.6);
     shoot_hz_ = getParam(nh_, "control_param/pc_param/shoot_hz", 5.0);
+    gimbal_error_limit_ = getParam(nh_, "control_param/pc_param/gimbal_error_limit", 2.0);
+    lowest_effort_ = getParam(nh_, "control_param/power_limit/lowest_effort_", 10);
   } else if (control_mode_ == "rc") { // rc mode
     accel_x_ = getParam(nh_, "control_param/rc_param/accel_x", 10.0);
     accel_y_ = getParam(nh_, "control_param/rc_param/accel_y", 10.0);
@@ -35,6 +37,7 @@ void State<T>::loadParam() {
     coefficient_yaw_ = getParam(nh_, "control_param/rc_param/coefficient_yaw", 12.56);
     coefficient_pitch_ = getParam(nh_, "control_param/rc_param/coefficient_pitch", 12.56);
     shoot_hz_ = getParam(nh_, "control_param/rc_param/shoot_hz", 5.0);
+    lowest_effort_ = getParam(nh_, "control_param/power_limit/lowest_effort_", 10);
   } else {
     ROS_ERROR("Cannot load control params.");
   }
@@ -49,7 +52,7 @@ void State<T>::setChassis(uint8_t chassis_mode,
   double accel_y = accel_y_;
   double accel_angular = accel_angular_;
 
-  this->data_->chassis_cmd_.mode = chassis_mode;
+  data_->chassis_cmd_.mode = chassis_mode;
 
   if (linear_x == 0.0)
     accel_x = accel_x_ * brake_multiple_;
@@ -60,51 +63,59 @@ void State<T>::setChassis(uint8_t chassis_mode,
   if (angular_z == 0.0)
     accel_angular = accel_angular_ * brake_multiple_;
 
-  this->data_->chassis_cmd_.accel.linear.x = accel_x;
-  this->data_->chassis_cmd_.accel.linear.y = accel_y;
-  this->data_->chassis_cmd_.accel.angular.z = accel_angular;
+  data_->chassis_cmd_.accel.linear.x = accel_x;
+  data_->chassis_cmd_.accel.linear.y = accel_y;
+  data_->chassis_cmd_.accel.angular.z = accel_angular;
 
-  if (this->data_->referee_->flag) {
-    this->data_->power_limit_->input(this->data_->referee_->referee_data_);
-    this->data_->chassis_cmd_.effort_limit = this->data_->power_limit_->output();
+  if (data_->referee_->flag_) {
+    if (data_->referee_->referee_data_.power_heat_data_.chassis_volt == 0) {
+      data_->chassis_cmd_.effort_limit = lowest_effort_;
+    } else {
+      data_->power_limit_->input(data_->referee_->referee_data_);
+      data_->chassis_cmd_.effort_limit = data_->power_limit_->output();
+    }
   } else {
-    this->data_->chassis_cmd_.effort_limit = 99;
+    data_->chassis_cmd_.effort_limit = lowest_effort_;
   }
 
-  this->data_->cmd_vel_.linear.x = linear_x * coefficient_x_;
-  this->data_->cmd_vel_.linear.y = linear_y * coefficient_y_;
-  this->data_->cmd_vel_.angular.z = angular_z * coefficient_angular_;
+  data_->cmd_vel_.linear.x = linear_x * coefficient_x_;
+  data_->cmd_vel_.linear.y = linear_y * coefficient_y_;
+  data_->cmd_vel_.angular.z = angular_z * coefficient_angular_;
 
-  this->data_->vel_cmd_pub_.publish(this->data_->cmd_vel_);
-  this->data_->chassis_cmd_pub_.publish(this->data_->chassis_cmd_);
+  data_->vel_cmd_pub_.publish(data_->cmd_vel_);
+  data_->chassis_cmd_pub_.publish(data_->chassis_cmd_);
 }
 
 template<typename T>
-void State<T>::setGimbal(uint8_t gimbal_mode, double rate_yaw, double rate_pitch, uint8_t target_id) {
-  this->data_->gimbal_cmd_.mode = gimbal_mode;
+void State<T>::setGimbal(uint8_t gimbal_mode,
+                         double rate_yaw,
+                         double rate_pitch,
+                         uint8_t target_id,
+                         double bullet_speed) {
+  data_->gimbal_cmd_.mode = gimbal_mode;
 
-  this->data_->gimbal_cmd_.rate_yaw = rate_yaw * coefficient_yaw_;
-  this->data_->gimbal_cmd_.rate_pitch = rate_pitch * coefficient_pitch_;
+  data_->gimbal_cmd_.rate_yaw = rate_yaw * coefficient_yaw_;
+  data_->gimbal_cmd_.rate_pitch = rate_pitch * coefficient_pitch_;
 
-  this->data_->gimbal_cmd_.target_id = target_id;
-  this->data_->gimbal_cmd_.bullet_speed = 7;
-  this->data_->gimbal_cmd_pub_.publish(this->data_->gimbal_cmd_);
+  data_->gimbal_cmd_.target_id = target_id;
+  data_->gimbal_cmd_.bullet_speed = bullet_speed;
+  data_->gimbal_cmd_pub_.publish(data_->gimbal_cmd_);
 }
 
 template<typename T>
 void State<T>::setShoot(uint8_t shoot_mode, uint8_t shoot_speed, double shoot_hz, ros::Time now) {
-  this->data_->shoot_cmd_.mode = shoot_mode;
+  data_->shoot_cmd_.mode = shoot_mode;
 
-  this->data_->shoot_cmd_.speed = shoot_speed;
-  this->data_->shoot_cmd_.hz = shoot_hz;
-  this->data_->shoot_cmd_.stamp = now;
+  data_->shoot_cmd_.speed = shoot_speed;
+  data_->shoot_cmd_.hz = shoot_hz;
+  data_->shoot_cmd_.stamp = now;
 
-  this->data_->shooter_cmd_pub_.publish(this->data_->shoot_cmd_);
+  data_->shooter_cmd_pub_.publish(data_->shoot_cmd_);
 }
 
 template<typename T>
 void State<T>::setControlMode(const std::string &control_mode) {
-  this->control_mode_ = control_mode;
+  control_mode_ = control_mode;
 }
 
 /**
@@ -118,10 +129,9 @@ template<typename T>
 Fsm<T>::Fsm(ros::NodeHandle &node_handle):nh_(node_handle) {
   tf_listener_ = new tf2_ros::TransformListener(tf_);
 
-  this->data_.init(nh_);
+  data_.init(nh_);
 
   string2state.insert(std::make_pair("invalid", nullptr));
-
   // Initialize a new FSM State with the control data
   current_state_ = string2state["invalid"];
 
@@ -142,7 +152,7 @@ void Fsm<T>::run() {
   // TODO: Safety check
 
   // run referee system and publish some referee data
-  if (this->data_.referee_->flag) {
+  if (data_.referee_->flag_) {
     data_.referee_->read();
   }
 
@@ -151,7 +161,7 @@ void Fsm<T>::run() {
     // Run normal controls if no transition is detected
     if (operating_mode_ == FsmOperatingMode::kNormal) {
       // Check the current state for any transition
-      next_state_name_ = this->getDesiredState();
+      next_state_name_ = getDesiredState();
 
       // Detect a commanded transition
       if (next_state_name_ != current_state_->state_name_) {
@@ -162,7 +172,7 @@ void Fsm<T>::run() {
         next_state_ = string2state[next_state_name_];
       } else {
         // Update control mode (pc/rc)
-        current_state_->setControlMode(this->control_mode_);
+        current_state_->setControlMode(control_mode_);
         // Run the iteration for the current state normally
         current_state_->run();
       }
@@ -180,7 +190,7 @@ void Fsm<T>::run() {
       // Enter the new current state cleanly
       current_state_->onEnter();
       // Update control mode (pc/rc)
-      current_state_->setControlMode(this->control_mode_);
+      current_state_->setControlMode(control_mode_);
 
       // Return the FSM to normal operation mode
       operating_mode_ = FsmOperatingMode::kNormal;

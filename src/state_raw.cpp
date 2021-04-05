@@ -2,7 +2,7 @@
 // Created by astro on 2020/12/8.
 //
 
-#include <rm_fsm/state_raw.h>
+#include "rm_fsm/state_raw.h"
 
 template<typename T>
 StateRaw<T>::StateRaw(FsmData<T> *fsm_data,
@@ -30,7 +30,7 @@ void StateRaw<T>::run() {
   rate_yaw = -this->data_->dbus_data_.ch_l_x;
   rate_pitch = -this->data_->dbus_data_.ch_l_y;
 
-  this->setGimbal(rm_msgs::GimbalCmd::RATE, rate_yaw, rate_pitch, 0);
+  this->setGimbal(rm_msgs::GimbalCmd::RATE, rate_yaw, rate_pitch, 0, 0.0);
 
   if (this->data_->dbus_data_.s_l == rm_msgs::DbusData::UP) {
     this->data_->shooter_heat_limit_->input(this->data_->referee_, this->shoot_hz_);

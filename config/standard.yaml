@@ -23,8 +23,10 @@ rm_fsm:
       coefficient_yaw: 600.0
       coefficient_pitch: 600.0
       shoot_hz: 5.0
+      gimbal_error_limit: 2.0
   power_limit:
-    danger_surplus_: 5.0
-    roll_back_buffer_: 30.0
-    coeff: 0.08
-    multiple: 18
+    danger_surplus_: 28.0
+    roll_back_buffer_: 55.0
+    coeff: 0.3
+    multiple: 7.5
+    lowest_effort_: 6
