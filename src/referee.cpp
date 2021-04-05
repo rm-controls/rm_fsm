@@ -73,12 +73,20 @@ void Referee::read() {
     unpack(rx_data_);
   }
 
+  getId();
+
+  if (robot_id_ == kRedHero || robot_id_ == kBlueHero) {
+    referee_pub_data_.shooter_heat = referee_data_.power_heat_data_.shooter_id1_42mm_cooling_heat;
+    referee_pub_data_.shooter_heat_cooling_limit = referee_data_.game_robot_status_.shooter_id1_42mm_cooling_limit;
+  } else {
+    referee_pub_data_.shooter_heat = referee_data_.power_heat_data_.shooter_id1_17mm_cooling_heat;
+    referee_pub_data_.shooter_heat_cooling_limit = referee_data_.game_robot_status_.shooter_id1_17mm_cooling_limit;
+  }
+
   referee_pub_data_.chassis_volt = referee_data_.power_heat_data_.chassis_volt;
   referee_pub_data_.chassis_current = referee_data_.power_heat_data_.chassis_current;
   referee_pub_data_.chassis_power = referee_data_.power_heat_data_.chassis_power;
   referee_pub_data_.chassis_power_buffer = referee_data_.power_heat_data_.chassis_power_buffer;
-  referee_pub_data_.shooter_heat = referee_data_.power_heat_data_.shooter_heat0;
-  referee_pub_data_.shooter_heat_cooling_limit = referee_data_.game_robot_status_.shooter_heat0_cooling_limit;
   referee_pub_data_.robot_hp = referee_data_.game_robot_status_.remain_HP;
   referee_pub_data_.hurt_armor_id = referee_data_.robot_hurt_.armor_id;
   referee_pub_data_.hurt_type = referee_data_.robot_hurt_.hurt_type;
@@ -86,7 +94,6 @@ void Referee::read() {
 
   referee_pub_.publish(referee_pub_data_);
 
-  getId();
 }
 
 void Referee::unpack(const std::vector<uint8_t> &rx_buffer) {

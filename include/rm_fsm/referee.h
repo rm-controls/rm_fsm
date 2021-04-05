@@ -61,7 +61,6 @@ class Referee {
   void read();
   void drawGraphic(int side, GraphicColorType color, GraphicOperateType operate_type);
   void drawCharacter(int side, GraphicColorType color, GraphicOperateType operate_type, std::string data);
-  void drawFloat(int robot_id, int client_id, float data, GraphicOperateType operate_type);
   void sendInteractiveData(int data_cmd_id, int sender_id, int receiver_id, const std::vector<uint8_t> &data);
   void getId();
 
