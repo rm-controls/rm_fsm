@@ -6,11 +6,10 @@
 
 void Referee::init() {
   serial::Timeout timeout = serial::Timeout::simpleTimeout(50);
-  int count = 0;
   rx_data_.insert(rx_data_.begin(), 256, 0);
 
   try {
-    serial_.setPort("/dev/usbReferee");
+    serial_.setPort(serial_port_);
     serial_.setBaudrate(115200);
     serial_.setTimeout(timeout);
   } catch (std::exception &e) {
@@ -18,24 +17,55 @@ void Referee::init() {
     return;
   }
 
-  while (!serial_.isOpen()) {
+  if (!serial_.isOpen()) {
     try {
       serial_.open();
       flag_ = true;
     } catch (serial::IOException &e) {
       ROS_WARN("Referee system serial cannot open [%s]", e.what());
     }
-    ros::Duration(0.5).sleep();
-    if (count++ >= 1) {
-      break;
-    }
   }
   if (flag_) {
     ROS_INFO("Referee serial open successfully.");
     referee_unpack_obj.index = 0;
     referee_unpack_obj.unpack_step = kStepHeaderSof;
+  }
+}
+
+void Referee::run() {
+  char power_string[30];
+  float power_float;
+  serial::Timeout timeout = serial::Timeout::simpleTimeout(50);
+
+  if (flag_) {
+    read();
+    power_float = power_manager_data_.parameters[3] * 100;
+    sprintf(power_string, "%.2f", power_float);
+    if (power_float >= 0.6)
+      drawCharacter(1, kGreen, kAdd, power_string);
+    else if (power_float < 0.6 && power_float >= 0.3)
+      drawCharacter(1, kYellow, kAdd, power_string);
+    else if (power_float < 0.3)
+      drawCharacter(1, kOrange, kAdd, power_string);
   } else {
-    ROS_INFO("Run fsm without referee system");
+    try {
+      serial_.setPort(serial_port_);
+      serial_.setBaudrate(115200);
+      serial_.setTimeout(timeout);
+    } catch (std::exception &e) {
+      return;
+    }
+
+    if (!serial_.isOpen()) {
+      try {
+        serial_.open();
+        flag_ = true;
+      } catch (serial::IOException &e) {}
+    }
+
+    if (flag_) {
+      ROS_INFO("Referee system reconnected.");
+    }
   }
 }
 
@@ -51,7 +81,6 @@ void Referee::read() {
       serial_.read(rx_buffer, rx_len);
     } catch (serial::IOException &e) {
       ROS_ERROR("Referee system disconnect.");
-      ROS_WARN("Run robot without power limit and heat limit.");
       flag_ = false;
       return;
     }
@@ -390,7 +419,13 @@ void Referee::drawGraphic(int side, GraphicColorType color, GraphicOperateType o
   appendCRC16CheckSum(tx_buffer, sizeof(send_data));
 
   // Send
-  serial_.write(tx_buffer, sizeof(send_data));
+  try {
+    serial_.write(tx_buffer, sizeof(send_data));
+  } catch (serial::SerialException &e) {
+    ROS_ERROR("Referee system disconnect.");
+    flag_ = false;
+    return;
+  }
 }
 
 void Referee::drawCharacter(int side, GraphicColorType color, GraphicOperateType operate_type,
@@ -464,7 +499,13 @@ void Referee::drawCharacter(int side, GraphicColorType color, GraphicOperateType
   appendCRC16CheckSum(tx_buffer, sizeof(send_data));
 
   // Send
-  serial_.write(tx_buffer, sizeof(send_data));
+  try {
+    serial_.write(tx_buffer, sizeof(send_data));
+  } catch (serial::SerialException &e) {
+    ROS_ERROR("Referee system disconnect.");
+    flag_ = false;
+    return;
+  }
 }
 
 void Referee::sendInteractiveData(int data_cmd_id, int sender_id, int receiver_id, const std::vector<uint8_t> &data) {
@@ -503,7 +544,13 @@ void Referee::sendInteractiveData(int data_cmd_id, int sender_id, int receiver_i
   appendCRC16CheckSum(tx_buffer, tx_len);
 
   // Send
-  serial_.write(tx_buffer, tx_len);
+  try {
+    serial_.write(tx_buffer, tx_len);
+  } catch (serial::SerialException &e) {
+    ROS_ERROR("Referee system disconnect.");
+    flag_ = false;
+    return;
+  }
 }
 
 /******************* CRC Verify *************************/

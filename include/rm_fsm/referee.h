@@ -58,11 +58,11 @@ class Referee {
   Referee() = default;
   ~Referee() = default;
   void init();
-  void read();
+  void run();
+
   void drawGraphic(int side, GraphicColorType color, GraphicOperateType operate_type);
   void drawCharacter(int side, GraphicColorType color, GraphicOperateType operate_type, std::string data);
   void sendInteractiveData(int data_cmd_id, int sender_id, int receiver_id, const std::vector<uint8_t> &data);
-  void getId();
 
   RefereeData referee_data_{};
   PowerManagerData power_manager_data_;
@@ -74,6 +74,8 @@ class Referee {
   rm_msgs::Referee referee_pub_data_;
 
  private:
+  void read();
+  void getId();
   void unpack(const std::vector<uint8_t> &rx_buffer);
   void getData(uint8_t *frame);
 
@@ -81,6 +83,7 @@ class Referee {
   std::vector<uint8_t> rx_data_;
   UnpackData referee_unpack_obj{};
 
+  const std::string serial_port_ = "/dev/usbReferee";
   const int kUnpackLength = 160;
   const int kProtocolFrameLength = 128, kProtocolHeaderLength = 5, kProtocolCmdIdLength = 2, kProtocolTailLength = 2;
 

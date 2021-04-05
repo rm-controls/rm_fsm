@@ -15,7 +15,7 @@ void ShooterHeatLimit::input(Referee *referee, double shoot_hz) {
   uint16_t shooter_heat;
   double bullet_heat = 10.0;
 
-  if (referee->flag_) { // using referee system
+  if (referee->flag_ && referee->robot_id_ != 0) { // using referee system
     if (referee->robot_id_ == kRedHero || referee->robot_id_ == kBlueHero) {
       cooling_limit = referee->referee_data_.game_robot_status_.shooter_id1_42mm_cooling_limit;
       cooling_rate = referee->referee_data_.game_robot_status_.shooter_id1_42mm_cooling_rate;

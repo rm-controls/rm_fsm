@@ -150,21 +150,9 @@ Fsm<T>::Fsm(ros::NodeHandle &node_handle):nh_(node_handle) {
 template<typename T>
 void Fsm<T>::run() {
   // TODO: Safety check
-  char power_string[30] = {' '};
-  float power_float;
 
-  // run referee system and publish some referee data
-  if (data_.referee_->flag_) {
-    data_.referee_->read();
-    power_float = data_.referee_->power_manager_data_.parameters[3] * 100;
-    sprintf(power_string, "%.2f", power_float);
-    if (power_float >= 0.6)
-      data_.referee_->drawCharacter(1, kGreen, kAdd, power_string);
-    else if (power_float < 0.6 && power_float >= 0.3)
-      data_.referee_->drawCharacter(1, kYellow, kAdd, power_string);
-    else if (power_float < 0.3)
-      data_.referee_->drawCharacter(1, kOrange, kAdd, power_string);
-  }
+  // run referee system
+  data_.referee_->run();
 
   // Run the robot control code if operating mode is not unsafe
   if (operating_mode_ != FsmOperatingMode::kEStop) {
