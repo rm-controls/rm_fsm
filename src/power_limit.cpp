@@ -41,7 +41,8 @@ void PowerLimit::input(RefereeData referee_data_,
     limit_power = power_manager_data_.parameters[1];          //limit power
     chassis_voltage = power_manager_data_.parameters[2];      //power
     chassis_capacity = power_manager_data_.parameters[3];     //capacity
-    //limit_power = getLimitPower(referee_data_);
+    w0 = w0 + 15 * chassis_capacity;
+
   } else {
     ROS_INFO_THROTTLE(10, "Enter normal mode,without manage!");
     chassis_voltage = referee_data_.power_heat_data_.chassis_volt;
@@ -52,6 +53,16 @@ void PowerLimit::input(RefereeData referee_data_,
 
   chassis_current_limit = limit_power / chassis_voltage;
 
+  /*
+  //Use capacity power
+  if (chassis_capacity > capacity_surplus_ && use_power_manager) {
+    this->current_ = 99;
+    ROS_INFO_THROTTLE(1, "Capacity safe");
+  } else if (chassis_capacity <= capacity_surplus_ && chassis_capacity > 0.05 && use_power_manager) {
+    this->current_ = (chassis_current_limit + 5 * chassis_capacity * 19 / chassis_voltage) * coeff;
+    ROS_INFO_THROTTLE(1, "Capacity less than 20 percent");
+  } else {
+   */
   if (chassis_power <= limit_power && w0 >= roll_back_buffer_) {
     ROS_INFO_THROTTLE(1, "Didn't use buffer power.");
     chassis_current_need = 99;
@@ -68,15 +79,6 @@ void PowerLimit::input(RefereeData referee_data_,
       this->current_ = (chassis_current_limit + multiple * w0 / chassis_voltage) * coeff;
       ROS_INFO_THROTTLE(1, "After 200ms later,buffer power more than 10J,safe.");
     }
-  }
-  if (chassis_capacity > capacity_surplus_ && use_power_manager) {
-    this->current_ = 99;
-    ROS_INFO_THROTTLE(1,"Capacity safe");
-  }
-  else if(use_power_manager){
-    this->current_ = (chassis_current_limit + multiple * chassis_capacity*19 / chassis_voltage) * coeff;
-    ROS_INFO_THROTTLE(1,"Capacity less than 20 percent");
-
   }
 
 }
