@@ -11,11 +11,15 @@ PowerLimit::PowerLimit(ros::NodeHandle &nh) {
   power_nh.param("roll_back_buffer_", roll_back_buffer_, 10.0);
   power_nh.param("coeff", coeff, 0.1);
   power_nh.param("multiple", multiple, 5.0);
+  power_nh.param("capacity_surplus_", capacity_surplus_, 0.2);
 
 }
 
-void PowerLimit::input(referee::RefereeData referee, bool k_shift) {
-  uint16_t w0 = referee.power_heat_data_.chassis_power_buffer;
+void PowerLimit::input(RefereeData referee_data_,
+                       PowerManagerData power_manager_data_,
+                       bool use_power_manager,
+                       bool k_shift) {
+  uint16_t w0 = referee_data_.power_heat_data_.chassis_power_buffer;
   double w1, w2;              //chassis power buffer 100ms&200ms later
   double chassis_power;
   double chassis_voltage;
@@ -24,25 +28,26 @@ void PowerLimit::input(referee::RefereeData referee, bool k_shift) {
   double chassis_current_need = 99;
   double limit_power;
 
-  if (referee.power_manager_ && k_shift) {
-    ROS_INFO("Enter over power mode!");
-    chassis_voltage = referee.power_parameter[0];    //volt
-    chassis_power = referee.power_parameter[1];      //power
-    chassis_capacity = referee.power_parameter[2];   //capacity
-    limit_power = referee.power_parameter[3];        //limit power
-    w0 = w0 + chassis_capacity;
-  } else if (referee.power_manager_) {
-    ROS_INFO("Enter normal mode,with power manage!");
-    chassis_voltage = referee.power_parameter[0];    //volt
-    chassis_power = referee.power_parameter[1];      //power
-    chassis_capacity = referee.power_parameter[2];   //capacity
-    limit_power = getLimitPower(referee);
+  if (use_power_manager && k_shift) {
+    ROS_INFO_THROTTLE(10, "Enter over power mode!");
+    chassis_power = power_manager_data_.parameters[0];        //real power
+    limit_power = power_manager_data_.parameters[1];          //limit power
+    chassis_voltage = power_manager_data_.parameters[2];      //voltage
+    chassis_capacity = power_manager_data_.parameters[3];     //capacity
+
+  } else if (use_power_manager) {
+    ROS_INFO_THROTTLE(10, "Enter normal mode,with power manage!");
+    chassis_power = power_manager_data_.parameters[0];        //real power
+    limit_power = power_manager_data_.parameters[1];          //limit power
+    chassis_voltage = power_manager_data_.parameters[2];      //power
+    chassis_capacity = power_manager_data_.parameters[3];     //capacity
+    //limit_power = getLimitPower(referee_data_);
   } else {
-    ROS_INFO("Enter normal mode,without manage!");
-    chassis_voltage = referee.power_heat_data_.chassis_volt;
-    chassis_power = referee.power_heat_data_.chassis_power;
-    limit_power = getLimitPower(referee);
-    chassis_capacity = 0.0;
+    ROS_INFO_THROTTLE(10, "Enter normal mode,without manage!");
+    chassis_voltage = referee_data_.power_heat_data_.chassis_volt;
+    chassis_power = referee_data_.power_heat_data_.chassis_power;
+    chassis_capacity = 0.0;     //capacity
+    limit_power = getLimitPower(referee_data_);
   }
 
   chassis_current_limit = limit_power / chassis_voltage;
@@ -64,31 +69,41 @@ void PowerLimit::input(referee::RefereeData referee, bool k_shift) {
       ROS_INFO_THROTTLE(1, "After 200ms later,buffer power more than 10J,safe.");
     }
   }
+  if (chassis_capacity > capacity_surplus_ && use_power_manager) {
+    this->current_ = 99;
+    ROS_INFO_THROTTLE(1,"Capacity safe");
+  }
+  else if(use_power_manager){
+    this->current_ = (chassis_current_limit + multiple * chassis_capacity*19 / chassis_voltage) * coeff;
+    ROS_INFO_THROTTLE(1,"Capacity less than 20 percent");
+
+  }
+
 }
 
 // Change limit power of different level and robot
-double PowerLimit::getLimitPower(referee::RefereeData referee) {
+double PowerLimit::getLimitPower(RefereeData referee_data_) {
   double limit_power;
-  if ((referee.game_robot_status_.robot_id >= 3
-      && referee.game_robot_status_.robot_id <= 5)
-      || (referee.game_robot_status_.robot_id >= 103
-          && referee.game_robot_status_.robot_id <= 105)) { // Standard robot
-    if (referee.performance_system_ == 0) // Power first
-      limit_power = 40 + 10 * referee.game_robot_status_.robot_level;
+  if ((referee_data_.game_robot_status_.robot_id >= 3
+      && referee_data_.game_robot_status_.robot_id <= 5)
+      || (referee_data_.game_robot_status_.robot_id >= 103
+          && referee_data_.game_robot_status_.robot_id <= 105)) { // Standard robot
+    if (referee_data_.performance_system_ == 0) // Power first
+      limit_power = 50 + 10 * referee_data_.game_robot_status_.robot_level;
     else // Hp first
-      limit_power = 40 + 5 * referee.game_robot_status_.robot_level;
-  } else if (referee.game_robot_status_.robot_id == 1
-      || referee.game_robot_status_.robot_id == 101) { // Hero robot
-    if (referee.performance_system_ == 0) // Power first
-      if (referee.game_robot_status_.robot_level == 3)
+      limit_power = 50 + 5 * referee_data_.game_robot_status_.robot_level;
+  } else if (referee_data_.game_robot_status_.robot_id == 1
+      || referee_data_.game_robot_status_.robot_id == 101) { // Hero robot
+    if (referee_data_.performance_system_ == 0) // Power first
+      if (referee_data_.game_robot_status_.robot_level == 3)
         limit_power = 120;
       else
-        limit_power = 50 + 20 * referee.game_robot_status_.robot_level;
+        limit_power = 50 + 20 * referee_data_.game_robot_status_.robot_level;
     else { // Hp first
-      limit_power = 50 + 5 * referee.game_robot_status_.robot_level;
+      limit_power = 50 + 5 * referee_data_.game_robot_status_.robot_level;
     }
-  } else if (referee.game_robot_status_.robot_id == 7
-      || referee.game_robot_status_.robot_id == 107) { // Sentry robot
+  } else if (referee_data_.game_robot_status_.robot_id == 7
+      || referee_data_.game_robot_status_.robot_id == 107) { // Sentry robot
     limit_power = 20;
   } else { // Other robots
     limit_power = 200;

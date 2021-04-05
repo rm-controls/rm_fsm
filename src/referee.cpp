@@ -82,6 +82,9 @@ void Referee::read() {
   referee_pub_data_.robot_hp = referee_data_.game_robot_status_.remain_HP;
   referee_pub_data_.hurt_armor_id = referee_data_.robot_hurt_.armor_id;
   referee_pub_data_.hurt_type = referee_data_.robot_hurt_.hurt_type;
+
+  referee_pub_data_.capacity = power_manager_data_.parameters[3] * 100;
+
   referee_pub_data_.stamp = ros::Time::now();
 
   referee_pub_.publish(referee_pub_data_);
