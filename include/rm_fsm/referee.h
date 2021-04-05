@@ -85,7 +85,6 @@ class Referee {
   const int kProtocolFrameLength = 128, kProtocolHeaderLength = 5, kProtocolCmdIdLength = 2, kProtocolTailLength = 2;
 
   int data_len_ = 0;
-  bool use_power_manager_ = true;
 };
 
 uint8_t getCRC8CheckSum(unsigned char *pch_message, unsigned int dw_length, unsigned char ucCRC8);

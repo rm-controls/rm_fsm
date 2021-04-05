@@ -156,7 +156,7 @@ void Fsm<T>::run() {
   // run referee system and publish some referee data
   if (data_.referee_->flag_) {
     data_.referee_->read();
-    power_float = data_.referee_->power_manager_data_.parameters[3]*100;
+    power_float = data_.referee_->power_manager_data_.parameters[3] * 100;
     sprintf(power_string, "%.2f", power_float);
     if (power_float >= 0.6)
       data_.referee_->drawCharacter(1, kGreen, kAdd, power_string);

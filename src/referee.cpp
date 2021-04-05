@@ -56,10 +56,8 @@ void Referee::read() {
       return;
     }
 
-    if (use_power_manager_) {
-      // Unpack data from power manager
-      power_manager_data_.read(rx_buffer);
-    }
+    // Unpack data from power manager
+    power_manager_data_.read(rx_buffer);
 
     // Unpack data from referee system
     for (int kI = kUnpackLength; kI > rx_len; --kI) {
@@ -93,7 +91,6 @@ void Referee::read() {
   referee_pub_data_.stamp = ros::Time::now();
 
   referee_pub_.publish(referee_pub_data_);
-
 }
 
 void Referee::unpack(const std::vector<uint8_t> &rx_buffer) {
