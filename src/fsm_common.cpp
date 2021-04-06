@@ -44,10 +44,7 @@ void State<T>::loadParam() {
 }
 
 template<typename T>
-void State<T>::setChassis(uint8_t chassis_mode,
-                          double linear_x,
-                          double linear_y,
-                          double angular_z) {
+void State<T>::setChassis(uint8_t chassis_mode, double linear_x, double linear_y, double angular_z) {
   double accel_x = accel_x_;
   double accel_y = accel_y_;
   double accel_angular = accel_angular_;
@@ -73,7 +70,7 @@ void State<T>::setChassis(uint8_t chassis_mode,
     } else {
       data_->power_limit_->input(data_->referee_->referee_data_,
                                  data_->referee_->power_manager_data_,
-                                 true);
+                                 data_->dbus_data_.key_shift);
       data_->chassis_cmd_.effort_limit = data_->power_limit_->output();
     }
   } else {
@@ -89,11 +86,8 @@ void State<T>::setChassis(uint8_t chassis_mode,
 }
 
 template<typename T>
-void State<T>::setGimbal(uint8_t gimbal_mode,
-                         double rate_yaw,
-                         double rate_pitch,
-                         uint8_t target_id,
-                         double bullet_speed) {
+void State<T>::setGimbal(uint8_t gimbal_mode, double rate_yaw, double rate_pitch,
+                         uint8_t target_id, double bullet_speed) {
   data_->gimbal_cmd_.mode = gimbal_mode;
 
   data_->gimbal_cmd_.rate_yaw = rate_yaw * coefficient_yaw_;
