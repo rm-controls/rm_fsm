@@ -134,7 +134,7 @@ void StateAutomatic<T>::run() {
     time_counter1++;
     this->setChassis(rm_msgs::ChassisCmd::RAW, -calibration_speed_, 0, 0);
     this->setGimbal(rm_msgs::GimbalCmd::PASSIVE, 0, 0, 0, 0);
-    if(time_counter1>40) {
+    if (now - calibration_time_ > ros::Duration(0.4)) {
       if (now_effort < -1.1) {
         std::cout << "calibration finish !" << std::endl;
         calibration_ = 1;
@@ -164,6 +164,7 @@ template<typename T>
 void StateAutomatic<T>::onExit() {
   // Nothing to clean up when exiting
   ROS_INFO("Exit automatic mode");
+  calibration_ = 0;
 }
 
 template

@@ -31,9 +31,12 @@ class StateAutomatic : public State<T> {
   double speed_;
   double current_position_;
   ros::Time last_time_ = ros::Time::now();
-  geometry_msgs::TransformStamped map2odom_;
+  ros::Time calibration_time_ = ros::Time::now();
+
+  geometry_msgs::TransformStamped
+      map2odom_;
   geometry_msgs::TransformStamped odom2baselink_;
-  tf2_ros::StaticTransformBroadcaster  tf_broadcaster_;
+  tf2_ros::StaticTransformBroadcaster tf_broadcaster_;
   tf2_ros::TransformBroadcaster br;
   // sub
   sensor_msgs::JointState effort_data_;
