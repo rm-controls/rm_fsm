@@ -13,12 +13,13 @@ PowerLimit::PowerLimit(ros::NodeHandle &nh) {
   power_nh.param("multiple", multiple, 5.0);
   power_nh.param("capacity_surplus_", capacity_surplus_, 0.2);
 
+  end_over_power_mode_flag_ = false;
+
 }
 
 void PowerLimit::input(RefereeData referee_data_,
                        PowerManagerData power_manager_data_,
-                       bool use_power_manager,
-                       bool k_shift) {
+                       bool use_power_manager) {
   uint16_t w0 = referee_data_.power_heat_data_.chassis_power_buffer;
   double w1, w2;              //chassis power buffer 100ms&200ms later
   double chassis_power;
@@ -34,7 +35,26 @@ void PowerLimit::input(RefereeData referee_data_,
     limit_power = power_manager_data_.parameters[1];          //limit power
     chassis_voltage = power_manager_data_.parameters[2];      //power
     chassis_capacity = power_manager_data_.parameters[3];     //capacity
-    w0 = w0 + 18 * chassis_capacity;
+    w0 = 1800 * chassis_capacity;
+
+    chassis_current_limit = limit_power / chassis_voltage;
+
+    if (chassis_power <= limit_power) {
+      chassis_current_need = 99;
+      this->current_ = chassis_current_need;
+    } else {
+      w1 = w0 - 0.1 * (chassis_power - limit_power);
+      w2 = w1 - 0.1 * (chassis_power - limit_power);
+      if (w2 < 0.2 * w0) {
+        this->current_ = chassis_current_need * coeff;
+        end_over_power_mode_flag_ = true;
+      } else {
+        this->current_ = 99;
+      }
+    }
+
+    if (end_over_power_mode_flag_ && chassis_capacity > 0.22) this->current_ = chassis_current_limit * coeff;
+    if (chassis_capacity > 0.9) this->end_over_power_mode_flag_ = false;
 
   } else {
     //ROS_INFO_THROTTLE(10, "Enter normal mode,without manage!");
@@ -42,25 +62,25 @@ void PowerLimit::input(RefereeData referee_data_,
     chassis_power = referee_data_.power_heat_data_.chassis_power;
     chassis_capacity = 0.0;     //capacity
     limit_power = getLimitPower(referee_data_);
-  }
 
-  chassis_current_limit = limit_power / chassis_voltage;
+    chassis_current_limit = limit_power / chassis_voltage;
 
-  if (chassis_power <= limit_power && w0 >= roll_back_buffer_) {
-    //ROS_INFO_THROTTLE(1, "Didn't use buffer power.");
-    chassis_current_need = 99;
-    this->current_ = chassis_current_need;
-  } else {
-    w1 = w0 - 0.1 * (chassis_power - limit_power);
-    w2 = w1 - 0.1 * (chassis_power - limit_power);
-    if (w2 < danger_surplus_) {
-      // ROS_INFO_THROTTLE(1, "After 200ms later,buffer power less than 10J,begin to limit.");
-      // GUET plan
-      chassis_current_need = (chassis_current_limit + 5 * w0 / chassis_voltage);
-      this->current_ = chassis_current_need * coeff;
+    if (chassis_power <= limit_power && w0 >= roll_back_buffer_) {
+      //ROS_INFO_THROTTLE(1, "Didn't use buffer power.");
+      chassis_current_need = 99;
+      this->current_ = chassis_current_need;
     } else {
-      this->current_ = (chassis_current_limit + multiple * w0 / chassis_voltage) * coeff;
-      //  ROS_INFO_THROTTLE(1, "After 200ms later,buffer power more than 10J,safe.");
+      w1 = w0 - 0.1 * (chassis_power - limit_power);
+      w2 = w1 - 0.1 * (chassis_power - limit_power);
+      if (w2 < danger_surplus_) {
+        // ROS_INFO_THROTTLE(1, "After 200ms later,buffer power less than 10J,begin to limit.");
+        // GUET plan
+        chassis_current_need = (chassis_current_limit + 5 * w0 / chassis_voltage);
+        this->current_ = chassis_current_need * coeff;
+      } else {
+        this->current_ = (chassis_current_limit + multiple * w0 / chassis_voltage) * coeff;
+        //  ROS_INFO_THROTTLE(1, "After 200ms later,buffer power more than 10J,safe.");
+      }
     }
   }
 
