@@ -9,12 +9,10 @@ FsmStandard<T>::FsmStandard(ros::NodeHandle &node_handle) : Fsm<T>(node_handle) 
   state_passive_ = new StatePassive<T>(&this->data_, "passive", node_handle);
   state_follow_ = new StateFollow<T>(&this->data_, "follow", node_handle);
   state_fly_slope_ = new StateFlySlope<T>(&this->data_, "flyslope", node_handle);
-  state_burst_ = new StateBurst<T>(&this->data_, "burst", node_handle);
 
   this->string2state.insert(std::pair<std::string, State<T> *>("passive", state_passive_));
   this->string2state.insert(std::pair<std::string, State<T> *>("follow", state_follow_));
   this->string2state.insert(std::pair<std::string, State<T> *>("flyslope", state_fly_slope_));
-  this->string2state.insert(std::pair<std::string, State<T> *>("burst", state_burst_));
 
   this->current_state_ = this->string2state["passive"];
 }

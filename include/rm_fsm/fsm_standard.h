@@ -9,8 +9,6 @@
 #include "rm_fsm/state_follow.h"
 #include "rm_fsm/state_passive.h"
 #include "rm_fsm/state_fly_slope.h"
-#include "rm_fsm/state_burst.h"
-
 
 template<typename T>
 class FsmStandard : public Fsm<T> {
@@ -20,7 +18,6 @@ class FsmStandard : public Fsm<T> {
   StatePassive<T> *state_passive_;
   StateFollow<T> *state_follow_;
   StateFlySlope<T> *state_fly_slope_;
-  StateBurst<T> *state_burst_;
 };
 
 #endif //SRC_RM_SOFTWARE_RM_DECISION_SRC_FSM_FSM_STANDARD_H_
