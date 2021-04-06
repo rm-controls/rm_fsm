@@ -67,7 +67,7 @@ void State<T>::setChassis(uint8_t chassis_mode,
   data_->chassis_cmd_.accel.linear.y = accel_y;
   data_->chassis_cmd_.accel.angular.z = accel_angular;
 
-  if (data_->referee_->flag_) {
+  if (data_->referee_->is_open_) {
     if (data_->referee_->referee_data_.power_heat_data_.chassis_volt == 0) {
       data_->chassis_cmd_.effort_limit = lowest_effort_;
     } else {
@@ -151,25 +151,10 @@ Fsm<T>::Fsm(ros::NodeHandle &node_handle):nh_(node_handle) {
  */
 template<typename T>
 void Fsm<T>::run() {
-  uint8_t operate_type;
   // TODO: Safety check
 
   // run referee system
-  data_.referee_->run();
-
-  if (data_.referee_->flag_) {
-    if (data_.referee_->count_ >= 12) { // 10hz
-      data_.referee_->count_ = 0;
-      if (data_.referee_->first_send_) {
-        operate_type = kAdd;
-        data_.referee_->first_send_ = false;
-      } else {
-        operate_type = kModify;
-      }
-      data_.referee_->drawCharacter(3, kYellow, operate_type, current_state_->state_name_);
-    }
-    data_.referee_->count_++;
-  }
+  data_.referee_->run(current_state_->state_name_);
 
   // Run the robot control code if operating mode is not unsafe
   if (operating_mode_ != FsmOperatingMode::kEStop) {

@@ -60,23 +60,21 @@ class Referee {
   Referee() = default;
   ~Referee() = default;
   void init();
-  void run();
+  void run(const std::string &state_name);
 
   void drawGraphic(int side, GraphicColorType color, GraphicOperateType operate_type);
   void drawCharacter(int side, GraphicColorType color, uint8_t operate_type, std::string data);
   void sendInteractiveData(int data_cmd_id, int sender_id, int receiver_id, const std::vector<uint8_t> &data);
 
-
-
   RefereeData referee_data_{};
   PowerManagerData power_manager_data_;
 
-  bool flag_ = false;
-  bool first_send_ = true;
-  int count_ = 0;
+  bool is_open_ = false;
+  bool is_first_send_ = true;
   int robot_id_ = 0;
   int client_id_ = 0;
   ros::Publisher referee_pub_;
+  ros::Time last_send_ = ros::Time::now();
   rm_msgs::Referee referee_pub_data_;
 
  private:
@@ -90,7 +88,7 @@ class Referee {
   UnpackData referee_unpack_obj{};
 
   const std::string serial_port_ = "/dev/usbReferee";
-  const int kUnpackLength = 160;
+  const int kUnpackLength = 256;
   const int kProtocolFrameLength = 128, kProtocolHeaderLength = 5, kProtocolCmdIdLength = 2, kProtocolTailLength = 2;
 
   int data_len_ = 0;
