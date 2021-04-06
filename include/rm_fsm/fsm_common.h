@@ -78,6 +78,7 @@ class State {
 
   uint8_t last_chassis_mode_;
   uint8_t last_shoot_mode_;
+  double last_angular_z_;
 };
 
 /**

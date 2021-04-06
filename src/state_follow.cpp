@@ -14,6 +14,7 @@ template<typename T>
 void StateFollow<T>::onEnter() {
   this->last_chassis_mode_ = rm_msgs::ChassisCmd::FOLLOW;
   this->last_shoot_mode_ = rm_msgs::ShootCmd::STOP;
+  this->last_angular_z_ = 1;
   ROS_INFO("Enter follow mode");
 }
 
@@ -31,24 +32,50 @@ void StateFollow<T>::run() {
   this->loadParam();
 
   if (this->control_mode_ == "pc") { // pc control
+    // Check for press
+    if (now - last_press_time_e_ < ros::Duration(0.2)) this->data_->dbus_data_.key_e = false;
+    else last_press_time_e_ = now;
+    if (now - last_press_time_q_ < ros::Duration(0.2)) this->data_->dbus_data_.key_q = false;
+    else last_press_time_q_ = now;
+    if (now - last_press_time_f_ < ros::Duration(0.2)) this->data_->dbus_data_.key_f = false;
+    else last_press_time_f_ = now;
+
     // Send cmd to chassis
-    chassis_mode = this->last_chassis_mode_;
     linear_x = (this->data_->dbus_data_.key_w - this->data_->dbus_data_.key_s); // W/S
     linear_y = (this->data_->dbus_data_.key_a - this->data_->dbus_data_.key_d); // A/D
-    if (this->data_->dbus_data_.key_shift) {
-      if (now - last_press_time_shift_ > ros::Duration(0.5)) { // check for press
-        if (is_spin_) { // enter follow
-          chassis_mode = rm_msgs::ChassisCmd::FOLLOW;
-          is_spin_ = false;
-        } else { // enter gyro
-          angular_z = 1.0;
-          chassis_mode = rm_msgs::ChassisCmd::GYRO;
-          is_spin_ = true;
-        }
-        last_press_time_shift_ = now;
+    angular_z = 0;
+
+    if (this->data_->dbus_data_.key_e && this->data_->dbus_data_.key_q) {
+      chassis_mode = rm_msgs::ChassisCmd::FOLLOW;
+      is_spin_e_ = false;
+      is_spin_q_ = false;
+    } else if (this->data_->dbus_data_.key_e) {
+      if (is_spin_e_) {
+        chassis_mode = rm_msgs::ChassisCmd::FOLLOW;
+        is_spin_e_ = false;
+      } else {
+        chassis_mode = rm_msgs::ChassisCmd::GYRO;
+        angular_z = 1;
+        is_spin_e_ = true;
+        is_spin_q_ = false;
       }
-    } else {
       this->last_chassis_mode_ = chassis_mode;
+      this->last_angular_z_ = angular_z;
+    } else if (this->data_->dbus_data_.key_q) {
+      if (is_spin_q_) {
+        chassis_mode = rm_msgs::ChassisCmd::FOLLOW;
+        is_spin_q_ = false;
+      } else {
+        chassis_mode = rm_msgs::ChassisCmd::GYRO;
+        angular_z = -1;
+        is_spin_q_ = true;
+        is_spin_e_ = false;
+      }
+      this->last_chassis_mode_ = chassis_mode;
+      this->last_angular_z_ = angular_z;
+    } else {
+      chassis_mode = this->last_chassis_mode_;
+      angular_z = this->last_angular_z_;
     }
     this->setChassis(chassis_mode, linear_x, linear_y, angular_z);
 
@@ -74,18 +101,16 @@ void StateFollow<T>::run() {
     shoot_mode = this->last_shoot_mode_;
 
     if (this->data_->dbus_data_.key_f) { // enable friction
-      if (now - last_press_time_f_ > ros::Duration(0.5)) {
-        if (is_friction_ready_) {
-          shoot_mode = rm_msgs::ShootCmd::STOP;
-          is_friction_ready_ = false;
-        } else {
-          shoot_mode = rm_msgs::ShootCmd::READY;
-          is_friction_ready_ = true;
-        }
-        last_press_time_f_ = now;
+      if (is_friction_ready_) {
+        shoot_mode = rm_msgs::ShootCmd::STOP;
+        is_friction_ready_ = false;
+      } else {
+        shoot_mode = rm_msgs::ShootCmd::READY;
+        is_friction_ready_ = true;
       }
-    } else {
       this->last_shoot_mode_ = shoot_mode;
+    } else {
+      shoot_mode = this->last_shoot_mode_;
     }
 
     if (this->is_friction_ready_ && this->data_->dbus_data_.p_l) { // enable trigger

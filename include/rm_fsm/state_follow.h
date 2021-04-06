@@ -16,9 +16,11 @@ class StateFollow : public State<T> {
   void run() override;
   void onExit() override;
  private:
-  bool is_spin_ = false;
+  bool is_spin_e_ = false;
+  bool is_spin_q_ = false;
   bool is_friction_ready_ = false;
-  ros::Time last_press_time_shift_ = ros::Time::now();
+  ros::Time last_press_time_e_ = ros::Time::now();
+  ros::Time last_press_time_q_ = ros::Time::now();
   ros::Time last_press_time_f_ = ros::Time::now();
 };
 
