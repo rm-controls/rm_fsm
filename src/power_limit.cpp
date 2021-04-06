@@ -35,26 +35,27 @@ void PowerLimit::input(RefereeData referee_data_,
     limit_power = power_manager_data_.parameters[1];          //limit power
     chassis_voltage = power_manager_data_.parameters[2];      //power
     chassis_capacity = power_manager_data_.parameters[3];     //capacity
-    w0 = 1800 * chassis_capacity;
+    w0 = 60 * chassis_capacity;
 
     chassis_current_limit = limit_power / chassis_voltage;
 
-    if (chassis_power <= limit_power) {
+    if (chassis_power <= limit_power && !end_over_power_mode_flag_) {
       chassis_current_need = 99;
       this->current_ = chassis_current_need;
     } else {
       // w1 = w0 - 0.1 * (chassis_power - limit_power);
       // w2 = w1 - 0.1 * (chassis_power - limit_power);
-      if (chassis_capacity < 0.2 || end_over_power_mode_flag_) {
-        chassis_current_need = (chassis_current_limit + 1 / 0.8 * w0 / chassis_voltage);
+      if (chassis_capacity <= 0.23 || end_over_power_mode_flag_) {
+        chassis_current_need = (chassis_current_limit + 5 * w0 / chassis_voltage);
         this->current_ = chassis_current_need * coeff;
         end_over_power_mode_flag_ = true;
+        ROS_INFO_THROTTLE(1, "Capacity less than 20 percent!current: %f", this->current_);
       } else {
         this->current_ = 99;
       }
     }
 
-    if (end_over_power_mode_flag_ && chassis_capacity > 0.22) this->current_ = chassis_current_limit * coeff;
+    //if (end_over_power_mode_flag_ && chassis_capacity > 0.22) this->current_ = chassis_current_limit * coeff;
     if (chassis_capacity > 0.9) this->end_over_power_mode_flag_ = false;
 
   } else {

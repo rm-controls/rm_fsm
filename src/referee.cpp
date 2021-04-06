@@ -131,7 +131,7 @@ void Referee::read() {
   referee_pub_data_.capacity = power_manager_data_.parameters[3] * 100;
   referee_pub_data_.limit_power = power_manager_data_.parameters[1];
   referee_pub_data_.chassis_power = power_manager_data_.parameters[0];
-
+  //referee_pub_data_.chassis_power = referee_data_.power_heat_data_.chassis_power;
 
   referee_pub_data_.stamp = ros::Time::now();
 
