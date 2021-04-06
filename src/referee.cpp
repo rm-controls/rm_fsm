@@ -174,7 +174,6 @@ void Referee::unpack(const std::vector<uint8_t> &rx_buffer) {
         } else {
           referee_unpack_obj.unpack_step = kStepHeaderSof;
           referee_unpack_obj.index = 0;
-          data_len_ = 0;
         }
       }
         break;
@@ -193,12 +192,10 @@ void Referee::unpack(const std::vector<uint8_t> &rx_buffer) {
           } else {
             referee_unpack_obj.unpack_step = kStepHeaderSof;
             referee_unpack_obj.index = 0;
-            data_len_ = 0;
           }
         } else {
           referee_unpack_obj.unpack_step = kStepHeaderSof;
           referee_unpack_obj.index = 0;
-          data_len_ = 0;
         }
       }
         break;
@@ -211,7 +208,6 @@ void Referee::unpack(const std::vector<uint8_t> &rx_buffer) {
           if (verifyCRC16CheckSum(referee_unpack_obj.protocol_packet,
                                   kProtocolHeaderLength + kProtocolTailLength + kProtocolCmdIdLength
                                       + referee_unpack_obj.data_len)) {
-            data_len_ = referee_unpack_obj.data_len;
             getData(referee_unpack_obj.protocol_packet);
             memset(referee_unpack_obj.protocol_packet, 0, sizeof(referee_unpack_obj.protocol_packet));
           }
@@ -224,7 +220,6 @@ void Referee::unpack(const std::vector<uint8_t> &rx_buffer) {
         referee_unpack_obj.unpack_step = kStepHeaderSof;
         memset(referee_unpack_obj.protocol_packet, 0, sizeof(referee_unpack_obj.protocol_packet));
         referee_unpack_obj.index = 0;
-        data_len_ = 0;
         num = 0;
       }
         break;
@@ -326,7 +321,7 @@ void Referee::getData(uint8_t *frame) {
       break;
     }
     case kStudentInteractiveDataCmdId: {
-      memcpy(&referee_data_.student_interactive_data_, frame + index, data_len_);
+      memcpy(&referee_data_.student_interactive_data_, frame + index, sizeof(StudentInteractiveData));
       break;
     }
     case kRobotCommandCmdId: {
@@ -535,7 +530,7 @@ void Referee::drawCharacter(int side, GraphicColorType color, uint8_t operate_ty
   }
 }
 
-void Referee::sendInteractiveData(int data_cmd_id, int sender_id, int receiver_id, const std::vector<uint8_t> &data) {
+void Referee::sendInteractiveData(int data_cmd_id, int receiver_id, const std::vector<uint8_t> &data) {
   uint8_t tx_buffer[128] = {0};
   SendInteractiveData send_data;
   int tx_len = kProtocolHeaderLength + kProtocolCmdIdLength + sizeof(StudentInteractiveHeaderData) + data.size()
@@ -558,12 +553,16 @@ void Referee::sendInteractiveData(int data_cmd_id, int sender_id, int receiver_i
   // Data
   // Interactive data header
   send_data.student_interactive_header_data_.data_cmd_id = data_cmd_id;
-  send_data.student_interactive_header_data_.send_ID = sender_id;
+  send_data.student_interactive_header_data_.send_ID = robot_id_;
   send_data.student_interactive_header_data_.receiver_ID = receiver_id;
   memcpy(tx_buffer + index, &send_data.student_interactive_header_data_, sizeof(StudentInteractiveHeaderData));
   index += sizeof(StudentInteractiveHeaderData);
   // Interactive data
   for (int kI = 0; kI < (int) data.size(); ++kI) {
+    if (kI < (int) data.size())
+      send_data.data_[kI] = data[kI];
+    else
+      send_data.data_[kI] = ' ';
     tx_buffer[index + kI] = data[kI];
   }
 

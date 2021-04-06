@@ -62,7 +62,7 @@ class Referee {
 
   void drawGraphic(int side, GraphicColorType color, GraphicOperateType operate_type);
   void drawCharacter(int side, GraphicColorType color, uint8_t operate_type, std::string data);
-  void sendInteractiveData(int data_cmd_id, int sender_id, int receiver_id, const std::vector<uint8_t> &data);
+  void sendInteractiveData(int data_cmd_id, int receiver_id, const std::vector<uint8_t> &data);
 
   RefereeData referee_data_{};
   PowerManagerData power_manager_data_;
@@ -88,8 +88,6 @@ class Referee {
   const std::string serial_port_ = "/dev/usbReferee";
   const int kUnpackLength = 256;
   const int kProtocolFrameLength = 128, kProtocolHeaderLength = 5, kProtocolCmdIdLength = 2, kProtocolTailLength = 2;
-
-  int data_len_ = 0;
 };
 
 uint8_t getCRC8CheckSum(unsigned char *pch_message, unsigned int dw_length, unsigned char ucCRC8);

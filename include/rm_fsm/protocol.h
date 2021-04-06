@@ -319,7 +319,7 @@ typedef struct {
   FrameHeaderStruct tx_frame_header_;
   uint16_t cmd_id_;
   StudentInteractiveHeaderData student_interactive_header_data_;
-  uint8_t *data;
+  uint8_t data[113];
   uint16_t frame_tail_;
 }__packed SendInteractiveData;
 

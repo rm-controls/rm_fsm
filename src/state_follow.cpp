@@ -154,6 +154,13 @@ void StateFollow<T>::run() {
     }
     this->setShoot(shoot_mode, shoot_speed, shoot_hz, now);
 
+    if (this->data_->dbus_data_.key_z) {
+      int receiver_id;
+      std::vector<uint8_t> sentry_cmd(1, 1);
+      if (this->data_->referee_->robot_id_ > 100) receiver_id = kBlueSentry;
+      else receiver_id = kRedSentry;
+      this->data_->referee_->sendInteractiveData(0x0200, receiver_id, sentry_cmd);
+    }
   } else { // rc control
     // Send command to chassis
     linear_x = this->data_->dbus_data_.ch_r_y;
