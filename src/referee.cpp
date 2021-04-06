@@ -533,8 +533,8 @@ void Referee::drawCharacter(int side, GraphicColorType color, uint8_t operate_ty
 void Referee::sendInteractiveData(int data_cmd_id, int receiver_id, const std::vector<uint8_t> &data) {
   uint8_t tx_buffer[128] = {0};
   SendInteractiveData send_data;
-  int tx_len = kProtocolHeaderLength + kProtocolCmdIdLength + sizeof(StudentInteractiveHeaderData) + data.size()
-      + kProtocolTailLength;
+  int tx_len =
+      kProtocolHeaderLength + kProtocolCmdIdLength + sizeof(StudentInteractiveHeaderData) + 113 + kProtocolTailLength;
   int index = 0;
 
   // Frame header
@@ -558,13 +558,13 @@ void Referee::sendInteractiveData(int data_cmd_id, int receiver_id, const std::v
   memcpy(tx_buffer + index, &send_data.student_interactive_header_data_, sizeof(StudentInteractiveHeaderData));
   index += sizeof(StudentInteractiveHeaderData);
   // Interactive data
-  for (int kI = 0; kI < (int) data.size(); ++kI) {
+  for (int kI = 0; kI < 113; ++kI) {
     if (kI < (int) data.size())
       send_data.data_[kI] = data[kI];
     else
-      send_data.data_[kI] = ' ';
-    tx_buffer[index + kI] = data[kI];
+      send_data.data_[kI] = 0;
   }
+  memcpy(tx_buffer + index, send_data.data_, 113);
 
   // Frame tail
   appendCRC16CheckSum(tx_buffer, tx_len);
