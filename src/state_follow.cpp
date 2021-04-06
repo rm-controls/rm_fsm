@@ -92,7 +92,7 @@ void StateFollow<T>::run() {
         shoot_hz = this->data_->shooter_heat_limit_->output();
         shoot_mode = rm_msgs::ShootCmd::PUSH;
         if (this->data_->dbus_data_.p_r) {
-          if (now - this->data_->gimbal_des_error_.stamp > ros::Duration(1)) { // check time stamp
+          if (now - this->data_->gimbal_des_error_.stamp > ros::Duration(0.5)) { // check time stamp
             this->data_->gimbal_des_error_.error_yaw = 0;
             this->data_->gimbal_des_error_.error_pitch = 0;
             ROS_WARN("The time stamp of gimbal track error is too old");
