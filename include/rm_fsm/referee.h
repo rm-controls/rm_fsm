@@ -34,8 +34,6 @@ struct RefereeData {
   RobotInteractiveData robot_interactive_data_;
   RobotCommand robot_command_;
   int performance_system_; // Performance level system
-  bool power_manager_;
-  uint16_t power_parameter[4];
 };
 
 class PowerManagerData {

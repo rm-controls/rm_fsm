@@ -327,6 +327,7 @@ void Referee::getData(uint8_t *frame) {
     }
     case kStudentInteractiveDataCmdId: {
       memcpy(&referee_data_.student_interactive_data_, frame + index, data_len_);
+      break;
     }
     case kRobotCommandCmdId: {
       memcpy(&referee_data_.robot_command_, frame + index, sizeof(RobotCommand));

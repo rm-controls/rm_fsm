@@ -24,7 +24,6 @@ void StateFollow<T>::run() {
   double rate_yaw, rate_pitch;
   uint8_t chassis_mode, gimbal_mode, shoot_mode;
   uint8_t target_id;
-  double bullet_speed;
   uint8_t shoot_speed;
   double shoot_hz = 0;
   ros::Time now = ros::Time::now();
@@ -82,7 +81,7 @@ void StateFollow<T>::run() {
     // Send cmd to gimbal
     rate_yaw = -this->data_->dbus_data_.m_x;
     rate_pitch = this->data_->dbus_data_.m_y;
-    bullet_speed = 18;
+    shoot_speed = this->shoot_speed_;
     if (this->data_->dbus_data_.p_r) {
       this->data_->target_cost_function_->input(this->data_->track_data_array_);
       target_id = this->data_->target_cost_function_->output();
@@ -94,12 +93,9 @@ void StateFollow<T>::run() {
     } else {
       gimbal_mode = rm_msgs::GimbalCmd::RATE;
     }
-    this->setGimbal(gimbal_mode, rate_yaw, rate_pitch, target_id, bullet_speed);
+    this->setGimbal(gimbal_mode, rate_yaw, rate_pitch, target_id, shoot_speed);
 
     // Send cmd to shooter
-    shoot_speed = rm_msgs::ShootCmd::SPEED_18M_PER_SECOND;
-    shoot_mode = this->last_shoot_mode_;
-
     if (this->data_->dbus_data_.key_f) { // enable friction
       if (is_friction_ready_) {
         shoot_mode = rm_msgs::ShootCmd::STOP;
@@ -151,7 +147,7 @@ void StateFollow<T>::run() {
     // Send command to gimbal
     rate_yaw = -this->data_->dbus_data_.ch_l_x;
     rate_pitch = -this->data_->dbus_data_.ch_l_y;
-    shoot_speed = rm_msgs::ShootCmd::SPEED_15M_PER_SECOND;
+    shoot_speed = this->shoot_speed_;
     this->setGimbal(rm_msgs::GimbalCmd::RATE, rate_yaw, rate_pitch, 0, 0.0);
 
     // Send command to shooter
