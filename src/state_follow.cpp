@@ -32,18 +32,28 @@ void StateFollow<T>::run() {
 
   if (this->control_mode_ == "pc") { // pc control
     // Check for press
-    if (now - last_press_time_e_ < ros::Duration(0.2)) this->data_->dbus_data_.key_e = false;
-    else last_press_time_e_ = now;
-    if (now - last_press_time_q_ < ros::Duration(0.2)) this->data_->dbus_data_.key_q = false;
-    else last_press_time_q_ = now;
-    if (now - last_press_time_f_ < ros::Duration(0.2)) this->data_->dbus_data_.key_f = false;
-    else last_press_time_f_ = now;
+    if (this->data_->dbus_data_.key_e) {
+      if (now - last_press_time_e_ < ros::Duration(0.2)) this->data_->dbus_data_.key_e = false;
+      else last_press_time_e_ = now;
+    }
+    if (this->data_->dbus_data_.key_q) {
+      if (now - last_press_time_q_ < ros::Duration(0.2)) this->data_->dbus_data_.key_q = false;
+      else last_press_time_q_ = now;
+    }
+    if (this->data_->dbus_data_.key_f) {
+      if (now - last_press_time_f_ < ros::Duration(0.2)) this->data_->dbus_data_.key_f = false;
+      else last_press_time_f_ = now;
+    }
+    if (this->data_->dbus_data_.key_r) {
+      if (now - last_press_time_r_ < ros::Duration(0.2)) this->data_->dbus_data_.key_r = false;
+      else last_press_time_r_ = now;
+    }
 
     // Send cmd to chassis
     linear_x = (this->data_->dbus_data_.key_w - this->data_->dbus_data_.key_s); // W/S
     linear_y = (this->data_->dbus_data_.key_a - this->data_->dbus_data_.key_d); // A/D
     angular_z = 0;
-
+    // Switch spin mode
     if (this->data_->dbus_data_.key_e && this->data_->dbus_data_.key_q) {
       chassis_mode = rm_msgs::ChassisCmd::FOLLOW;
       is_spin_e_ = false;
@@ -82,6 +92,7 @@ void StateFollow<T>::run() {
     rate_yaw = -this->data_->dbus_data_.m_x;
     rate_pitch = this->data_->dbus_data_.m_y;
     shoot_speed = this->shoot_speed_;
+    // Switch track mode
     if (this->data_->dbus_data_.p_r) {
       this->data_->target_cost_function_->input(this->data_->track_data_array_);
       target_id = this->data_->target_cost_function_->output();
@@ -96,7 +107,8 @@ void StateFollow<T>::run() {
     this->setGimbal(gimbal_mode, rate_yaw, rate_pitch, target_id, shoot_speed);
 
     // Send cmd to shooter
-    if (this->data_->dbus_data_.key_f) { // enable friction
+    // Switch friction mode
+    if (this->data_->dbus_data_.key_f) {
       if (is_friction_ready_) {
         shoot_mode = rm_msgs::ShootCmd::STOP;
         is_friction_ready_ = false;
@@ -109,9 +121,19 @@ void StateFollow<T>::run() {
       shoot_mode = this->last_shoot_mode_;
     }
 
+    // Switch shooter heat limit mode
+    if (this->data_->dbus_data_.key_r) {
+      is_super_shooter_ = !is_super_shooter_;
+    }
+
     if (this->is_friction_ready_ && this->data_->dbus_data_.p_l) { // enable trigger
-      this->data_->shooter_heat_limit_->input(this->data_->referee_, this->shoot_hz_);
-      shoot_hz = this->data_->shooter_heat_limit_->output();
+      if (is_super_shooter_) { // ignore shooter heat limit
+        shoot_hz = this->shoot_hz_;
+      } else {
+        this->data_->shooter_heat_limit_->input(this->data_->referee_, this->shoot_hz_);
+        shoot_hz = this->data_->shooter_heat_limit_->output();
+      }
+
       if (this->data_->dbus_data_.p_r) {
         if (now - this->data_->gimbal_des_error_.stamp > ros::Duration(0.5)) { // check time stamp
           this->data_->gimbal_des_error_.error_yaw = 0;
