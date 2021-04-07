@@ -676,6 +676,14 @@ void PowerManagerData::read(const std::vector<uint8_t> &rx_buffer) {
       Receive_BufCounter = 0;
     }
   }
+  if (parameters[0] >= 120) parameters[0] = 120;
+  if (parameters[0] <= 0) parameters[0] = 0;
+
+  if (parameters[2] >= 25) parameters[2] = 25;
+  if (parameters[2] <= 0) parameters[2] = 0;
+
+  if (parameters[3] >= 1) parameters[3] = 1;
+  if (parameters[3] <= 0) parameters[3] = 0;
 }
 
 void PowerManagerData::Receive_CallBack(unsigned char PID, unsigned char Data[8]) {
