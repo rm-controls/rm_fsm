@@ -32,26 +32,39 @@ void Referee::init() {
   }
 }
 
-void Referee::write(const std::string &state_name, uint8_t operate_type) {
+void Referee::write(const std::string &state_name, uint8_t operate_type, bool is_burst, bool key_shift) {
   char power_string[30];
   float power_float;
   ros::Time now = ros::Time::now();
 
   if (is_open_) {
-    power_float = power_manager_data_.parameters[3] * 100;
-    sprintf(power_string, "%1.0f%%", power_float);
-
     if (now - last_send_ > ros::Duration(0.1)) {
       last_send_ = now;
 
+      // Draw power manager data
+      power_float = power_manager_data_.parameters[3] * 100;
+      sprintf(power_string, "Power: %1.0f%%", power_float);
       if (power_float >= 60)
-        drawCharacter(2, kGreen, operate_type, power_string);
+        drawCharacter(0, kGreen, operate_type, power_string);
       else if (power_float < 60 && power_float >= 30)
-        drawCharacter(2, kYellow, operate_type, power_string);
+        drawCharacter(0, kYellow, operate_type, power_string);
       else if (power_float < 30)
-        drawCharacter(2, kOrange, operate_type, power_string);
+        drawCharacter(0, kOrange, operate_type, power_string);
 
-      drawCharacter(3, kYellow, operate_type, state_name);
+      // Draw fsm information
+      drawCharacter(1, kYellow, operate_type, "Fsm: " + state_name);
+
+      // Draw shooter information
+      if (is_burst)
+        drawCharacter(2, kOrange, operate_type, "Shooter: Burst");
+      else
+        drawCharacter(2, kYellow, operate_type, "Shooter: Normal");
+
+      // Draw chassis information
+      if (key_shift)
+        drawCharacter(3, kOrange, operate_type, "Chassis: Burst");
+      else
+        drawCharacter(3, kYellow, operate_type, "Chassis: Normal");
     }
   }
 }
@@ -459,7 +472,7 @@ void Referee::drawGraphic(int side, GraphicColorType color, GraphicOperateType o
   }
 }
 
-void Referee::drawCharacter(int side, GraphicColorType color, uint8_t operate_type, std::string data) {
+void Referee::drawCharacter(int type, GraphicColorType color, uint8_t operate_type, std::string data) {
   uint8_t tx_buffer[128] = {0};
   DrawClientCharData send_data;
   int index = 0;
@@ -487,22 +500,22 @@ void Referee::drawCharacter(int side, GraphicColorType color, uint8_t operate_ty
   index += sizeof(StudentInteractiveHeaderData);
 
   // Graph data
-  if (side == 0) { // up
+  if (type == 0) { // power manager
     send_data.graphic_data_struct_.graphic_name[1] = 0;
     send_data.graphic_data_struct_.start_x = 910;
-    send_data.graphic_data_struct_.start_y = 850;
-  } else if (side == 1) { // left
-    send_data.graphic_data_struct_.graphic_name[1] = 1;
-    send_data.graphic_data_struct_.start_x = 100;
-    send_data.graphic_data_struct_.start_y = 540;
-  } else if (side == 2) { // down
-    send_data.graphic_data_struct_.graphic_name[1] = 2;
-    send_data.graphic_data_struct_.start_x = 910;
     send_data.graphic_data_struct_.start_y = 100;
-  } else if (side == 3) { // right
-    send_data.graphic_data_struct_.graphic_name[1] = 3;
+  } else if (type == 1) { // fsm state name
+    send_data.graphic_data_struct_.graphic_name[1] = 1;
     send_data.graphic_data_struct_.start_x = 1670;
+    send_data.graphic_data_struct_.start_y = 890;
+  } else if (type == 2) { // shoot burst
+    send_data.graphic_data_struct_.graphic_name[1] = 2;
+    send_data.graphic_data_struct_.start_x = 1620;
     send_data.graphic_data_struct_.start_y = 840;
+  } else if (type == 3) { // chassis burst
+    send_data.graphic_data_struct_.graphic_name[1] = 3;
+    send_data.graphic_data_struct_.start_x = 1620;
+    send_data.graphic_data_struct_.start_y = 790;
   }
   send_data.graphic_data_struct_.graphic_name[0] = 1;
   send_data.graphic_data_struct_.graphic_name[2] = 0;

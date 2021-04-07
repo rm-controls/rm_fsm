@@ -28,6 +28,7 @@ void StateFollow<T>::run() {
   uint8_t shoot_speed;
   double shoot_hz = 0;
   ros::Time now = ros::Time::now();
+  uint8_t graph_operate_type;
 
   this->loadParam();
 
@@ -131,11 +132,11 @@ void StateFollow<T>::run() {
 
     // Switch shooter heat limit mode
     if (this->data_->dbus_data_.key_r) {
-      is_super_shooter_ = !is_super_shooter_;
+      is_burst_ = !is_burst_;
     }
 
     if (this->is_friction_ready_ && this->data_->dbus_data_.p_l) { // enable trigger
-      if (is_super_shooter_) { // ignore shooter heat limit
+      if (is_burst_) { // ignore shooter heat limit
         shoot_hz = this->shoot_hz_;
       } else {
         this->data_->shooter_heat_limit_->input(this->data_->referee_, this->shoot_hz_);
@@ -173,10 +174,13 @@ void StateFollow<T>::run() {
 
     // Refresh client graph
     if (this->data_->dbus_data_.key_x) {
-      this->graph_operate_type_ = kAdd;
+      graph_operate_type = kAdd;
     } else {
-      this->graph_operate_type_ = kUpdate;
+      graph_operate_type = kUpdate;
     }
+
+    this->data_->referee_->write(this->state_name_, graph_operate_type, is_burst_, this->data_->dbus_data_.key_shift);
+
   } else { // rc control
     // Send command to chassis
     linear_x = this->data_->dbus_data_.ch_r_y;

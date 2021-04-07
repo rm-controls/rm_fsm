@@ -176,8 +176,6 @@ void Fsm<T>::run() {
         current_state_->setControlMode(control_mode_);
         // Run the iteration for the current state normally
         current_state_->run();
-        // Send data to client
-        data_.referee_->write(current_state_->state_name_, current_state_->graph_operate_type_);
       }
     }
 

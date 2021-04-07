@@ -59,10 +59,10 @@ class Referee {
   ~Referee() = default;
   void init();
   void read();
-  void write(const std::string &state_name, uint8_t operate_type);
+  void write(const std::string &state_name, uint8_t operate_type, bool is_burst, bool key_shift);
 
   void drawGraphic(int side, GraphicColorType color, GraphicOperateType operate_type);
-  void drawCharacter(int side, GraphicColorType color, uint8_t operate_type, std::string data);
+  void drawCharacter(int type, GraphicColorType color, uint8_t operate_type, std::string data);
   void sendInteractiveData(int data_cmd_id, int receiver_id, const std::vector<uint8_t> &data);
 
   double getBulletSpeed(int shoot_speed) const;
