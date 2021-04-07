@@ -364,6 +364,19 @@ void Referee::getId() {
   }
 }
 
+double Referee::getBulletSpeed() const {
+  if (robot_id_ == kBlueHero || robot_id_ == kRedHero) {
+    if (referee_data_.shoot_data_.shooter_id == 3) { // 42mm
+      return referee_data_.shoot_data_.bullet_speed;
+    }
+  } else {
+    if (referee_data_.shoot_data_.shooter_id == 1) { // 17mm
+      return referee_data_.shoot_data_.bullet_speed;
+    }
+  }
+  return 0;
+}
+
 /******************* Send data to referee system *************************/
 /**
  * Draw a graph on client

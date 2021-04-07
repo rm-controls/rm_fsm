@@ -64,7 +64,7 @@ void StateFollow<T>::run() {
         is_spin_e_ = false;
       } else {
         chassis_mode = rm_msgs::ChassisCmd::GYRO;
-        angular_z = 1;
+        angular_z = -1;
         is_spin_e_ = true;
         is_spin_q_ = false;
       }
@@ -76,7 +76,7 @@ void StateFollow<T>::run() {
         is_spin_q_ = false;
       } else {
         chassis_mode = rm_msgs::ChassisCmd::GYRO;
-        angular_z = -1;
+        angular_z = 1;
         is_spin_q_ = true;
         is_spin_e_ = false;
       }
@@ -91,15 +91,21 @@ void StateFollow<T>::run() {
     // Send cmd to gimbal
     rate_yaw = -this->data_->dbus_data_.m_x;
     rate_pitch = this->data_->dbus_data_.m_y;
-    shoot_speed = this->shoot_speed_;
     // Switch track mode
     if (this->data_->dbus_data_.p_r) {
       this->data_->target_cost_function_->input(this->data_->track_data_array_);
       target_id = this->data_->target_cost_function_->output();
       if (target_id == 0) {
         gimbal_mode = rm_msgs::GimbalCmd::RATE;
+        shoot_speed = this->shoot_speed_;
       } else {
-        gimbal_mode = rm_msgs::GimbalCmd::TRACK;
+        if (this->data_->referee_->is_open_) {
+          gimbal_mode = rm_msgs::GimbalCmd::TRACK;
+          shoot_speed = this->data_->referee_->getBulletSpeed();
+        } else {
+          gimbal_mode = rm_msgs::GimbalCmd::RATE;
+          shoot_speed = this->shoot_speed_;
+        }
       }
     } else {
       gimbal_mode = rm_msgs::GimbalCmd::RATE;
