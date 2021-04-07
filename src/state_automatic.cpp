@@ -52,7 +52,7 @@ void StateAutomatic<T>::run() {
   this->loadParam();
 
   try {
-    gimbal_transformStamped = this->tf_.lookupTransform("odom", "pitch", ros::Time(0));
+    gimbal_transformStamped = this->tf_.lookupTransform("yaw", "pitch", ros::Time(0));
   }
   catch (tf2::TransformException &ex) {
     //ROS_ERROR("%s",ex.what());
@@ -78,7 +78,7 @@ void StateAutomatic<T>::run() {
     this->data_->shooter_heat_limit_->input(this->data_->referee_, this->shoot_hz_);
     this->data_->target_cost_function_->input(this->data_->track_data_array_);
     attack_id_ = this->data_->target_cost_function_->output();
-    // set shooter
+    //shooter control
     if (attack_id_ != 0 && this->data_->gimbal_des_error_.error_yaw < 0.5
         && this->data_->gimbal_des_error_.error_pitch < 0.5) {
       this->setShoot(rm_msgs::ShootCmd::PUSH,
@@ -89,7 +89,7 @@ void StateAutomatic<T>::run() {
       this->setShoot(rm_msgs::ShootCmd::READY, rm_msgs::ShootCmd::SPEED_30M_PER_SECOND, 0, now);
     }
 
-    // set chassis
+    //chassis control
     if ((current_position_ >= end_) && (point_side_ == 1))
       point_side_ = 2;
     else if ((current_position_ <= start_) && (point_side_ == 3))
@@ -112,15 +112,15 @@ void StateAutomatic<T>::run() {
         point_side_ = 1;
     }
 
-    // set gimbal
+    //gimbal control
     if (attack_id_ != 0) {
       this->setGimbal(rm_msgs::GimbalCmd::TRACK, 0, 0, attack_id_, 30);
       last_time_ = now;
     } else {
       if (now - last_time_ > ros::Duration(1.0)) {
-        if (pitch > 0.785)
+        if (pitch > 0.750)
           gimbal_position_ = 1;
-        else if (pitch < (0.341))
+        else if (pitch < (0.459))
           gimbal_position_ = 2;
         if (gimbal_position_ == 1) {
           this->setGimbal(rm_msgs::GimbalCmd::RATE, auto_move_yaw_speed_, -auto_move_pitch_speed_, 0, 0);

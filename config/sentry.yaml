@@ -19,9 +19,9 @@ rm_fsm:
     multiple: 15.0
   auto_move:
     chassis_speed: 0.7
-    pitch_speed: 0.5
+    pitch_speed: 0.3
     yaw_speed: 2.5
-    start: 0.6
+    start: 0.2
     end: 2.0
     calibration_speed: 0.15
 
