@@ -1,27 +1,29 @@
 rm_fsm:
   robot_type: "sentry"
   control_param:
+    accel_x: 5.0
+    accel_y: 5.0
+    accel_angular: 10.0
+    brake_multiple: 2
+    shoot_hz: 5
+    shoot_speed: 30
     rc_param:
-      accel_x: 5.0
-      accel_y: 5.0
-      accel_angular: 10.0
-      brake_multiple: 2
       coefficient_x: 1.0
       coefficient_y: 1.0
       coefficient_angular: 6.0
-      coefficient_yaw: 1.0
-      coefficient_pitch: 1.0
-      shoot_hz: 5
+      coefficient_yaw: 12.56
+      coefficient_pitch: 12.56
   power_limit:
     danger_surplus_: 20.0
     roll_back_buffer_: 55.0
     coeff: 0.3
     multiple: 15.0
   auto_move:
-    chassis_speed: 0.7
-    pitch_speed: 0.3
-    yaw_speed: 2.5
-    start: 0.2
-    end: 2.0
+    chassis_speed: 1.0
+    chassis_accel: 1.0
+    pitch_speed: 0.5
+    yaw_speed: 3.14
+    start: 0.4
+    end: 2.3
     calibration_speed: 0.15
 

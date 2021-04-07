@@ -13,41 +13,45 @@ State<T>::State(ros::NodeHandle &nh, FsmData<T> *fsm_data, std::string state_nam
 
 template<typename T>
 void State<T>::loadParam() {
+  accel_x_ = getParam(nh_, "control_param/accel_x", 5.0);
+  accel_y_ = getParam(nh_, "control_param/accel_y", 5.0);
+  accel_angular_ = getParam(nh_, "control_param/accel_angular", 5.0);
+  brake_multiple_ = getParam(nh_, "control_param/brake_multiple", 2);
+  shoot_hz_ = getParam(nh_, "control_param/shoot_hz", 5.0);
+  shoot_speed_ = getParam(nh_, "control_param/shoot_speed", 10);
+  lowest_effort_ = getParam(nh_, "control_param/power_limit/lowest_effort_", 10);
   if (control_mode_ == "pc") { // pc mode
-    accel_x_ = getParam(nh_, "control_param/pc_param/accel_x", 10.0);
-    accel_y_ = getParam(nh_, "control_param/pc_param/accel_y", 10.0);
-    accel_angular_ = getParam(nh_, "control_param/pc_param/accel_angular", 10.0);
-    brake_multiple_ = getParam(nh_, "control_param/pc_param/brake_multiple", 1);
     coefficient_x_ = getParam(nh_, "control_param/pc_param/coefficient_x", 3.5);
     coefficient_y_ = getParam(nh_, "control_param/pc_param/coefficient_y", 3.5);
     coefficient_angular_ = getParam(nh_, "control_param/pc_param/coefficient_angular", 6.0);
     coefficient_yaw_ = getParam(nh_, "control_param/pc_param/coefficient_yaw", 125.6);
     coefficient_pitch_ = getParam(nh_, "control_param/pc_param/coefficient_pitch", 125.6);
-    shoot_hz_ = getParam(nh_, "control_param/pc_param/shoot_hz", 5.0);
-    gimbal_error_limit_ = getParam(nh_, "control_param/pc_param/gimbal_error_limit", 2.0);
-    lowest_effort_ = getParam(nh_, "control_param/power_limit/lowest_effort_", 10);
+    gimbal_error_limit_ = getParam(nh_, "control_param/pc_param/gimbal_error_limit", 0.1745);
   } else if (control_mode_ == "rc") { // rc mode
-    accel_x_ = getParam(nh_, "control_param/rc_param/accel_x", 10.0);
-    accel_y_ = getParam(nh_, "control_param/rc_param/accel_y", 10.0);
-    accel_angular_ = getParam(nh_, "control_param/rc_param/accel_angular", 10.0);
-    brake_multiple_ = getParam(nh_, "control_param/rc_param/brake_multiple", 1);
     coefficient_x_ = getParam(nh_, "control_param/rc_param/coefficient_x", 3.5);
     coefficient_y_ = getParam(nh_, "control_param/rc_param/coefficient_y", 3.5);
     coefficient_angular_ = getParam(nh_, "control_param/rc_param/coefficient_angular", 6.0);
     coefficient_yaw_ = getParam(nh_, "control_param/rc_param/coefficient_yaw", 12.56);
     coefficient_pitch_ = getParam(nh_, "control_param/rc_param/coefficient_pitch", 12.56);
-    shoot_hz_ = getParam(nh_, "control_param/rc_param/shoot_hz", 5.0);
-    lowest_effort_ = getParam(nh_, "control_param/power_limit/lowest_effort_", 10);
   } else {
     ROS_ERROR("Cannot load control params.");
   }
 }
 
 template<typename T>
-void State<T>::setChassis(uint8_t chassis_mode,
-                          double linear_x,
-                          double linear_y,
-                          double angular_z) {
+uint8_t State<T>::getShootSpeedCmd(int shoot_speed) {
+  switch (shoot_speed) {
+    case 10: return rm_msgs::ShootCmd::SPEED_10M_PER_SECOND;
+    case 15: return rm_msgs::ShootCmd::SPEED_15M_PER_SECOND;
+    case 16: return rm_msgs::ShootCmd::SPEED_16M_PER_SECOND;
+    case 18: return rm_msgs::ShootCmd::SPEED_18M_PER_SECOND;
+    case 30: return rm_msgs::ShootCmd::SPEED_30M_PER_SECOND;
+    default: return 0;
+  }
+}
+
+template<typename T>
+void State<T>::setChassis(uint8_t chassis_mode, double linear_x, double linear_y, double angular_z) {
   double accel_x = accel_x_;
   double accel_y = accel_y_;
   double accel_angular = accel_angular_;
@@ -67,13 +71,13 @@ void State<T>::setChassis(uint8_t chassis_mode,
   data_->chassis_cmd_.accel.linear.y = accel_y;
   data_->chassis_cmd_.accel.angular.z = accel_angular;
 
-  if (data_->referee_->flag_) {
+  if (data_->referee_->is_open_) {
     if (data_->referee_->referee_data_.power_heat_data_.chassis_volt == 0) {
       data_->chassis_cmd_.effort_limit = lowest_effort_;
     } else {
       data_->power_limit_->input(data_->referee_->referee_data_,
                                  data_->referee_->power_manager_data_,
-                                 false);
+                                 data_->dbus_data_.key_shift);
       data_->chassis_cmd_.effort_limit = data_->power_limit_->output();
     }
   } else {
@@ -89,11 +93,8 @@ void State<T>::setChassis(uint8_t chassis_mode,
 }
 
 template<typename T>
-void State<T>::setGimbal(uint8_t gimbal_mode,
-                         double rate_yaw,
-                         double rate_pitch,
-                         uint8_t target_id,
-                         double bullet_speed) {
+void State<T>::setGimbal(uint8_t gimbal_mode, double rate_yaw, double rate_pitch,
+                         uint8_t target_id, double bullet_speed) {
   data_->gimbal_cmd_.mode = gimbal_mode;
 
   data_->gimbal_cmd_.rate_yaw = rate_yaw * coefficient_yaw_;
@@ -105,10 +106,10 @@ void State<T>::setGimbal(uint8_t gimbal_mode,
 }
 
 template<typename T>
-void State<T>::setShoot(uint8_t shoot_mode, uint8_t shoot_speed, double shoot_hz, ros::Time now) {
+void State<T>::setShoot(uint8_t shoot_mode, int shoot_speed, double shoot_hz, ros::Time now) {
   data_->shoot_cmd_.mode = shoot_mode;
 
-  data_->shoot_cmd_.speed = shoot_speed;
+  data_->shoot_cmd_.speed = getShootSpeedCmd(shoot_speed);
   data_->shoot_cmd_.hz = shoot_hz;
   data_->shoot_cmd_.stamp = now;
 
@@ -151,25 +152,10 @@ Fsm<T>::Fsm(ros::NodeHandle &node_handle):nh_(node_handle) {
  */
 template<typename T>
 void Fsm<T>::run() {
-  uint8_t operate_type;
   // TODO: Safety check
 
   // run referee system
-  data_.referee_->run();
-
-  if (data_.referee_->flag_) {
-    if (data_.referee_->count_ >= 12) { // 10hz
-      data_.referee_->count_ = 0;
-      if (data_.referee_->first_send_) {
-        operate_type = kAdd;
-        data_.referee_->first_send_ = false;
-      } else {
-        operate_type = kModify;
-      }
-      data_.referee_->drawCharacter(3, kYellow, operate_type, current_state_->state_name_);
-    }
-    data_.referee_->count_++;
-  }
+  data_.referee_->read();
 
   // Run the robot control code if operating mode is not unsafe
   if (operating_mode_ != FsmOperatingMode::kEStop) {

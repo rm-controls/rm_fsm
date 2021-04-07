@@ -14,8 +14,7 @@ class PowerLimit {
   explicit PowerLimit(ros::NodeHandle &nh);
   void input(RefereeData referee_data_,
              PowerManagerData power_manager_data_,
-             bool use_power_manager,
-             bool k_shift = false);
+             bool k_shift);
   double output() const;
   double getLimitPower(RefereeData referee_data_);
 
@@ -26,6 +25,9 @@ class PowerLimit {
   double danger_surplus_{};
   double roll_back_buffer_{};
   double capacity_surplus_{};
+
+  bool end_over_power_mode_flag_;
+
 };
 
 #endif //SRC_RM_FSM_INCLUDE_RM_FSM_POWER_LIMIT_H_

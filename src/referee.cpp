@@ -6,7 +6,7 @@
 
 void Referee::init() {
   serial::Timeout timeout = serial::Timeout::simpleTimeout(50);
-  rx_data_.insert(rx_data_.begin(), 256, 0);
+  rx_data_.insert(rx_data_.begin(), kUnpackLength, 0);
 
   try {
     serial_.setPort(serial_port_);
@@ -20,42 +20,88 @@ void Referee::init() {
   if (!serial_.isOpen()) {
     try {
       serial_.open();
-      flag_ = true;
+      is_open_ = true;
     } catch (serial::IOException &e) {
       ROS_WARN("Referee system serial cannot open [%s]", e.what());
     }
   }
-  if (flag_) {
+  if (is_open_) {
     ROS_INFO("Referee serial open successfully.");
     referee_unpack_obj.index = 0;
     referee_unpack_obj.unpack_step = kStepHeaderSof;
   }
 }
 
-void Referee::run() {
+void Referee::write(const std::string &state_name, uint8_t operate_type, bool is_burst, bool key_shift) {
   char power_string[30];
   float power_float;
-  uint8_t operate_type;
-  serial::Timeout timeout = serial::Timeout::simpleTimeout(50);
+  ros::Time now = ros::Time::now();
 
-  if (flag_) {
-    read();
-    power_float = power_manager_data_.parameters[3] * 100;
-    sprintf(power_string, "%1.0f%%", power_float);
+  if (is_open_) {
+    if (now - last_send_ > ros::Duration(0.1)) {
+      last_send_ = now;
 
-    if (count_ >= 12) {
-      if (first_send_)
-        operate_type = kAdd;
+      // Draw power manager data
+      power_float = power_manager_data_.parameters[3] * 100;
+      sprintf(power_string, "Power: %1.0f%%", power_float);
+      if (power_float >= 60)
+        drawCharacter(0, kGreen, operate_type, power_string);
+      else if (power_float < 60 && power_float >= 30)
+        drawCharacter(0, kYellow, operate_type, power_string);
+      else if (power_float < 30)
+        drawCharacter(0, kOrange, operate_type, power_string);
+
+      // Draw fsm information
+      drawCharacter(1, kYellow, operate_type, "Fsm: " + state_name);
+
+      // Draw shooter information
+      if (is_burst)
+        drawCharacter(2, kOrange, operate_type, "Shooter: Burst");
       else
-        operate_type = kModify;
+        drawCharacter(2, kYellow, operate_type, "Shooter: Normal");
 
-      if (power_float >= 0.6)
-        drawCharacter(2, kGreen, operate_type, power_string);
-      else if (power_float < 0.6 && power_float >= 0.3)
-        drawCharacter(2, kYellow, operate_type, power_string);
-      else if (power_float < 0.3)
-        drawCharacter(2, kOrange, operate_type, power_string);
+      // Draw chassis information
+      if (key_shift)
+        drawCharacter(3, kOrange, operate_type, "Chassis: Burst");
+      else
+        drawCharacter(3, kYellow, operate_type, "Chassis: Normal");
     }
+  }
+}
+
+/******************* Receive data from referee system *************************/
+void Referee::read() {
+  std::vector<uint8_t> rx_buffer;
+  std::vector<uint8_t> temp_buffer;
+  serial::Timeout timeout = serial::Timeout::simpleTimeout(50);
+  int rx_len;
+
+  if (is_open_) {
+    if (serial_.waitReadable()) {
+      try {
+        rx_len = serial_.available();
+        serial_.read(rx_buffer, rx_len);
+      } catch (serial::IOException &e) {
+        ROS_ERROR("Referee system disconnect.");
+        is_open_ = false;
+        return;
+      }
+
+      // Unpack data from power manager
+      power_manager_data_.read(rx_buffer);
+
+      // Unpack data from referee system
+      for (int kI = kUnpackLength; kI > rx_len; --kI) {
+        temp_buffer.insert(temp_buffer.begin(), rx_data_[kI - 1]);
+      }
+      temp_buffer.insert(temp_buffer.end(), rx_buffer.begin(), rx_buffer.end());
+
+      rx_data_.clear();
+      rx_data_.insert(rx_data_.begin(), temp_buffer.begin(), temp_buffer.end());
+
+      unpack(rx_data_);
+    }
+
   } else {
     try {
       serial_.setPort(serial_port_);
@@ -68,46 +114,13 @@ void Referee::run() {
     if (!serial_.isOpen()) {
       try {
         serial_.open();
-        flag_ = true;
+        is_open_ = true;
       } catch (serial::IOException &e) {}
     }
 
-    if (flag_) {
-      first_send_ = true;
+    if (is_open_) {
       ROS_INFO("Referee system reconnected.");
     }
-  }
-}
-
-/******************* Receive data from referee system *************************/
-void Referee::read() {
-  std::vector<uint8_t> rx_buffer;
-  std::vector<uint8_t> temp_buffer;
-  int rx_len;
-
-  if (serial_.waitReadable()) {
-    try {
-      rx_len = serial_.available();
-      serial_.read(rx_buffer, rx_len);
-    } catch (serial::IOException &e) {
-      ROS_ERROR("Referee system disconnect.");
-      flag_ = false;
-      return;
-    }
-
-    // Unpack data from power manager
-    power_manager_data_.read(rx_buffer);
-
-    // Unpack data from referee system
-    for (int kI = kUnpackLength; kI > rx_len; --kI) {
-      temp_buffer.insert(temp_buffer.begin(), rx_data_[kI - 1]);
-    }
-    temp_buffer.insert(temp_buffer.end(), rx_buffer.begin(), rx_buffer.end());
-
-    rx_data_.clear();
-    rx_data_.insert(rx_data_.begin(), temp_buffer.begin(), temp_buffer.end());
-
-    unpack(rx_data_);
   }
 
   getId();
@@ -169,7 +182,6 @@ void Referee::unpack(const std::vector<uint8_t> &rx_buffer) {
         } else {
           referee_unpack_obj.unpack_step = kStepHeaderSof;
           referee_unpack_obj.index = 0;
-          data_len_ = 0;
         }
       }
         break;
@@ -188,12 +200,10 @@ void Referee::unpack(const std::vector<uint8_t> &rx_buffer) {
           } else {
             referee_unpack_obj.unpack_step = kStepHeaderSof;
             referee_unpack_obj.index = 0;
-            data_len_ = 0;
           }
         } else {
           referee_unpack_obj.unpack_step = kStepHeaderSof;
           referee_unpack_obj.index = 0;
-          data_len_ = 0;
         }
       }
         break;
@@ -206,7 +216,6 @@ void Referee::unpack(const std::vector<uint8_t> &rx_buffer) {
           if (verifyCRC16CheckSum(referee_unpack_obj.protocol_packet,
                                   kProtocolHeaderLength + kProtocolTailLength + kProtocolCmdIdLength
                                       + referee_unpack_obj.data_len)) {
-            data_len_ = referee_unpack_obj.data_len;
             getData(referee_unpack_obj.protocol_packet);
             memset(referee_unpack_obj.protocol_packet, 0, sizeof(referee_unpack_obj.protocol_packet));
           }
@@ -219,7 +228,6 @@ void Referee::unpack(const std::vector<uint8_t> &rx_buffer) {
         referee_unpack_obj.unpack_step = kStepHeaderSof;
         memset(referee_unpack_obj.protocol_packet, 0, sizeof(referee_unpack_obj.protocol_packet));
         referee_unpack_obj.index = 0;
-        data_len_ = 0;
         num = 0;
       }
         break;
@@ -321,7 +329,8 @@ void Referee::getData(uint8_t *frame) {
       break;
     }
     case kStudentInteractiveDataCmdId: {
-      memcpy(&referee_data_.student_interactive_data_, frame + index, data_len_);
+      memcpy(&referee_data_.student_interactive_data_, frame + index, sizeof(StudentInteractiveData));
+      break;
     }
     case kRobotCommandCmdId: {
       memcpy(&referee_data_.robot_command_, frame + index, sizeof(RobotCommand));
@@ -360,6 +369,19 @@ void Referee::getId() {
         break;
     }
   }
+}
+
+double Referee::getBulletSpeed(int shoot_speed) const {
+  if (is_open_) {
+    if (robot_id_ == kBlueHero || robot_id_ == kRedHero) { // 42mm
+      if (referee_data_.shoot_data_.shooter_id == 3 && referee_data_.shoot_data_.bullet_speed != 0)
+        return referee_data_.shoot_data_.bullet_speed;
+    } else { // 17mm
+      if (referee_data_.shoot_data_.shooter_id == 1 && referee_data_.shoot_data_.bullet_speed != 0)
+        return referee_data_.shoot_data_.bullet_speed;
+    }
+  }
+  return shoot_speed;
 }
 
 /******************* Send data to referee system *************************/
@@ -445,12 +467,12 @@ void Referee::drawGraphic(int side, GraphicColorType color, GraphicOperateType o
     serial_.write(tx_buffer, sizeof(send_data));
   } catch (serial::SerialException &e) {
     ROS_ERROR("Referee system disconnect.");
-    flag_ = false;
+    is_open_ = false;
     return;
   }
 }
 
-void Referee::drawCharacter(int side, GraphicColorType color, uint8_t operate_type, std::string data) {
+void Referee::drawCharacter(int type, GraphicColorType color, uint8_t operate_type, std::string data) {
   uint8_t tx_buffer[128] = {0};
   DrawClientCharData send_data;
   int index = 0;
@@ -478,22 +500,22 @@ void Referee::drawCharacter(int side, GraphicColorType color, uint8_t operate_ty
   index += sizeof(StudentInteractiveHeaderData);
 
   // Graph data
-  if (side == 0) { // up
+  if (type == 0) { // power manager
     send_data.graphic_data_struct_.graphic_name[1] = 0;
     send_data.graphic_data_struct_.start_x = 910;
-    send_data.graphic_data_struct_.start_y = 850;
-  } else if (side == 1) { // left
-    send_data.graphic_data_struct_.graphic_name[1] = 1;
-    send_data.graphic_data_struct_.start_x = 100;
-    send_data.graphic_data_struct_.start_y = 540;
-  } else if (side == 2) { // down
-    send_data.graphic_data_struct_.graphic_name[1] = 2;
-    send_data.graphic_data_struct_.start_x = 910;
     send_data.graphic_data_struct_.start_y = 100;
-  } else if (side == 3) { // right
-    send_data.graphic_data_struct_.graphic_name[1] = 3;
+  } else if (type == 1) { // fsm state name
+    send_data.graphic_data_struct_.graphic_name[1] = 1;
     send_data.graphic_data_struct_.start_x = 1670;
+    send_data.graphic_data_struct_.start_y = 890;
+  } else if (type == 2) { // shoot burst
+    send_data.graphic_data_struct_.graphic_name[1] = 2;
+    send_data.graphic_data_struct_.start_x = 1620;
     send_data.graphic_data_struct_.start_y = 840;
+  } else if (type == 3) { // chassis burst
+    send_data.graphic_data_struct_.graphic_name[1] = 3;
+    send_data.graphic_data_struct_.start_x = 1620;
+    send_data.graphic_data_struct_.start_y = 790;
   }
   send_data.graphic_data_struct_.graphic_name[0] = 1;
   send_data.graphic_data_struct_.graphic_name[2] = 0;
@@ -524,16 +546,16 @@ void Referee::drawCharacter(int side, GraphicColorType color, uint8_t operate_ty
     serial_.write(tx_buffer, sizeof(send_data));
   } catch (serial::SerialException &e) {
     ROS_ERROR("Referee system disconnect.");
-    flag_ = false;
+    is_open_ = false;
     return;
   }
 }
 
-void Referee::sendInteractiveData(int data_cmd_id, int sender_id, int receiver_id, const std::vector<uint8_t> &data) {
+void Referee::sendInteractiveData(int data_cmd_id, int receiver_id, const std::vector<uint8_t> &data) {
   uint8_t tx_buffer[128] = {0};
   SendInteractiveData send_data;
-  int tx_len = kProtocolHeaderLength + kProtocolCmdIdLength + sizeof(StudentInteractiveHeaderData) + data.size()
-      + kProtocolTailLength;
+  int tx_len =
+      kProtocolHeaderLength + kProtocolCmdIdLength + sizeof(StudentInteractiveHeaderData) + 113 + kProtocolTailLength;
   int index = 0;
 
   // Frame header
@@ -552,14 +574,18 @@ void Referee::sendInteractiveData(int data_cmd_id, int sender_id, int receiver_i
   // Data
   // Interactive data header
   send_data.student_interactive_header_data_.data_cmd_id = data_cmd_id;
-  send_data.student_interactive_header_data_.send_ID = sender_id;
+  send_data.student_interactive_header_data_.send_ID = robot_id_;
   send_data.student_interactive_header_data_.receiver_ID = receiver_id;
   memcpy(tx_buffer + index, &send_data.student_interactive_header_data_, sizeof(StudentInteractiveHeaderData));
   index += sizeof(StudentInteractiveHeaderData);
   // Interactive data
-  for (int kI = 0; kI < (int) data.size(); ++kI) {
-    tx_buffer[index + kI] = data[kI];
+  for (int kI = 0; kI < 113; ++kI) {
+    if (kI < (int) data.size())
+      send_data.data_[kI] = data[kI];
+    else
+      send_data.data_[kI] = 0;
   }
+  memcpy(tx_buffer + index, send_data.data_, 113);
 
   // Frame tail
   appendCRC16CheckSum(tx_buffer, tx_len);
@@ -569,7 +595,7 @@ void Referee::sendInteractiveData(int data_cmd_id, int sender_id, int receiver_i
     serial_.write(tx_buffer, tx_len);
   } catch (serial::SerialException &e) {
     ROS_ERROR("Referee system disconnect.");
-    flag_ = false;
+    is_open_ = false;
     return;
   }
 }
@@ -671,6 +697,14 @@ void PowerManagerData::read(const std::vector<uint8_t> &rx_buffer) {
       Receive_BufCounter = 0;
     }
   }
+  if (parameters[0] >= 120) parameters[0] = 120;
+  if (parameters[0] <= 0) parameters[0] = 0;
+
+  if (parameters[2] >= 25) parameters[2] = 25;
+  if (parameters[2] <= 0) parameters[2] = 0;
+
+  if (parameters[3] >= 1) parameters[3] = 1;
+  if (parameters[3] <= 0) parameters[3] = 0;
 }
 
 void PowerManagerData::Receive_CallBack(unsigned char PID, unsigned char Data[8]) {

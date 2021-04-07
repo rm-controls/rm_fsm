@@ -260,7 +260,7 @@ typedef enum {
 
 typedef enum {
   kAdd = 1,
-  kModify = 2,
+  kUpdate = 2,
   kDelete = 3
 } GraphicOperateType;
 
@@ -319,7 +319,7 @@ typedef struct {
   FrameHeaderStruct tx_frame_header_;
   uint16_t cmd_id_;
   StudentInteractiveHeaderData student_interactive_header_data_;
-  uint8_t *data;
+  uint8_t data_[113];
   uint16_t frame_tail_;
 }__packed SendInteractiveData;
 

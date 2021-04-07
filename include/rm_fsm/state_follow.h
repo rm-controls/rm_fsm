@@ -16,10 +16,15 @@ class StateFollow : public State<T> {
   void run() override;
   void onExit() override;
  private:
-  bool is_spin_ = false;
+  bool is_spin_e_ = false;
+  bool is_spin_q_ = false;
   bool is_friction_ready_ = false;
-  ros::Time last_press_time_shift = ros::Time::now();
-  ros::Time last_press_time_f = ros::Time::now();
+  bool is_burst_ = false;
+  ros::Time last_press_time_e_ = ros::Time::now();
+  ros::Time last_press_time_q_ = ros::Time::now();
+  ros::Time last_press_time_f_ = ros::Time::now();
+  ros::Time last_press_time_r_ = ros::Time::now();
+  ros::Time last_press_time_b_ = ros::Time::now();
 };
 
 #endif //SRC_RM_SOFTWARE_RM_FSM_INCLUDE_RM_FSM_STATE_FOLLOW_H_

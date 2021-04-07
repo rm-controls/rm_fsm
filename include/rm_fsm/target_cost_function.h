@@ -16,7 +16,7 @@ class TargetCostFunction {
   explicit TargetCostFunction(ros::NodeHandle &nh);
   void input(rm_msgs::TrackDataArray track_data_array);
   int output() const;
-  double calculateCost(rm_msgs::TrackData track_data);
+  static double calculateCost(rm_msgs::TrackData track_data);
 
  private:
   int id_{};
