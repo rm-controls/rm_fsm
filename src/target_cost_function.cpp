@@ -7,7 +7,7 @@
 TargetCostFunction::TargetCostFunction(ros::NodeHandle &nh) {
   ros::NodeHandle cost_nh = ros::NodeHandle(nh, "target_cost_function");
   cost_nh.param("time_interval_", time_interval_, 0.1);
-
+  id_=0;
 }
 
 void TargetCostFunction::input(rm_msgs::TrackDataArray track_data_array) {
@@ -35,9 +35,9 @@ double TargetCostFunction::calculateCost(rm_msgs::TrackData track_data) {
    */
 
   //not speed
-  double delta_x_2 = pow(track_data.pose.position.x, 2);
-  double delta_y_2 = pow(track_data.pose.position.y, 2);
-  double delta_z_2 = pow(track_data.pose.position.z, 2);
+  double delta_x_2 = pow(track_data.pose2map.position.x, 2);
+  double delta_y_2 = pow(track_data.pose2map.position.y, 2);
+  double delta_z_2 = pow(track_data.pose2map.position.z, 2);
 
   double distance = sqrt(delta_x_2 + delta_y_2 + delta_z_2);
   double cost = distance;

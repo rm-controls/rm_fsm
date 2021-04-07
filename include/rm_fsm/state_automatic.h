@@ -21,19 +21,22 @@ class StateAutomatic : public State<T> {
   int point_side_;
   int gimbal_position_;
   double auto_move_chassis_speed_;
-  double auto_move_chassis_accel_;
   double auto_move_pitch_speed_;
   double auto_move_yaw_speed_;
   double start_;
   double end_;
-  double calibration_speed_,end_speed_;
+  double calibration_speed_;
   int calibration_;
+  int attack_id_;
   double speed_;
-  double last_position_;
   double current_position_;
-  geometry_msgs::TransformStamped map2odom_;
+  ros::Time last_time_ = ros::Time::now();
+  ros::Time calibration_time_ = ros::Time::now();
+
+  geometry_msgs::TransformStamped
+      map2odom_;
   geometry_msgs::TransformStamped odom2baselink_;
-  tf2_ros::StaticTransformBroadcaster  tf_broadcaster_;
+  tf2_ros::StaticTransformBroadcaster tf_broadcaster_;
   tf2_ros::TransformBroadcaster br;
   // sub
   sensor_msgs::JointState effort_data_;

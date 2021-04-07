@@ -18,11 +18,21 @@ void StatePassive<T>::onEnter() {
 
 template<typename T>
 void StatePassive<T>::run() {
+  uint8_t graph_operate_type;
   ros::Time now = ros::Time::now();
 
   this->setChassis(rm_msgs::ChassisCmd::PASSIVE, 0.0, 0.0, 0.0);
   this->setGimbal(rm_msgs::GimbalCmd::PASSIVE, 0.0, 0.0, 0, 0.0);
-  this->setShoot(rm_msgs::ShootCmd::STOP, rm_msgs::ShootCmd::SPEED_10M_PER_SECOND, 0.0, now);
+  this->setShoot(rm_msgs::ShootCmd::STOP, 0, 0.0, now);
+
+  // Refresh client graph
+  if (this->data_->dbus_data_.key_x) {
+    graph_operate_type = kAdd;
+  } else {
+    graph_operate_type = kUpdate;
+  }
+
+  this->data_->referee_->write(this->state_name_, graph_operate_type, false, false);
 }
 
 template<typename T>

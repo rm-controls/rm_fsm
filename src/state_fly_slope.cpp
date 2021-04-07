@@ -40,7 +40,7 @@ void StateFlySlope<T>::run() {
 
   this->setChassis(rm_msgs::ChassisCmd::FOLLOW, linear_x, linear_y, 0.0);
   this->setGimbal(rm_msgs::GimbalCmd::RATE, rate_yaw, rate_pitch, 0, 0.0);
-  this->setShoot(rm_msgs::ShootCmd::STOP, rm_msgs::ShootCmd::SPEED_10M_PER_SECOND, 0.0, now);
+  this->setShoot(rm_msgs::ShootCmd::STOP, 0, 0.0, now);
 }
 
 template<typename T>
