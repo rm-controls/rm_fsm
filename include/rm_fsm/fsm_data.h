@@ -71,6 +71,7 @@ class FsmData {
     gimbal_cmd_pub_ = root_nh.advertise<rm_msgs::GimbalCmd>("/cmd_gimbal", 1);
     shooter_cmd_pub_ = root_nh.advertise<rm_msgs::ShootCmd>("/cmd_shoot", 1);
     referee_->referee_pub_ = root_nh.advertise<rm_msgs::Referee>("/referee", 1);
+    referee_->power_manager_pub_ = root_nh.advertise<rm_msgs::PowerManagerData>("/power_manager_data", 1);
   }
 
   void dbusDataCallback(const rm_msgs::DbusData::ConstPtr &data) {

@@ -7,6 +7,7 @@
 #include <cstdint>
 #include <serial/serial.h>
 #include <rm_msgs/Referee.h>
+#include <rm_msgs/PowerManagerData.h>
 #include "rm_fsm/protocol.h"
 
 struct RefereeData {
@@ -66,8 +67,6 @@ class Referee {
   void drawCharacter(int side, GraphicColorType color, uint8_t operate_type, std::string data);
   void sendInteractiveData(int data_cmd_id, int sender_id, int receiver_id, const std::vector<uint8_t> &data);
 
-
-
   RefereeData referee_data_{};
   PowerManagerData power_manager_data_;
 
@@ -78,6 +77,9 @@ class Referee {
   int client_id_ = 0;
   ros::Publisher referee_pub_;
   rm_msgs::Referee referee_pub_data_;
+
+  ros::Publisher power_manager_pub_;
+  rm_msgs::PowerManagerData power_manager_pub_data_;
 
  private:
   void read();

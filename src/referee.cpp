@@ -122,20 +122,21 @@ void Referee::read() {
 
   referee_pub_data_.chassis_volt = referee_data_.power_heat_data_.chassis_volt;
   referee_pub_data_.chassis_current = referee_data_.power_heat_data_.chassis_current;
-  //referee_pub_data_.chassis_power = referee_data_.power_heat_data_.chassis_power;
+  referee_pub_data_.chassis_power = referee_data_.power_heat_data_.chassis_power;
   referee_pub_data_.chassis_power_buffer = referee_data_.power_heat_data_.chassis_power_buffer;
   referee_pub_data_.robot_hp = referee_data_.game_robot_status_.remain_HP;
   referee_pub_data_.hurt_armor_id = referee_data_.robot_hurt_.armor_id;
   referee_pub_data_.hurt_type = referee_data_.robot_hurt_.hurt_type;
-
-  referee_pub_data_.capacity = power_manager_data_.parameters[3] * 100;
-  referee_pub_data_.limit_power = power_manager_data_.parameters[1];
-  referee_pub_data_.chassis_power = power_manager_data_.parameters[0];
-  //referee_pub_data_.chassis_power = referee_data_.power_heat_data_.chassis_power;
-
   referee_pub_data_.stamp = ros::Time::now();
 
+  power_manager_pub_data_.capacity = power_manager_data_.parameters[3] * 100;
+  power_manager_pub_data_.limit_power = power_manager_data_.parameters[1];
+  power_manager_pub_data_.chassis_power = power_manager_data_.parameters[0];
+  power_manager_pub_data_.chassis_power = power_manager_data_.parameters[2];
+  power_manager_pub_data_.stamp = ros::Time::now();
+
   referee_pub_.publish(referee_pub_data_);
+  power_manager_pub_.publish(power_manager_pub_data_);
 }
 
 void Referee::unpack(const std::vector<uint8_t> &rx_buffer) {
