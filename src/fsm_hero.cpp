@@ -36,9 +36,6 @@ std::string FsmHero<T>::getDesiredState() {
     } else if (this->data_.dbus_data_.key_ctrl
         && this->data_.dbus_data_.key_w) { // ctrl + w change state to follow
       return "follow";
-    } else if (this->data_.dbus_data_.key_ctrl
-        && this->data_.dbus_data_.key_e) { // ctrl + e change state to fly slope
-      return "flyslope";
     } else {
       return this->current_state_->state_name_;
     }
