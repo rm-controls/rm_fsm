@@ -34,6 +34,7 @@ void StateFollow<T>::run() {
   double shoot_hz = 0;
   ros::Time now = ros::Time::now();
   uint8_t graph_operate_type;
+  int normal_critical_speed, burst_critical_speed, normal_angular, burst_angular;
 
   this->loadParam();
 
@@ -59,6 +60,17 @@ void StateFollow<T>::run() {
     linear_x = (this->data_->dbus_data_.key_w - this->data_->dbus_data_.key_s); // W/S
     linear_y = (this->data_->dbus_data_.key_a - this->data_->dbus_data_.key_d); // A/D
     angular_z = 0;
+
+    // Update by robot level
+    normal_critical_speed =
+        normal_critical_speed_ * pow(1.1, this->data_->referee_->referee_data_.game_robot_status_.robot_level);
+    burst_critical_speed =
+        burst_critical_speed_ * pow(1.1, this->data_->referee_->referee_data_.game_robot_status_.robot_level);
+    normal_angular =
+        normal_angular_ * pow(1.1, this->data_->referee_->referee_data_.game_robot_status_.robot_level);
+    burst_angular =
+        burst_angular_ * pow(1.1, this->data_->referee_->referee_data_.game_robot_status_.robot_level);
+
     // Switch spin mode
     if (this->data_->dbus_data_.key_e) {
       is_spin_ = !is_spin_;
@@ -66,21 +78,21 @@ void StateFollow<T>::run() {
     if (is_spin_) {
       if (this->data_->dbus_data_.key_shift) { // burst mode
         if (pow(this->data_->odom_.twist.twist.linear.x, 2) + pow(this->data_->odom_.twist.twist.linear.x, 2)
-            <= pow(normal_critical_speed_, 2)) {
+            <= pow(normal_critical_speed, 2)) {
           chassis_mode = rm_msgs::ChassisCmd::GYRO;
-          angular_z = normal_angular_;
+          angular_z = normal_angular;
         } else {
           chassis_mode = rm_msgs::ChassisCmd::FOLLOW;
-          angular_z = normal_angular_;
+          angular_z = normal_angular;
         }
       } else { // normal mode
         if (pow(this->data_->odom_.twist.twist.linear.x, 2) + pow(this->data_->odom_.twist.twist.linear.x, 2)
-            <= pow(burst_critical_speed_, 2)) {
+            <= pow(burst_critical_speed, 2)) {
           chassis_mode = rm_msgs::ChassisCmd::GYRO;
-          angular_z = burst_angular_;
+          angular_z = burst_angular;
         } else {
           chassis_mode = rm_msgs::ChassisCmd::FOLLOW;
-          angular_z = normal_angular_;
+          angular_z = normal_angular;
         }
       }
       this->last_chassis_mode_ = chassis_mode;
