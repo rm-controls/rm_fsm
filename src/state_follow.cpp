@@ -48,16 +48,22 @@ void StateFollow<T>::run() {
       if (now - last_press_time_r_ < ros::Duration(0.2)) this->data_->dbus_data_.key_r = false;
       else last_press_time_r_ = now;
     }
+    if (this->data_->dbus_data_.key_b) {
+      if (now - last_press_time_b_ < ros::Duration(0.2)) this->data_->dbus_data_.key_b = false;
+      else last_press_time_b_ = now;
+    }
 
     // Send cmd to chassis
     linear_x = (this->data_->dbus_data_.key_w - this->data_->dbus_data_.key_s); // W/S
     linear_y = (this->data_->dbus_data_.key_a - this->data_->dbus_data_.key_d); // A/D
     angular_z = 0;
     // Switch spin mode
-    if (this->data_->dbus_data_.key_e && this->data_->dbus_data_.key_q) {
+    if (this->data_->dbus_data_.key_f) {
       chassis_mode = rm_msgs::ChassisCmd::FOLLOW;
       is_spin_e_ = false;
       is_spin_q_ = false;
+      this->last_chassis_mode_ = chassis_mode;
+      this->last_angular_z_ = angular_z;
     } else if (this->data_->dbus_data_.key_e) {
       if (is_spin_e_) {
         chassis_mode = rm_msgs::ChassisCmd::FOLLOW;
@@ -109,7 +115,7 @@ void StateFollow<T>::run() {
 
     // Send cmd to shooter
     // Switch friction mode
-    if (this->data_->dbus_data_.key_f) {
+    if (this->data_->dbus_data_.key_b) {
       if (is_friction_ready_) {
         shoot_mode = rm_msgs::ShootCmd::STOP;
         is_friction_ready_ = false;
