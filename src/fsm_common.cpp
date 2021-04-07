@@ -19,7 +19,7 @@ void State<T>::loadParam() {
   brake_multiple_ = getParam(nh_, "control_param/brake_multiple", 2);
   shoot_hz_ = getParam(nh_, "control_param/shoot_hz", 5.0);
   shoot_speed_ = getParam(nh_, "control_param/shoot_speed", 10);
-  lowest_effort_ = getParam(nh_, "control_param/power_limit/lowest_effort_", 10);
+  lowest_effort_ = getParam(nh_, "control_param/power_limit/lowest_effort", 10);
   if (control_mode_ == "pc") { // pc mode
     coefficient_x_ = getParam(nh_, "control_param/pc_param/coefficient_x", 3.5);
     coefficient_y_ = getParam(nh_, "control_param/pc_param/coefficient_y", 3.5);
