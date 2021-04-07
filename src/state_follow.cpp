@@ -99,13 +99,8 @@ void StateFollow<T>::run() {
         gimbal_mode = rm_msgs::GimbalCmd::RATE;
         shoot_speed = this->shoot_speed_;
       } else {
-        if (this->data_->referee_->is_open_) {
-          gimbal_mode = rm_msgs::GimbalCmd::TRACK;
-          shoot_speed = this->data_->referee_->getBulletSpeed();
-        } else {
-          gimbal_mode = rm_msgs::GimbalCmd::RATE;
-          shoot_speed = this->shoot_speed_;
-        }
+        gimbal_mode = rm_msgs::GimbalCmd::TRACK;
+        shoot_speed = this->data_->referee_->getBulletSpeed(this->shoot_speed_);
       }
     } else {
       gimbal_mode = rm_msgs::GimbalCmd::RATE;

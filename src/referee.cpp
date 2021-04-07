@@ -364,17 +364,17 @@ void Referee::getId() {
   }
 }
 
-double Referee::getBulletSpeed() const {
-  if (robot_id_ == kBlueHero || robot_id_ == kRedHero) {
-    if (referee_data_.shoot_data_.shooter_id == 3) { // 42mm
-      return referee_data_.shoot_data_.bullet_speed;
-    }
-  } else {
-    if (referee_data_.shoot_data_.shooter_id == 1) { // 17mm
-      return referee_data_.shoot_data_.bullet_speed;
+double Referee::getBulletSpeed(int shoot_speed) const {
+  if (is_open_) {
+    if (robot_id_ == kBlueHero || robot_id_ == kRedHero) { // 42mm
+      if (referee_data_.shoot_data_.shooter_id == 3 && referee_data_.shoot_data_.bullet_speed != 0)
+        return referee_data_.shoot_data_.bullet_speed;
+    } else { // 17mm
+      if (referee_data_.shoot_data_.shooter_id == 1 && referee_data_.shoot_data_.bullet_speed != 0)
+        return referee_data_.shoot_data_.bullet_speed;
     }
   }
-  return 0;
+  return shoot_speed;
 }
 
 /******************* Send data to referee system *************************/
