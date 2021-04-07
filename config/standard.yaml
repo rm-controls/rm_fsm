@@ -3,7 +3,7 @@ rm_fsm:
   control_param:
     accel_x: 5.0
     accel_y: 5.0
-    accel_angular: 5.0
+    accel_angular: 2.0
     brake_multiple: 2
     shoot_hz: 5.0
     shoot_speed: 15
@@ -20,6 +20,10 @@ rm_fsm:
       coefficient_angular: 6.0
       coefficient_yaw: 600.0
       coefficient_pitch: 600.0
+      normal_critical_speed: 1
+      burst_critical_speed: 2
+      normal_angular: 1
+      burst_angular: 2
   power_limit:
     danger_surplus: 28.0
     roll_back_buffer: 55.0

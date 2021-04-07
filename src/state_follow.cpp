@@ -8,6 +8,10 @@ template<typename T>
 StateFollow<T>::StateFollow(FsmData<T> *fsm_data,
                             const std::string &state_string,
                             ros::NodeHandle &nh): State<T>(nh, fsm_data, state_string) {
+  normal_critical_speed_ = getParam(nh, "control_param/pc_param/normal_critical_speed", 1);
+  burst_critical_speed_ = getParam(nh, "control_param/pc_param/burst_critical_speed", 2);
+  normal_angular_ = getParam(nh, "control_param/pc_param/normal_angular", 1);
+  burst_angular_ = getParam(nh, "control_param/pc_param/burst_angular", 2);
 }
 
 template<typename T>
@@ -38,21 +42,13 @@ void StateFollow<T>::run() {
       if (now - last_press_time_e_ < ros::Duration(0.2)) this->data_->dbus_data_.key_e = false;
       else last_press_time_e_ = now;
     }
-    if (this->data_->dbus_data_.key_q) {
-      if (now - last_press_time_q_ < ros::Duration(0.2)) this->data_->dbus_data_.key_q = false;
-      else last_press_time_q_ = now;
-    }
     if (this->data_->dbus_data_.key_f) {
       if (now - last_press_time_f_ < ros::Duration(0.2)) this->data_->dbus_data_.key_f = false;
       else last_press_time_f_ = now;
     }
-    if (this->data_->dbus_data_.key_r) {
-      if (now - last_press_time_r_ < ros::Duration(0.2)) this->data_->dbus_data_.key_r = false;
-      else last_press_time_r_ = now;
-    }
-    if (this->data_->dbus_data_.key_b) {
-      if (now - last_press_time_b_ < ros::Duration(0.2)) this->data_->dbus_data_.key_b = false;
-      else last_press_time_b_ = now;
+    if (this->data_->dbus_data_.key_q) {
+      if (now - last_press_time_q_ < ros::Duration(0.2)) this->data_->dbus_data_.key_q = false;
+      else last_press_time_q_ = now;
     }
 
     // Send cmd to chassis
@@ -60,33 +56,28 @@ void StateFollow<T>::run() {
     linear_y = (this->data_->dbus_data_.key_a - this->data_->dbus_data_.key_d); // A/D
     angular_z = 0;
     // Switch spin mode
-    if (this->data_->dbus_data_.key_f) {
-      chassis_mode = rm_msgs::ChassisCmd::FOLLOW;
-      is_spin_e_ = false;
-      is_spin_q_ = false;
-      this->last_chassis_mode_ = chassis_mode;
-      this->last_angular_z_ = angular_z;
-    } else if (this->data_->dbus_data_.key_e) {
-      if (is_spin_e_) {
-        chassis_mode = rm_msgs::ChassisCmd::FOLLOW;
-        is_spin_e_ = false;
-      } else {
-        chassis_mode = rm_msgs::ChassisCmd::GYRO;
-        angular_z = -1;
-        is_spin_e_ = true;
-        is_spin_q_ = false;
-      }
-      this->last_chassis_mode_ = chassis_mode;
-      this->last_angular_z_ = angular_z;
-    } else if (this->data_->dbus_data_.key_q) {
-      if (is_spin_q_) {
-        chassis_mode = rm_msgs::ChassisCmd::FOLLOW;
-        is_spin_q_ = false;
-      } else {
-        chassis_mode = rm_msgs::ChassisCmd::GYRO;
-        angular_z = 1;
-        is_spin_q_ = true;
-        is_spin_e_ = false;
+    if (this->data_->dbus_data_.key_e) {
+      is_spin_ = !is_spin_;
+    }
+    if (is_spin_) {
+      if (this->data_->dbus_data_.key_shift) { // burst mode
+        if (pow(this->data_->odom_.twist.twist.linear.x, 2) + pow(this->data_->odom_.twist.twist.linear.x, 2)
+            <= pow(normal_critical_speed_, 2)) {
+          chassis_mode = rm_msgs::ChassisCmd::GYRO;
+          angular_z = normal_angular_;
+        } else {
+          chassis_mode = rm_msgs::ChassisCmd::FOLLOW;
+          angular_z = normal_angular_;
+        }
+      } else { // normal mode
+        if (pow(this->data_->odom_.twist.twist.linear.x, 2) + pow(this->data_->odom_.twist.twist.linear.x, 2)
+            <= pow(burst_critical_speed_, 2)) {
+          chassis_mode = rm_msgs::ChassisCmd::GYRO;
+          angular_z = burst_angular_;
+        } else {
+          chassis_mode = rm_msgs::ChassisCmd::FOLLOW;
+          angular_z = normal_angular_;
+        }
       }
       this->last_chassis_mode_ = chassis_mode;
       this->last_angular_z_ = angular_z;
@@ -117,7 +108,7 @@ void StateFollow<T>::run() {
 
     // Send cmd to shooter
     // Switch friction mode
-    if (this->data_->dbus_data_.key_b) {
+    if (this->data_->dbus_data_.key_f) {
       if (is_friction_ready_) {
         shoot_mode = rm_msgs::ShootCmd::STOP;
         is_friction_ready_ = false;
@@ -131,7 +122,7 @@ void StateFollow<T>::run() {
     }
 
     // Switch shooter heat limit mode
-    if (this->data_->dbus_data_.key_r) {
+    if (this->data_->dbus_data_.key_q) {
       is_burst_ = !is_burst_;
     }
 
