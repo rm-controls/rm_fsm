@@ -15,6 +15,9 @@ class FsmHero : public Fsm<T> {
   std::string getDesiredState();
   StatePassive<T> *state_passive_;
   StateFollow<T> *state_follow_;
+
+ private:
+  bool enter_pc_ = false;
 };
 
 #endif //SRC_RM_SOFTWARE_RM_FSM_SRC_FSM_HERO_H_

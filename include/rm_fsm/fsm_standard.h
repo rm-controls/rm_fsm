@@ -18,6 +18,9 @@ class FsmStandard : public Fsm<T> {
   StatePassive<T> *state_passive_;
   StateFollow<T> *state_follow_;
   StateFlySlope<T> *state_fly_slope_;
+
+ private:
+  bool enter_pc_ = false;
 };
 
 #endif //SRC_RM_SOFTWARE_RM_DECISION_SRC_FSM_FSM_STANDARD_H_

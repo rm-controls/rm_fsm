@@ -21,12 +21,18 @@ template<typename T>
 std::string FsmStandard<T>::getDesiredState() {
   if (this->data_.dbus_data_.s_r == rm_msgs::DbusData::DOWN) { // pc control
     this->control_mode_ = "rc";
+    enter_pc_ = false;
     return "passive";
   } else if (this->data_.dbus_data_.s_r == rm_msgs::DbusData::MID) { // follow mode
     this->control_mode_ = "rc";
+    enter_pc_ = false;
     return "follow";
   } else if (this->data_.dbus_data_.s_r == rm_msgs::DbusData::UP) {
     this->control_mode_ = "pc";
+    if (!enter_pc_) {
+      enter_pc_ = true;
+      return "passive";
+    }
     if (this->data_.dbus_data_.key_ctrl
         && this->data_.dbus_data_.key_q) { // ctrl + q change state to passive
       return "passive";
