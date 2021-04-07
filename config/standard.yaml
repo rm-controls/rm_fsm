@@ -21,8 +21,8 @@ rm_fsm:
       coefficient_pitch: 600.0
       gimbal_error_limit: 0.1745
   power_limit:
-    danger_surplus_: 28.0
-    roll_back_buffer_: 55.0
+    danger_surplus: 28.0
+    roll_back_buffer: 55.0
     coeff: 0.3
     multiple: 7.5
     lowest_effort: 6

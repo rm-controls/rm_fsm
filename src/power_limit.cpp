@@ -7,11 +7,11 @@
 PowerLimit::PowerLimit(ros::NodeHandle &nh) {
   ros::NodeHandle power_nh = ros::NodeHandle(nh, "power_limit");
 
-  power_nh.param("danger_surplus_", danger_surplus_, 10.0);
-  power_nh.param("roll_back_buffer_", roll_back_buffer_, 10.0);
+  power_nh.param("danger_surplus", danger_surplus_, 10.0);
+  power_nh.param("roll_back_buffer", roll_back_buffer_, 10.0);
   power_nh.param("coeff", coeff, 0.1);
   power_nh.param("multiple", multiple, 5.0);
-  power_nh.param("capacity_surplus_", capacity_surplus_, 0.2);
+  power_nh.param("capacity_surplus", capacity_surplus_, 0.2);
 
   end_over_power_mode_flag_ = false;
 
