@@ -19,7 +19,7 @@ PowerLimit::PowerLimit(ros::NodeHandle &nh) {
 
 void PowerLimit::input(RefereeData referee_data_,
                        PowerManagerData power_manager_data_,
-                       bool use_power_manager) {
+                       bool k_shift) {
   uint16_t w0 = referee_data_.power_heat_data_.chassis_power_buffer;
   double w1, w2;              //chassis power buffer 100ms&200ms later
   double chassis_power;
@@ -29,7 +29,7 @@ void PowerLimit::input(RefereeData referee_data_,
   double chassis_current_need = 99;
   double limit_power;
 
-  if (use_power_manager) {
+  if (k_shift) {
     //ROS_INFO_THROTTLE(10, "Enter normal mode,with power manage!");
     chassis_power = power_manager_data_.parameters[0];        //real power
     limit_power = power_manager_data_.parameters[1];          //limit power

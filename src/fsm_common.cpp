@@ -158,7 +158,7 @@ void Fsm<T>::run() {
   data_.referee_->run();
 
   if (data_.referee_->flag_) {
-    if (data_.referee_->count_ >= 12) { // 10hz
+    if (data_.referee_->count_ >= 15) { // 10hz
       data_.referee_->count_ = 0;
       if (data_.referee_->first_send_) {
         operate_type = kAdd;

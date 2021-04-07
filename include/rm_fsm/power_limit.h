@@ -14,7 +14,7 @@ class PowerLimit {
   explicit PowerLimit(ros::NodeHandle &nh);
   void input(RefereeData referee_data_,
              PowerManagerData power_manager_data_,
-             bool use_power_manager);
+             bool k_shift);
   double output() const;
   double getLimitPower(RefereeData referee_data_);
 

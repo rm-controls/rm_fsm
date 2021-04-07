@@ -43,7 +43,7 @@ void Referee::run() {
     power_float = power_manager_data_.parameters[3] * 100;
     sprintf(power_string, "%1.0f%%", power_float);
 
-    if (count_ >= 12) {
+    if (count_ >= 15) {
       if (first_send_)
         operate_type = kAdd;
       else
