@@ -260,7 +260,7 @@ typedef enum {
 
 typedef enum {
   kAdd = 1,
-  kModify = 2,
+  kUpdate = 2,
   kDelete = 3
 } GraphicOperateType;
 

@@ -47,10 +47,11 @@ void Referee::run(const std::string &state_name) {
     if (now - last_send_ > ros::Duration(0.1)) {
       if (is_first_send_) {
         operate_type = kAdd;
-        last_send_ = now;
+        is_first_send_ = false;
       } else {
-        operate_type = kModify;
+        operate_type = kUpdate;
       }
+      last_send_ = now;
 
       if (power_float >= 60)
         drawCharacter(2, kGreen, operate_type, power_string);
