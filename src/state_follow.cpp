@@ -12,6 +12,7 @@ StateFollow<T>::StateFollow(FsmData<T> *fsm_data,
   burst_critical_speed_ = getParam(nh, "control_param/pc_param/burst_critical_speed", 2);
   normal_angular_ = getParam(nh, "control_param/pc_param/normal_angular", 1);
   burst_angular_ = getParam(nh, "control_param/pc_param/burst_angular", 2);
+  robot_type_ = getParam(nh, "robot_type", (std::string) "hero");
 }
 
 template<typename T>
@@ -49,6 +50,9 @@ void StateFollow<T>::run() {
     if (this->data_->dbus_data_.key_q) {
       if (now - last_press_time_q_ < ros::Duration(0.2)) this->data_->dbus_data_.key_q = false;
       else last_press_time_q_ = now;
+    }
+    if (robot_type_ != "standard") {
+      this->data_->dbus_data_.key_shift = false;
     }
 
     // Send cmd to chassis

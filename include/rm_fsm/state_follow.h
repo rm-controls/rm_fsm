@@ -27,6 +27,8 @@ class StateFollow : public State<T> {
   int burst_critical_speed_;
   int normal_angular_;
   int burst_angular_;
+
+  std::string robot_type_;
 };
 
 #endif //SRC_RM_SOFTWARE_RM_FSM_INCLUDE_RM_FSM_STATE_FOLLOW_H_
