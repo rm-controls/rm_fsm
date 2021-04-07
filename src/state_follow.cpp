@@ -73,7 +73,12 @@ void StateFollow<T>::run() {
 
     // Switch spin mode
     if (this->data_->dbus_data_.key_e) {
-      is_spin_ = !is_spin_;
+      if (is_spin_) {
+        is_spin_ = false;
+        this->last_chassis_mode_ = rm_msgs::ChassisCmd::FOLLOW;
+      } else {
+        is_spin_ = true;
+      }
     }
     if (is_spin_) {
       if (this->data_->dbus_data_.key_shift) { // burst mode
