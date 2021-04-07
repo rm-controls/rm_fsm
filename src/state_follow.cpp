@@ -15,6 +15,7 @@ void StateFollow<T>::onEnter() {
   this->last_chassis_mode_ = rm_msgs::ChassisCmd::FOLLOW;
   this->last_shoot_mode_ = rm_msgs::ShootCmd::STOP;
   this->last_angular_z_ = 1;
+  this->graph_operate_type_ = kAdd;
   ROS_INFO("Enter follow mode");
 }
 
@@ -161,12 +162,20 @@ void StateFollow<T>::run() {
     }
     this->setShoot(shoot_mode, shoot_speed, shoot_hz, now);
 
+    // Send command to sentry
     if (this->data_->dbus_data_.key_z) {
       int receiver_id;
       std::vector<uint8_t> sentry_cmd(1, 1);
       if (this->data_->referee_->robot_id_ > 100) receiver_id = kBlueSentry;
       else receiver_id = kRedSentry;
       this->data_->referee_->sendInteractiveData(0x0200, receiver_id, sentry_cmd);
+    }
+
+    // Refresh client graph
+    if (this->data_->dbus_data_.key_x) {
+      this->graph_operate_type_ = kAdd;
+    } else {
+      this->graph_operate_type_ = kUpdate;
     }
   } else { // rc control
     // Send command to chassis
@@ -203,6 +212,7 @@ template<typename T>
 void StateFollow<T>::onExit() {
   this->last_chassis_mode_ = rm_msgs::ChassisCmd::PASSIVE;
   this->last_shoot_mode_ = rm_msgs::ShootCmd::STOP;
+  this->graph_operate_type_ = kUpdate;
   ROS_INFO("Exit follow mode");
 }
 

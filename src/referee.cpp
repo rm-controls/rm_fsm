@@ -32,25 +32,16 @@ void Referee::init() {
   }
 }
 
-void Referee::run(const std::string &state_name) {
+void Referee::write(const std::string &state_name, uint8_t operate_type) {
   char power_string[30];
   float power_float;
-  uint8_t operate_type;
-  serial::Timeout timeout = serial::Timeout::simpleTimeout(50);
   ros::Time now = ros::Time::now();
 
   if (is_open_) {
-    read();
     power_float = power_manager_data_.parameters[3] * 100;
     sprintf(power_string, "%1.0f%%", power_float);
 
     if (now - last_send_ > ros::Duration(0.1)) {
-      if (is_first_send_) {
-        operate_type = kAdd;
-        is_first_send_ = false;
-      } else {
-        operate_type = kUpdate;
-      }
       last_send_ = now;
 
       if (power_float >= 60)
@@ -62,6 +53,42 @@ void Referee::run(const std::string &state_name) {
 
       drawCharacter(3, kYellow, operate_type, state_name);
     }
+  }
+}
+
+/******************* Receive data from referee system *************************/
+void Referee::read() {
+  std::vector<uint8_t> rx_buffer;
+  std::vector<uint8_t> temp_buffer;
+  serial::Timeout timeout = serial::Timeout::simpleTimeout(50);
+  int rx_len;
+
+  if (is_open_) {
+    if (serial_.waitReadable()) {
+      try {
+        rx_len = serial_.available();
+        serial_.read(rx_buffer, rx_len);
+      } catch (serial::IOException &e) {
+        ROS_ERROR("Referee system disconnect.");
+        is_open_ = false;
+        return;
+      }
+
+      // Unpack data from power manager
+      power_manager_data_.read(rx_buffer);
+
+      // Unpack data from referee system
+      for (int kI = kUnpackLength; kI > rx_len; --kI) {
+        temp_buffer.insert(temp_buffer.begin(), rx_data_[kI - 1]);
+      }
+      temp_buffer.insert(temp_buffer.end(), rx_buffer.begin(), rx_buffer.end());
+
+      rx_data_.clear();
+      rx_data_.insert(rx_data_.begin(), temp_buffer.begin(), temp_buffer.end());
+
+      unpack(rx_data_);
+    }
+
   } else {
     try {
       serial_.setPort(serial_port_);
@@ -79,41 +106,8 @@ void Referee::run(const std::string &state_name) {
     }
 
     if (is_open_) {
-      is_first_send_ = true;
       ROS_INFO("Referee system reconnected.");
     }
-  }
-}
-
-/******************* Receive data from referee system *************************/
-void Referee::read() {
-  std::vector<uint8_t> rx_buffer;
-  std::vector<uint8_t> temp_buffer;
-  int rx_len;
-
-  if (serial_.waitReadable()) {
-    try {
-      rx_len = serial_.available();
-      serial_.read(rx_buffer, rx_len);
-    } catch (serial::IOException &e) {
-      ROS_ERROR("Referee system disconnect.");
-      is_open_ = false;
-      return;
-    }
-
-    // Unpack data from power manager
-    power_manager_data_.read(rx_buffer);
-
-    // Unpack data from referee system
-    for (int kI = kUnpackLength; kI > rx_len; --kI) {
-      temp_buffer.insert(temp_buffer.begin(), rx_data_[kI - 1]);
-    }
-    temp_buffer.insert(temp_buffer.end(), rx_buffer.begin(), rx_buffer.end());
-
-    rx_data_.clear();
-    rx_data_.insert(rx_data_.begin(), temp_buffer.begin(), temp_buffer.end());
-
-    unpack(rx_data_);
   }
 
   getId();

@@ -155,7 +155,7 @@ void Fsm<T>::run() {
   // TODO: Safety check
 
   // run referee system
-  data_.referee_->run(current_state_->state_name_);
+  data_.referee_->read();
 
   // Run the robot control code if operating mode is not unsafe
   if (operating_mode_ != FsmOperatingMode::kEStop) {
@@ -176,6 +176,8 @@ void Fsm<T>::run() {
         current_state_->setControlMode(control_mode_);
         // Run the iteration for the current state normally
         current_state_->run();
+        // Send data to client
+        data_.referee_->write(current_state_->state_name_, current_state_->graph_operate_type_);
       }
     }
 

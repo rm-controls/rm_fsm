@@ -58,7 +58,8 @@ class Referee {
   Referee() = default;
   ~Referee() = default;
   void init();
-  void run(const std::string &state_name);
+  void read();
+  void write(const std::string &state_name, uint8_t operate_type);
 
   void drawGraphic(int side, GraphicColorType color, GraphicOperateType operate_type);
   void drawCharacter(int side, GraphicColorType color, uint8_t operate_type, std::string data);
@@ -70,7 +71,6 @@ class Referee {
   PowerManagerData power_manager_data_;
 
   bool is_open_ = false;
-  bool is_first_send_ = true;
   int robot_id_ = 0;
   int client_id_ = 0;
   ros::Publisher referee_pub_;
@@ -78,7 +78,6 @@ class Referee {
   rm_msgs::Referee referee_pub_data_;
 
  private:
-  void read();
   void getId();
   void unpack(const std::vector<uint8_t> &rx_buffer);
   void getData(uint8_t *frame);

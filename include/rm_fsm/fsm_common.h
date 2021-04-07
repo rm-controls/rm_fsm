@@ -57,6 +57,7 @@ class State {
   tf2_ros::TransformListener *tf_listener_;
 
   std::string control_mode_;
+  uint8_t graph_operate_type_;
 
   // chassis fsm control accelerate
   double accel_x_ = 0.0;
