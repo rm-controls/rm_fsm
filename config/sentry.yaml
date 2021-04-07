@@ -27,4 +27,6 @@ rm_fsm:
     start: 0.3
     end: 1.00
     calibration_speed: 0.15
+  shooter_heat_limit:
+    safe_hz: 2
 

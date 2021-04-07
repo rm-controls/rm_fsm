@@ -6,7 +6,8 @@
 
 ShooterHeatLimit::ShooterHeatLimit(ros::NodeHandle &nh) {
   ros::NodeHandle shooter_heat_limit_nh = ros::NodeHandle(nh, "shooter_heat_limit");
-  ros::NodeHandle pid_nh = ros::NodeHandle(nh, "power_limit/pid_buffer");
+
+  shooter_heat_limit_nh.param("safe_hz", safe_hz_, 0.2);
 }
 
 void ShooterHeatLimit::input(Referee *referee, double shoot_hz) {
@@ -43,7 +44,7 @@ void ShooterHeatLimit::input(Referee *referee, double shoot_hz) {
       }
     }
   } else {
-    hz = shoot_hz;
+    hz = safe_hz_;
   }
 }
 

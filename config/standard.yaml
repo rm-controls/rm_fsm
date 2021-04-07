@@ -26,3 +26,5 @@ rm_fsm:
     coeff: 0.3
     multiple: 7.5
     lowest_effort: 6
+  shooter_heat_limit:
+    safe_hz: 2
