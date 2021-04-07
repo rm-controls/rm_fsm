@@ -43,8 +43,7 @@ void PowerLimit::input(RefereeData referee_data_,
       chassis_current_need = 99;
       this->current_ = chassis_current_need;
     } else {
-      // w1 = w0 - 0.1 * (chassis_power - limit_power);
-      // w2 = w1 - 0.1 * (chassis_power - limit_power);
+
       if (chassis_capacity <= 0.23 || end_over_power_mode_flag_) {
         chassis_current_need = (chassis_current_limit + 5 * w0 / chassis_voltage);
         this->current_ = chassis_current_need * coeff;

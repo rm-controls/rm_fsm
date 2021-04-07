@@ -79,15 +79,21 @@ void StateAutomatic<T>::run() {
     this->data_->target_cost_function_->input(this->data_->track_data_array_);
     attack_id_ = this->data_->target_cost_function_->output();
     //shooter control
-    if (attack_id_ != 0 && this->data_->gimbal_des_error_.error_yaw < 0.5
-        && this->data_->gimbal_des_error_.error_pitch < 0.5) {
+    if (attack_id_ != 0 && this->data_->gimbal_des_error_.error_yaw < this->gimbal_error_limit_
+        && this->data_->gimbal_des_error_.error_pitch < this->gimbal_error_limit_) {
       this->setShoot(rm_msgs::ShootCmd::PUSH,
-                     rm_msgs::ShootCmd::SPEED_30M_PER_SECOND,
+                     30,
+                     this->data_->shooter_heat_limit_->output(),
+                     now);
+    } else if (now - last_time_ > ros::Duration(0.5)) {
+      this->setShoot(rm_msgs::ShootCmd::PUSH,
+                     30,
                      this->data_->shooter_heat_limit_->output(),
                      now);
     } else {
-      this->setShoot(rm_msgs::ShootCmd::READY, rm_msgs::ShootCmd::SPEED_30M_PER_SECOND, 0, now);
+      this->setShoot(rm_msgs::ShootCmd::READY, 30, 0, now);
     }
+
 
     //chassis control
     if ((current_position_ >= end_) && (point_side_ == 1))
@@ -117,7 +123,7 @@ void StateAutomatic<T>::run() {
       this->setGimbal(rm_msgs::GimbalCmd::TRACK, 0, 0, attack_id_, 30);
       last_time_ = now;
     } else {
-      if (now - last_time_ > ros::Duration(1.0)) {
+      if (now - last_time_ > ros::Duration(0.5)) {
         if (pitch > 0.750)
           gimbal_position_ = 1;
         else if (pitch < (0.459))

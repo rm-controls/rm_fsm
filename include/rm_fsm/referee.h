@@ -7,6 +7,7 @@
 #include <cstdint>
 #include <serial/serial.h>
 #include <rm_msgs/Referee.h>
+#include <rm_msgs/PowerManagerData.h>
 #include "rm_fsm/protocol.h"
 
 struct RefereeData {
@@ -74,8 +75,10 @@ class Referee {
   int robot_id_ = 0;
   int client_id_ = 0;
   ros::Publisher referee_pub_;
+  ros::Publisher power_manager_pub_;
   ros::Time last_send_ = ros::Time::now();
   rm_msgs::Referee referee_pub_data_;
+  rm_msgs::PowerManagerData power_manager_pub_data_;
 
  private:
   void getId();
