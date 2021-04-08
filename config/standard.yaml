@@ -8,7 +8,7 @@ rm_fsm:
     expect_shoot_hz: 10
     safe_shoot_hz: 3
     safe_shoot_speed: 10.0
-    gimbal_error_limit: 0.34
+    gimbal_error_limit: 0.17
     rc_param:
       coefficient_x: 3.5
       coefficient_y: 3.5
@@ -16,8 +16,8 @@ rm_fsm:
       coefficient_yaw: 12.56
       coefficient_pitch: 12.56
     pc_param:
-      coefficient_x: 2.0
-      coefficient_y: 2.0
+      coefficient_x: 5.0
+      coefficient_y: 5.0
       coefficient_angular: 1.0
       coefficient_yaw: 750.0
       coefficient_pitch: 750.0
