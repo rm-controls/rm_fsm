@@ -32,4 +32,4 @@ rm_fsm:
     multiple: 15.0
     safety_current: 6.0
     use_power_manager: false
-    default_power_limit: false
+    default_power_limit: true
