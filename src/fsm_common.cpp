@@ -80,8 +80,7 @@ void State<T>::setChassis(uint8_t chassis_mode, double linear_x, double linear_y
     } else {
       data_->power_limit_->input(data_->referee_->referee_data_,
                                  data_->referee_->power_manager_data_,
-                                 use_power_manager_,
-                                 data_->dbus_data_.key_shift || default_power_limit_);
+                                 use_power_manager_, default_power_limit_);
       data_->chassis_cmd_.effort_limit = data_->power_limit_->output();
     }
   } else {
