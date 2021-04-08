@@ -102,7 +102,6 @@ void StateAutomatic<T>::run() {
 
     //chassis control
     if (column_) {
-      std::cout << current_position_;
       if ((current_position_ >= end_ - collision_distance_) && (point_side_ == 1))
         point_side_ = 2;
       else if ((current_position_ <= start_ + collision_distance_) && (point_side_ == 3))
