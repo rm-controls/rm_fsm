@@ -56,6 +56,8 @@ void StateAutomatic<T>::run() {
   ros::Time now = ros::Time::now();
   double stop_distance = 0.5 * auto_move_chassis_speed_ * auto_move_chassis_speed_ / auto_move_accel_x_;
   this->loadParam();
+  this->actual_shoot_speed_ = this->safe_shoot_speed_;
+  this->ultimate_shoot_speed_ = this->safe_shoot_speed_;
 
   try {
     gimbal_transformStamped = this->tf_.lookupTransform("yaw", "pitch", ros::Time(0));
