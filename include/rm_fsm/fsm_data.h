@@ -7,6 +7,7 @@
 #include <ros/ros.h>
 #include <geometry_msgs/Twist.h>
 #include <geometry_msgs/Vector3.h>
+#include <nav_msgs/Odometry.h>
 #include <rm_msgs/DbusData.h>
 #include <rm_msgs/ChassisCmd.h>
 #include <rm_msgs/GimbalCmd.h>
@@ -25,6 +26,7 @@ class FsmData {
   ros::Subscriber dbus_sub_;
   ros::Subscriber track_sub_;
   ros::Subscriber gimbal_des_error_sub_;
+  ros::Subscriber odom_sub_;
 
   rm_msgs::DbusData dbus_data_;
   rm_msgs::TrackDataArray track_data_array_;
@@ -47,11 +49,13 @@ class FsmData {
   ros::Publisher shooter_cmd_pub_;
   ShooterHeatLimit *shooter_heat_limit_{};
 
+  nav_msgs::Odometry odom_;
+
   Referee *referee_{};
 
   void init(ros::NodeHandle nh) {
     power_limit_ = new PowerLimit(nh);
-    shooter_heat_limit_ = new ShooterHeatLimit(nh);
+    shooter_heat_limit_ = new ShooterHeatLimit();
     target_cost_function_ = new TargetCostFunction(nh);
     referee_ = new Referee();
 
@@ -63,6 +67,8 @@ class FsmData {
         "/controllers/gimbal_controller/track", 10, &FsmData::trackCallback, this);
     gimbal_des_error_sub_ = nh.subscribe<rm_msgs::GimbalDesError>(
         "/controllers/gimbal_controller/error_des", 10, &FsmData::gimbalDesErrorCallback, this);
+    odom_sub_ = nh.subscribe<nav_msgs::Odometry>(
+        "/odom", 10, &FsmData::odomCallback, this);
 
     // pub
     ros::NodeHandle root_nh;
@@ -82,6 +88,9 @@ class FsmData {
   }
   void gimbalDesErrorCallback(const rm_msgs::GimbalDesError::ConstPtr &data) {
     gimbal_des_error_ = *data;
+  }
+  void odomCallback(const nav_msgs::Odometry::ConstPtr &data) {
+    odom_ = *data;
   }
 };
 

@@ -8,6 +8,11 @@ template<typename T>
 StateFollow<T>::StateFollow(FsmData<T> *fsm_data,
                             const std::string &state_string,
                             ros::NodeHandle &nh): State<T>(nh, fsm_data, state_string) {
+  normal_critical_speed_ = getParam(nh, "control_param/pc_param/normal_critical_speed", 1);
+  burst_critical_speed_ = getParam(nh, "control_param/pc_param/burst_critical_speed", 2);
+  normal_angular_ = getParam(nh, "control_param/pc_param/normal_angular", 1);
+  burst_angular_ = getParam(nh, "control_param/pc_param/burst_angular", 2);
+  robot_type_ = getParam(nh, "robot_type", (std::string) "hero");
 }
 
 template<typename T>
@@ -15,7 +20,8 @@ void StateFollow<T>::onEnter() {
   this->last_chassis_mode_ = rm_msgs::ChassisCmd::FOLLOW;
   this->last_shoot_mode_ = rm_msgs::ShootCmd::STOP;
   this->last_angular_z_ = 1;
-  this->graph_operate_type_ = kAdd;
+  this->actual_shoot_speed_ = this->safe_shoot_speed_;
+  this->ultimate_shoot_speed_ = this->safe_shoot_speed_;
   ROS_INFO("Enter follow mode");
 }
 
@@ -25,68 +31,73 @@ void StateFollow<T>::run() {
   double rate_yaw, rate_pitch;
   uint8_t chassis_mode, gimbal_mode, shoot_mode;
   uint8_t target_id;
-  uint8_t shoot_speed;
   double shoot_hz = 0;
   ros::Time now = ros::Time::now();
   uint8_t graph_operate_type;
+  int normal_critical_speed, burst_critical_speed, normal_angular, burst_angular;
 
   this->loadParam();
 
   if (this->control_mode_ == "pc") { // pc control
     // Check for press
     if (this->data_->dbus_data_.key_e) {
-      if (now - last_press_time_e_ < ros::Duration(0.2)) this->data_->dbus_data_.key_e = false;
+      if (now - last_press_time_e_ < ros::Duration(0.25)) this->data_->dbus_data_.key_e = false;
       else last_press_time_e_ = now;
     }
-    if (this->data_->dbus_data_.key_q) {
-      if (now - last_press_time_q_ < ros::Duration(0.2)) this->data_->dbus_data_.key_q = false;
-      else last_press_time_q_ = now;
-    }
     if (this->data_->dbus_data_.key_f) {
-      if (now - last_press_time_f_ < ros::Duration(0.2)) this->data_->dbus_data_.key_f = false;
+      if (now - last_press_time_f_ < ros::Duration(0.25)) this->data_->dbus_data_.key_f = false;
       else last_press_time_f_ = now;
     }
-    if (this->data_->dbus_data_.key_r) {
-      if (now - last_press_time_r_ < ros::Duration(0.2)) this->data_->dbus_data_.key_r = false;
-      else last_press_time_r_ = now;
+    if (this->data_->dbus_data_.key_q) {
+      if (now - last_press_time_q_ < ros::Duration(0.25)) this->data_->dbus_data_.key_q = false;
+      else last_press_time_q_ = now;
     }
-    if (this->data_->dbus_data_.key_b) {
-      if (now - last_press_time_b_ < ros::Duration(0.2)) this->data_->dbus_data_.key_b = false;
-      else last_press_time_b_ = now;
+    if (robot_type_ != "standard") {
+      this->data_->dbus_data_.key_shift = false;
     }
 
     // Send cmd to chassis
     linear_x = (this->data_->dbus_data_.key_w - this->data_->dbus_data_.key_s); // W/S
     linear_y = (this->data_->dbus_data_.key_a - this->data_->dbus_data_.key_d); // A/D
-    angular_z = 0;
+
+    // Update by robot level
+    normal_critical_speed =
+        normal_critical_speed_ * pow(1.1, this->data_->referee_->referee_data_.game_robot_status_.robot_level);
+    burst_critical_speed =
+        burst_critical_speed_ * pow(1.1, this->data_->referee_->referee_data_.game_robot_status_.robot_level);
+    normal_angular =
+        normal_angular_ * pow(1.1, this->data_->referee_->referee_data_.game_robot_status_.robot_level);
+    burst_angular =
+        burst_angular_ * pow(1.1, this->data_->referee_->referee_data_.game_robot_status_.robot_level);
+
     // Switch spin mode
-    if (this->data_->dbus_data_.key_f) {
-      chassis_mode = rm_msgs::ChassisCmd::FOLLOW;
-      is_spin_e_ = false;
-      is_spin_q_ = false;
-      this->last_chassis_mode_ = chassis_mode;
-      this->last_angular_z_ = angular_z;
-    } else if (this->data_->dbus_data_.key_e) {
-      if (is_spin_e_) {
-        chassis_mode = rm_msgs::ChassisCmd::FOLLOW;
-        is_spin_e_ = false;
+    if (this->data_->dbus_data_.key_e) {
+      if (is_spin_) {
+        is_spin_ = false;
+        this->last_chassis_mode_ = rm_msgs::ChassisCmd::FOLLOW;
       } else {
-        chassis_mode = rm_msgs::ChassisCmd::GYRO;
-        angular_z = -1;
-        is_spin_e_ = true;
-        is_spin_q_ = false;
+        is_spin_ = true;
       }
-      this->last_chassis_mode_ = chassis_mode;
-      this->last_angular_z_ = angular_z;
-    } else if (this->data_->dbus_data_.key_q) {
-      if (is_spin_q_) {
-        chassis_mode = rm_msgs::ChassisCmd::FOLLOW;
-        is_spin_q_ = false;
-      } else {
-        chassis_mode = rm_msgs::ChassisCmd::GYRO;
-        angular_z = 1;
-        is_spin_q_ = true;
-        is_spin_e_ = false;
+    }
+    if (is_spin_) {
+      if (this->data_->dbus_data_.key_shift) { // burst mode
+        if (pow(this->data_->odom_.twist.twist.linear.x, 2) + pow(this->data_->odom_.twist.twist.linear.x, 2)
+            <= pow(normal_critical_speed, 2)) {
+          chassis_mode = rm_msgs::ChassisCmd::GYRO;
+          angular_z = normal_angular;
+        } else {
+          chassis_mode = rm_msgs::ChassisCmd::FOLLOW;
+          angular_z = normal_angular;
+        }
+      } else { // normal mode
+        if (pow(this->data_->odom_.twist.twist.linear.x, 2) + pow(this->data_->odom_.twist.twist.linear.x, 2)
+            <= pow(burst_critical_speed, 2)) {
+          chassis_mode = rm_msgs::ChassisCmd::GYRO;
+          angular_z = burst_angular;
+        } else {
+          chassis_mode = rm_msgs::ChassisCmd::FOLLOW;
+          angular_z = normal_angular;
+        }
       }
       this->last_chassis_mode_ = chassis_mode;
       this->last_angular_z_ = angular_z;
@@ -99,31 +110,28 @@ void StateFollow<T>::run() {
     // Send cmd to gimbal
     rate_yaw = -this->data_->dbus_data_.m_x;
     rate_pitch = this->data_->dbus_data_.m_y;
+    this->actual_shoot_speed_ = this->data_->referee_->getActualBulletSpeed(this->actual_shoot_speed_);
     // Switch track mode
     if (this->data_->dbus_data_.p_r) {
       this->data_->target_cost_function_->input(this->data_->track_data_array_);
       target_id = this->data_->target_cost_function_->output();
       if (target_id == 0) {
         gimbal_mode = rm_msgs::GimbalCmd::RATE;
-        shoot_speed = this->shoot_speed_;
       } else {
         gimbal_mode = rm_msgs::GimbalCmd::TRACK;
-        shoot_speed = this->data_->referee_->getBulletSpeed(this->shoot_speed_);
       }
     } else {
       gimbal_mode = rm_msgs::GimbalCmd::RATE;
     }
-    this->setGimbal(gimbal_mode, rate_yaw, rate_pitch, target_id, shoot_speed);
+    this->setGimbal(gimbal_mode, rate_yaw, rate_pitch, target_id, this->actual_shoot_speed_);
 
     // Send cmd to shooter
+    this->ultimate_shoot_speed_ = this->data_->referee_->getUltimateBulletSpeed(this->ultimate_shoot_speed_);
     // Switch friction mode
-    if (this->data_->dbus_data_.key_b) {
+    if (this->data_->dbus_data_.key_f) {
       if (is_friction_ready_) {
         shoot_mode = rm_msgs::ShootCmd::STOP;
         is_friction_ready_ = false;
-      } else {
-        shoot_mode = rm_msgs::ShootCmd::READY;
-        is_friction_ready_ = true;
       }
       this->last_shoot_mode_ = shoot_mode;
     } else {
@@ -131,15 +139,18 @@ void StateFollow<T>::run() {
     }
 
     // Switch shooter heat limit mode
-    if (this->data_->dbus_data_.key_r) {
+    if (this->data_->dbus_data_.key_q) {
       is_burst_ = !is_burst_;
     }
 
-    if (this->is_friction_ready_ && this->data_->dbus_data_.p_l) { // enable trigger
+    if (this->data_->dbus_data_.p_l) { // enable trigger
+      shoot_mode = rm_msgs::ShootCmd::READY;
+      this->last_shoot_mode_ = shoot_mode;
+      is_friction_ready_ = true;
       if (is_burst_) { // ignore shooter heat limit
-        shoot_hz = this->shoot_hz_;
+        shoot_hz = this->expect_shoot_hz_;
       } else {
-        this->data_->shooter_heat_limit_->input(this->data_->referee_, this->shoot_hz_);
+        this->data_->shooter_heat_limit_->input(this->data_->referee_, this->expect_shoot_hz_, this->safe_shoot_hz_);
         shoot_hz = this->data_->shooter_heat_limit_->output();
       }
 
@@ -161,7 +172,7 @@ void StateFollow<T>::run() {
         shoot_mode = rm_msgs::ShootCmd::PUSH;
       }
     }
-    this->setShoot(shoot_mode, shoot_speed, shoot_hz, now);
+    this->setShoot(shoot_mode, this->ultimate_shoot_speed_, shoot_hz, now);
 
     // Send command to sentry
     if (this->data_->dbus_data_.key_z) {
@@ -196,12 +207,12 @@ void StateFollow<T>::run() {
     // Send command to gimbal
     rate_yaw = -this->data_->dbus_data_.ch_l_x;
     rate_pitch = -this->data_->dbus_data_.ch_l_y;
-    shoot_speed = this->shoot_speed_;
     this->setGimbal(rm_msgs::GimbalCmd::RATE, rate_yaw, rate_pitch, 0, 0.0);
 
     // Send command to shooter
+    this->ultimate_shoot_speed_ = this->data_->referee_->getUltimateBulletSpeed(this->ultimate_shoot_speed_);
     if (this->data_->dbus_data_.s_l == rm_msgs::DbusData::UP) {
-      this->data_->shooter_heat_limit_->input(this->data_->referee_, this->shoot_hz_);
+      this->data_->shooter_heat_limit_->input(this->data_->referee_, this->expect_shoot_hz_, this->safe_shoot_hz_);
       shoot_hz = this->data_->shooter_heat_limit_->output();
       shoot_mode = rm_msgs::ShootCmd::PUSH;
     } else if (this->data_->dbus_data_.s_l == rm_msgs::DbusData::MID) {
@@ -209,7 +220,7 @@ void StateFollow<T>::run() {
     } else {
       shoot_mode = rm_msgs::ShootCmd::STOP;
     }
-    this->setShoot(shoot_mode, shoot_speed, shoot_hz, now);
+    this->setShoot(shoot_mode, this->ultimate_shoot_speed_, shoot_hz, now);
   }
 }
 template<typename T>

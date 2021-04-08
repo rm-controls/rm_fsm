@@ -12,6 +12,8 @@ StateRaw<T>::StateRaw(FsmData<T> *fsm_data,
 
 template<typename T>
 void StateRaw<T>::onEnter() {
+  this->actual_shoot_speed_ = this->safe_shoot_speed_;
+  this->ultimate_shoot_speed_ = this->safe_shoot_speed_;
   ROS_INFO("Enter raw mode");
 }
 
@@ -20,7 +22,6 @@ void StateRaw<T>::run() {
   double linear_x, linear_y, angular_z;
   double rate_yaw, rate_pitch;
   uint8_t shoot_mode;
-  int shoot_speed;
   double shoot_hz;
   ros::Time now = ros::Time::now();
 
@@ -39,18 +40,18 @@ void StateRaw<T>::run() {
   this->setGimbal(rm_msgs::GimbalCmd::RATE, rate_yaw, rate_pitch, 0, 0.0);
 
   // Send command to shooter
-  shoot_speed = this->shoot_speed_;
-  shoot_hz = this->shoot_hz_;
+  this->ultimate_shoot_speed_ = this->data_->referee_->getUltimateBulletSpeed(this->ultimate_shoot_speed_);
+  shoot_hz = this->expect_shoot_hz_;
   if (this->data_->dbus_data_.s_l == rm_msgs::DbusData::UP) {
     shoot_mode = rm_msgs::ShootCmd::PUSH;
-    this->data_->shooter_heat_limit_->input(this->data_->referee_, this->shoot_hz_);
+    this->data_->shooter_heat_limit_->input(this->data_->referee_, this->expect_shoot_hz_, this->safe_shoot_hz_);
     shoot_hz = this->data_->shooter_heat_limit_->output();
   } else if (this->data_->dbus_data_.s_l == rm_msgs::DbusData::MID) {
     shoot_mode = rm_msgs::ShootCmd::READY;
   } else {
     shoot_mode = rm_msgs::ShootCmd::STOP;
   }
-  this->setShoot(shoot_mode, shoot_speed, shoot_hz, now);
+  this->setShoot(shoot_mode, this->ultimate_shoot_speed_, shoot_hz, now);
 }
 template<typename T>
 void StateRaw<T>::onExit() {
