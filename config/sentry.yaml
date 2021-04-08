@@ -5,8 +5,9 @@ rm_fsm:
     accel_y: 5.0
     accel_angular: 10.0
     brake_multiple: 2
-    shoot_hz: 20
-    shoot_speed: 30
+    expect_shoot_hz: 10
+    safe_shoot_hz: 3
+    safe_shoot_speed: 10
     gimbal_error_limit: 1
     rc_param:
       coefficient_x: 1.0
@@ -27,6 +28,4 @@ rm_fsm:
     start: 0.3
     end: 1.00
     calibration_speed: 0.15
-  shooter_heat_limit:
-    safe_hz: 2
 

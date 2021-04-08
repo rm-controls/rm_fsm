@@ -55,7 +55,7 @@ class FsmData {
 
   void init(ros::NodeHandle nh) {
     power_limit_ = new PowerLimit(nh);
-    shooter_heat_limit_ = new ShooterHeatLimit(nh);
+    shooter_heat_limit_ = new ShooterHeatLimit();
     target_cost_function_ = new TargetCostFunction(nh);
     referee_ = new Referee();
 

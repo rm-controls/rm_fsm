@@ -75,7 +75,7 @@ void StateAutomatic<T>::run() {
     sum_effort = 0;
   }
   if(calibration_) {
-    this->data_->shooter_heat_limit_->input(this->data_->referee_, this->shoot_hz_);
+    this->data_->shooter_heat_limit_->input(this->data_->referee_, this->expect_shoot_hz_, this->safe_shoot_hz_);
     this->data_->target_cost_function_->input(this->data_->track_data_array_);
     attack_id_ = this->data_->target_cost_function_->output();
     //shooter control

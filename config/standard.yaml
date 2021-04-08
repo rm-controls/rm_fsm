@@ -5,8 +5,8 @@ rm_fsm:
     accel_y: 5.0
     accel_angular: 2.0
     brake_multiple: 2
-    expect_shoot_hz: 5
-    safe_shoot_hz: 2
+    expect_shoot_hz: 10
+    safe_shoot_hz: 3
     safe_shoot_speed: 10
     gimbal_error_limit: 0.1745
     rc_param:
