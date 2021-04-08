@@ -23,10 +23,12 @@ class StateFollow : public State<T> {
   ros::Time last_press_time_f_ = ros::Time::now();
   ros::Time last_press_time_q_ = ros::Time::now();
 
-  int normal_critical_speed_;
-  int burst_critical_speed_;
-  int normal_angular_;
-  int burst_angular_;
+  double normal_critical_speed_;
+  double burst_critical_speed_;
+  double normal_angular_;
+  double burst_angular_;
+  double spin_sin_amplitude_;
+  double spin_sin_frequency_;
 
   std::string robot_type_;
 };

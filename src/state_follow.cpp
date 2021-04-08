@@ -12,6 +12,8 @@ StateFollow<T>::StateFollow(FsmData<T> *fsm_data,
   burst_critical_speed_ = getParam(nh, "control_param/pc_param/burst_critical_speed", 2);
   normal_angular_ = getParam(nh, "control_param/pc_param/normal_angular", 1);
   burst_angular_ = getParam(nh, "control_param/pc_param/burst_angular", 2);
+  spin_sin_amplitude_ = getParam(nh, "control_param/pc_param/spin_sin_amplitude", 1.0);
+  spin_sin_frequency_ = getParam(nh, "control_param/pc_param/spin_sin_frequency", 6.28);
 }
 
 template<typename T>
@@ -31,7 +33,7 @@ void StateFollow<T>::run() {
   double shoot_hz = 0;
   ros::Time now = ros::Time::now();
   uint8_t graph_operate_type;
-  int normal_critical_speed, burst_critical_speed, normal_angular, burst_angular;
+  double normal_critical_speed, burst_critical_speed, normal_angular, burst_angular;
 
   this->loadParam();
   this->actual_shoot_speed_ = this->safe_shoot_speed_;
@@ -40,11 +42,11 @@ void StateFollow<T>::run() {
   if (this->control_mode_ == "pc") { // pc control
     // Check for press
     if (this->data_->dbus_data_.key_e) {
-      if (now - last_press_time_e_ < ros::Duration(0.25)) this->data_->dbus_data_.key_e = false;
+      if (now - last_press_time_e_ < ros::Duration(0.1)) this->data_->dbus_data_.key_e = false;
       else last_press_time_e_ = now;
     }
     if (this->data_->dbus_data_.key_q) {
-      if (now - last_press_time_q_ < ros::Duration(0.25)) this->data_->dbus_data_.key_q = false;
+      if (now - last_press_time_q_ < ros::Duration(0.1)) this->data_->dbus_data_.key_q = false;
       else last_press_time_q_ = now;
     }
 
@@ -73,22 +75,22 @@ void StateFollow<T>::run() {
     }
     if (is_spin_) {
       if (this->data_->dbus_data_.key_shift) { // burst mode
-        if (pow(this->data_->odom_.twist.twist.linear.x, 2) + pow(this->data_->odom_.twist.twist.linear.x, 2)
-            <= pow(normal_critical_speed, 2)) {
-          chassis_mode = rm_msgs::ChassisCmd::GYRO;
-          angular_z = normal_angular;
-        } else {
-          chassis_mode = rm_msgs::ChassisCmd::FOLLOW;
-          angular_z = normal_angular;
-        }
-      } else { // normal mode
-        if (pow(this->data_->odom_.twist.twist.linear.x, 2) + pow(this->data_->odom_.twist.twist.linear.x, 2)
+        if (pow(this->data_->odom_.twist.twist.linear.x, 2) + pow(this->data_->odom_.twist.twist.linear.y, 2)
             <= pow(burst_critical_speed, 2)) {
           chassis_mode = rm_msgs::ChassisCmd::GYRO;
-          angular_z = burst_angular;
+          angular_z = burst_angular + spin_sin_amplitude_ * abs(sin(spin_sin_frequency_ * now.toNSec()));
         } else {
           chassis_mode = rm_msgs::ChassisCmd::FOLLOW;
-          angular_z = normal_angular;
+          angular_z = burst_angular + spin_sin_amplitude_ * abs(sin(spin_sin_frequency_ * now.toNSec()));
+        }
+      } else { // normal mode
+        if (pow(this->data_->odom_.twist.twist.linear.x, 2) + pow(this->data_->odom_.twist.twist.linear.y, 2)
+            <= pow(normal_critical_speed, 2)) {
+          chassis_mode = rm_msgs::ChassisCmd::GYRO;
+          angular_z = normal_angular + spin_sin_amplitude_ * abs(sin(spin_sin_frequency_ * now.toNSec()));
+        } else {
+          chassis_mode = rm_msgs::ChassisCmd::FOLLOW;
+          angular_z = normal_angular + spin_sin_amplitude_ * abs(sin(spin_sin_frequency_ * now.toNSec()));
         }
       }
       this->last_chassis_mode_ = chassis_mode;
@@ -147,7 +149,7 @@ void StateFollow<T>::run() {
       }
 
       if (this->data_->dbus_data_.p_r) {
-        if (now - this->data_->gimbal_des_error_.stamp > ros::Duration(0.5)) { // check time stamp
+        if (now - this->data_->gimbal_des_error_.stamp > ros::Duration(1.0)) { // check time stamp
           this->data_->gimbal_des_error_.error_yaw = 0;
           this->data_->gimbal_des_error_.error_pitch = 0;
           ROS_WARN("The time stamp of gimbal track error is too old");
@@ -167,13 +169,13 @@ void StateFollow<T>::run() {
     this->setShoot(shoot_mode, this->ultimate_shoot_speed_, shoot_hz, now);
 
     // Send command to sentry
-    if (this->data_->dbus_data_.key_z) {
-      int receiver_id;
-      std::vector<uint8_t> sentry_cmd(1, 1);
-      if (this->data_->referee_->robot_id_ > 100) receiver_id = kBlueSentry;
-      else receiver_id = kRedSentry;
-      this->data_->referee_->sendInteractiveData(0x0200, receiver_id, sentry_cmd);
-    }
+//    if (this->data_->dbus_data_.key_z) {
+//      int receiver_id;
+//      std::vector<uint8_t> sentry_cmd(1, 1);
+//      if (this->data_->referee_->robot_id_ > 100) receiver_id = kBlueSentry;
+//      else receiver_id = kRedSentry;
+//      this->data_->referee_->sendInteractiveData(0x0200, receiver_id, sentry_cmd);
+//    }
 
     // Refresh client graph
     if (this->data_->dbus_data_.key_x) {
