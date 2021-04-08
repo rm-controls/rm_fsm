@@ -10,13 +10,12 @@
 
 class ShooterHeatLimit {
  public:
-  explicit ShooterHeatLimit(ros::NodeHandle &nh);
-  void input(Referee *referee, double shoot_hz);
+  ShooterHeatLimit() = default;
+  void input(Referee *referee, double expect_shoot_hz, double safe_shoot_hz);
   double output() const;
 
  private:
   double hz = 0.0;
-  double safe_hz_{};
 };
 
 #endif //SRC_RM_SOFTWARE_RM_FSM_INCLUDE_RM_FSM_SHOOTER_HEAT_LIMIT_H_

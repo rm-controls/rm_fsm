@@ -66,7 +66,8 @@ class Referee {
   void drawCharacter(int type, GraphicColorType color, uint8_t operate_type, std::string data);
   void sendInteractiveData(int data_cmd_id, int receiver_id, const std::vector<uint8_t> &data);
 
-  double getBulletSpeed(int shoot_speed) const;
+  double getActualBulletSpeed(int shoot_speed) const;
+  double getUltimateBulletSpeed(int shoot_speed) const;
 
   RefereeData referee_data_{};
   PowerManagerData power_manager_data_;
