@@ -16,11 +16,11 @@ rm_fsm:
       coefficient_yaw: 12.56
       coefficient_pitch: 12.56
     pc_param:
-      coefficient_x: 3.5
-      coefficient_y: 3.5
-      coefficient_angular: 6.0
-      coefficient_yaw: 600.0
-      coefficient_pitch: 600.0
+      coefficient_x: 2.0
+      coefficient_y: 2.0
+      coefficient_angular: 1.0
+      coefficient_yaw: 750.0
+      coefficient_pitch: 750.0
       normal_critical_speed: 1
       burst_critical_speed: 2
       normal_angular: 1

@@ -59,7 +59,6 @@ void StateFollow<T>::run() {
     // Send cmd to chassis
     linear_x = (this->data_->dbus_data_.key_w - this->data_->dbus_data_.key_s); // W/S
     linear_y = (this->data_->dbus_data_.key_a - this->data_->dbus_data_.key_d); // A/D
-    angular_z = 0;
 
     // Update by robot level
     normal_critical_speed =
@@ -133,9 +132,6 @@ void StateFollow<T>::run() {
       if (is_friction_ready_) {
         shoot_mode = rm_msgs::ShootCmd::STOP;
         is_friction_ready_ = false;
-      } else {
-        shoot_mode = rm_msgs::ShootCmd::READY;
-        is_friction_ready_ = true;
       }
       this->last_shoot_mode_ = shoot_mode;
     } else {
@@ -147,7 +143,10 @@ void StateFollow<T>::run() {
       is_burst_ = !is_burst_;
     }
 
-    if (this->is_friction_ready_ && this->data_->dbus_data_.p_l) { // enable trigger
+    if (this->data_->dbus_data_.p_l) { // enable trigger
+      shoot_mode = rm_msgs::ShootCmd::READY;
+      this->last_shoot_mode_ = shoot_mode;
+      is_friction_ready_ = true;
       if (is_burst_) { // ignore shooter heat limit
         shoot_hz = this->expect_shoot_hz_;
       } else {
