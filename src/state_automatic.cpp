@@ -73,22 +73,22 @@ void StateAutomatic<T>::run() {
   catch (tf2::TransformException &ex) {
     //ROS_WARN("%s", ex.what());
   }
-  sum_effort+=effort_data_.effort[0];
+  sum_effort += effort_data_.effort[0];
   time_counter2++;
- if(time_counter2==10){
+  if (time_counter2 == 10) {
     current_position_ = chassis_transformStamped.transform.translation.x;
     speed_ = effort_data_.velocity[0];
-    now_effort = sum_effort/10.0;
-    time_counter2=0;
+    now_effort = sum_effort / 10.0;
+    time_counter2 = 0;
     sum_effort = 0;
   }
-  if(calibration_) {
+  if (calibration_) {
     this->data_->shooter_heat_limit_->input(this->data_->referee_, this->expect_shoot_hz_, this->safe_shoot_hz_);
     this->data_->target_cost_function_->input(this->data_->track_data_array_);
     attack_id_ = this->data_->target_cost_function_->output();
     //shooter control
-    if (attack_id_ != 0 && this->data_->gimbal_des_error_.error_yaw < this->gimbal_error_limit_
-        && this->data_->gimbal_des_error_.error_pitch < this->gimbal_error_limit_) {
+    if (attack_id_ != 0 && std::abs(this->data_->gimbal_des_error_.error_yaw) < this->gimbal_error_limit_
+        && std::abs(this->data_->gimbal_des_error_.error_pitch) < this->gimbal_error_limit_) {
       this->setShoot(rm_msgs::ShootCmd::PUSH,
                      30,
                      this->data_->shooter_heat_limit_->output(),
@@ -176,9 +176,9 @@ void StateAutomatic<T>::run() {
         odom2baselink_.transform.translation.z = 0;
         odom2baselink_.transform.rotation.w = 1;
         br.sendTransform(odom2baselink_);
-        }
       }
     }
+  }
 }
 
 template<typename T>
