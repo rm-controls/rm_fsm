@@ -21,7 +21,6 @@ void State<T>::loadParam() {
   safe_shoot_hz_ = getParam(nh_, "safe_shoot_hz", 5.0);
   safe_shoot_speed_ = getParam(nh_, "safe_shoot_speed", 5.0);
   gimbal_error_limit_ = getParam(nh_, "control_param/gimbal_error_limit", 0.5);
-  lowest_effort_ = getParam(nh_, "control_param/power_limit/lowest_effort", 10);
   if (control_mode_ == "pc") { // pc mode
     coefficient_x_ = getParam(nh_, "control_param/pc_param/coefficient_x", 3.5);
     coefficient_y_ = getParam(nh_, "control_param/pc_param/coefficient_y", 3.5);
