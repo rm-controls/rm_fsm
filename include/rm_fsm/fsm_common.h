@@ -75,14 +75,18 @@ class State {
   double coefficient_pitch_ = 0.0;
   double gimbal_error_limit_ = 2.0;
 
-  double shoot_hz_ = 0.0;
-  int shoot_speed_ = 0;
-
-  double lowest_effort_;
+  double expect_shoot_hz_ = 0.0;
+  double safe_shoot_hz_ = 0.0;
+  double safe_shoot_speed_ = 0;
+  double actual_shoot_speed_ = 0;
+  int ultimate_shoot_speed_ = 0;
 
   uint8_t last_chassis_mode_;
   uint8_t last_shoot_mode_;
   double last_angular_z_;
+
+  bool use_power_manager_;
+  bool default_power_limit_;
 };
 
 /**
