@@ -41,15 +41,15 @@ void StateFollow<T>::run() {
   if (this->control_mode_ == "pc") { // pc control
     // Check for press
     if (this->data_->dbus_data_.key_e) {
-      if (now - last_press_time_e_ < ros::Duration(0.2)) this->data_->dbus_data_.key_e = false;
+      if (now - last_press_time_e_ < ros::Duration(0.25)) this->data_->dbus_data_.key_e = false;
       else last_press_time_e_ = now;
     }
     if (this->data_->dbus_data_.key_f) {
-      if (now - last_press_time_f_ < ros::Duration(0.2)) this->data_->dbus_data_.key_f = false;
+      if (now - last_press_time_f_ < ros::Duration(0.25)) this->data_->dbus_data_.key_f = false;
       else last_press_time_f_ = now;
     }
     if (this->data_->dbus_data_.key_q) {
-      if (now - last_press_time_q_ < ros::Duration(0.2)) this->data_->dbus_data_.key_q = false;
+      if (now - last_press_time_q_ < ros::Duration(0.25)) this->data_->dbus_data_.key_q = false;
       else last_press_time_q_ = now;
     }
     if (robot_type_ != "standard") {

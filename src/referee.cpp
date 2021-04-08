@@ -374,13 +374,8 @@ void Referee::getId() {
 
 double Referee::getActualBulletSpeed(int shoot_speed) const {
   if (is_open_) {
-    if (robot_id_ == kBlueHero || robot_id_ == kRedHero) { // 42mm
-      if (referee_data_.shoot_data_.shooter_id == 3 && referee_data_.shoot_data_.bullet_speed != 0)
-        return referee_data_.shoot_data_.bullet_speed;
-    } else { // 17mm
-      if (referee_data_.shoot_data_.shooter_id == 1 && referee_data_.shoot_data_.bullet_speed != 0)
-        return referee_data_.shoot_data_.bullet_speed;
-    }
+    if (referee_data_.shoot_data_.bullet_speed != 0)
+      return referee_data_.shoot_data_.bullet_speed;
   }
   return shoot_speed;
 }
@@ -388,12 +383,10 @@ double Referee::getActualBulletSpeed(int shoot_speed) const {
 double Referee::getUltimateBulletSpeed(int shoot_speed) const {
   if (is_open_) {
     if (robot_id_ == kBlueHero || robot_id_ == kRedHero) { // 42mm
-      if (referee_data_.shoot_data_.shooter_id == 3
-          && referee_data_.game_robot_status_.shooter_id1_42mm_speed_limit != 0)
+      if (referee_data_.game_robot_status_.shooter_id1_42mm_speed_limit != 0)
         return referee_data_.game_robot_status_.shooter_id1_42mm_speed_limit;
     } else { // 17mm
-      if (referee_data_.shoot_data_.shooter_id == 1
-          && referee_data_.game_robot_status_.shooter_id1_17mm_speed_limit != 0)
+      if (referee_data_.game_robot_status_.shooter_id1_17mm_speed_limit != 0)
         return referee_data_.game_robot_status_.shooter_id1_17mm_speed_limit;
     }
   }

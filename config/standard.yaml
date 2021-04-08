@@ -7,7 +7,7 @@ rm_fsm:
     brake_multiple: 2
     expect_shoot_hz: 10
     safe_shoot_hz: 3
-    safe_shoot_speed: 10
+    safe_shoot_speed: 10.0
     gimbal_error_limit: 0.1745
     rc_param:
       coefficient_x: 3.5

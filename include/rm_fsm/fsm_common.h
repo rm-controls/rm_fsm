@@ -78,7 +78,7 @@ class State {
   double expect_shoot_hz_ = 0.0;
   double safe_shoot_hz_ = 0.0;
   double safe_shoot_speed_ = 0;
-  int actual_shoot_speed_ = 0;
+  double actual_shoot_speed_ = 0;
   int ultimate_shoot_speed_ = 0;
 
   double lowest_effort_;
