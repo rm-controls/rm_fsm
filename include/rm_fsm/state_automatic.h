@@ -23,13 +23,16 @@ class StateAutomatic : public State<T> {
   double auto_move_chassis_speed_;
   double auto_move_pitch_speed_;
   double auto_move_yaw_speed_;
+  double auto_move_accel_x_;
   double start_;
   double end_;
   double calibration_speed_;
   int calibration_;
   int attack_id_;
+  int column_;
   double speed_;
   double current_position_;
+  double collision_distance_;
   ros::Time last_time_ = ros::Time::now();
   ros::Time calibration_time_ = ros::Time::now();
 

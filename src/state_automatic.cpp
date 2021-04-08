@@ -14,11 +14,19 @@ StateAutomatic<T>::StateAutomatic(FsmData<T> *fsm_data,
   speed_ = 0;
   current_position_ = 0;
   auto_move_chassis_speed_ = getParam(nh, "auto_move/chassis_speed", 1.0);
+  auto_move_accel_x_ = getParam(nh, "control_param/accel_x", 2.0);
   auto_move_pitch_speed_ = getParam(nh, "auto_move/pitch_speed", 0.5);
   auto_move_yaw_speed_ = getParam(nh, "auto_move/yaw_speed", 3.14);
+  collision_distance_ = getParam(nh, "auto_move/collision_distance", 0.3);
   start_ = getParam(nh, "auto_move/start", 0.3);
   end_ = getParam(nh, "auto_move/end", 2.5);
+  end_ = end_ - 0.275 - 0.275;
   calibration_speed_ = getParam(nh, "auto_move/calibration_speed", 0.15);
+  column_ = getParam(nh, "auto_move/column", 1);
+  if (column_)
+    std::cout << "use column_" << std::endl;
+  else
+    std::cout << "not use column_" << std::endl;
   map2odom_.header.stamp = ros::Time::now();
   map2odom_.header.frame_id = "map";
   map2odom_.child_frame_id = "odom";
@@ -43,12 +51,10 @@ void StateAutomatic<T>::run() {
   geometry_msgs::TransformStamped chassis_transformStamped;
   double now_effort = 0;
   static double sum_effort = 0;
-  static int time_counter1 = 0;
   static int time_counter2 = 0;
   double roll{}, pitch{}, yaw{};
   ros::Time now = ros::Time::now();
-
-
+  double stop_distance = 0.5 * auto_move_chassis_speed_ * auto_move_chassis_speed_ / auto_move_accel_x_;
   this->loadParam();
 
   try {
@@ -94,29 +100,38 @@ void StateAutomatic<T>::run() {
       this->setShoot(rm_msgs::ShootCmd::READY, 30, 0, now);
     }
 
-
     //chassis control
-    if ((current_position_ >= end_) && (point_side_ == 1))
-      point_side_ = 2;
-    else if ((current_position_ <= start_) && (point_side_ == 3))
-      point_side_ = 1;
-    if (point_side_ == 1) {
-      //std::cout << "Enter 1 state" << std::endl;
-      this->setChassis(rm_msgs::ChassisCmd::RAW, auto_move_chassis_speed_, 0.0, 0.0);
-    } else if (point_side_ == 2) {
-      //std::cout << "Enter 2 state" << std::endl;
-      this->setChassis(rm_msgs::ChassisCmd::PASSIVE, 0.0, 0.0, 0.0);
-      if(speed_ <= 0)
-        point_side_ = 3;
-    } else if (point_side_ == 3) {
-      //std::cout << "Enter 3 state" << std::endl;
-      this->setChassis(rm_msgs::ChassisCmd::RAW, -auto_move_chassis_speed_, 0.0, 0.0);
-    } else if (point_side_ == 4) {
-      //std::cout << "Enter 4 state" << std::endl;
-      this->setChassis(rm_msgs::ChassisCmd::PASSIVE, 0.0, 0.0, 0.0);
-      if (speed_ >= 0)
+    if (column_) {
+      std::cout << current_position_;
+      if ((current_position_ >= end_ - collision_distance_) && (point_side_ == 1))
+        point_side_ = 2;
+      else if ((current_position_ <= start_ + collision_distance_) && (point_side_ == 3))
+        point_side_ = 4;
+      if (point_side_ == 1) {
+        this->setChassis(rm_msgs::ChassisCmd::RAW, auto_move_chassis_speed_, 0.0, 0.0);
+      } else if (point_side_ == 2) {
+        this->setChassis(rm_msgs::ChassisCmd::PASSIVE, 0.0, 0.0, 0.0);
+        if (speed_ <= 0)
+          point_side_ = 3;
+      } else if (point_side_ == 3) {
+        this->setChassis(rm_msgs::ChassisCmd::RAW, -auto_move_chassis_speed_, 0.0, 0.0);
+      } else if (point_side_ == 4) {
+        this->setChassis(rm_msgs::ChassisCmd::PASSIVE, 0.0, 0.0, 0.0);
+        if (speed_ >= 0)
+          point_side_ = 1;
+      }
+    } else {
+      if (current_position_ >= end_ - stop_distance - 0.2)
+        point_side_ = 2;
+      else if (current_position_ <= start_ + stop_distance)
         point_side_ = 1;
+      if (point_side_ == 1) {
+        this->setChassis(rm_msgs::ChassisCmd::RAW, auto_move_chassis_speed_, 0.0, 0.0);
+      } else {
+        this->setChassis(rm_msgs::ChassisCmd::RAW, -auto_move_chassis_speed_, 0.0, 0.0);
+      }
     }
+
 
     //gimbal control
     if (attack_id_ != 0) {
@@ -137,7 +152,6 @@ void StateAutomatic<T>::run() {
     }
 
   } else {
-    time_counter1++;
     this->setChassis(rm_msgs::ChassisCmd::RAW, -calibration_speed_, 0, 0);
     this->setGimbal(rm_msgs::GimbalCmd::PASSIVE, 0, 0, 0, 0);
     if (now - calibration_time_ > ros::Duration(0.4)) {
