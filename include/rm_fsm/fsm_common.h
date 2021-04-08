@@ -81,10 +81,12 @@ class State {
   double actual_shoot_speed_ = 0;
   int ultimate_shoot_speed_ = 0;
 
-
   uint8_t last_chassis_mode_;
   uint8_t last_shoot_mode_;
   double last_angular_z_;
+
+  bool use_power_manager_;
+  bool default_power_limit_;
 };
 
 /**

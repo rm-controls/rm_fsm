@@ -21,6 +21,8 @@ void State<T>::loadParam() {
   safe_shoot_hz_ = getParam(nh_, "control_param/safe_shoot_hz", 2.0);
   safe_shoot_speed_ = getParam(nh_, "control_param/safe_shoot_speed", 10.0);
   gimbal_error_limit_ = getParam(nh_, "control_param/gimbal_error_limit", 0.5);
+  use_power_manager_ = getParam(nh_, "power_limit/use_power_manager", false);
+  default_power_limit_ = getParam(nh_, "power_limit/default_power_limit", false);
   if (control_mode_ == "pc") { // pc mode
     coefficient_x_ = getParam(nh_, "control_param/pc_param/coefficient_x", 3.5);
     coefficient_y_ = getParam(nh_, "control_param/pc_param/coefficient_y", 3.5);
@@ -33,6 +35,7 @@ void State<T>::loadParam() {
     coefficient_angular_ = getParam(nh_, "control_param/rc_param/coefficient_angular", 6.0);
     coefficient_yaw_ = getParam(nh_, "control_param/rc_param/coefficient_yaw", 12.56);
     coefficient_pitch_ = getParam(nh_, "control_param/rc_param/coefficient_pitch", 12.56);
+    default_power_limit_ = true;
   } else {
     ROS_ERROR("Cannot load control params.");
   }
@@ -77,8 +80,8 @@ void State<T>::setChassis(uint8_t chassis_mode, double linear_x, double linear_y
     } else {
       data_->power_limit_->input(data_->referee_->referee_data_,
                                  data_->referee_->power_manager_data_,
-                                 false,
-                                 data_->dbus_data_.key_shift);
+                                 use_power_manager_,
+                                 data_->dbus_data_.key_shift || default_power_limit_);
       data_->chassis_cmd_.effort_limit = data_->power_limit_->output();
     }
   } else {
