@@ -12,8 +12,6 @@ StateRaw<T>::StateRaw(FsmData<T> *fsm_data,
 
 template<typename T>
 void StateRaw<T>::onEnter() {
-  this->actual_shoot_speed_ = this->safe_shoot_speed_;
-  this->ultimate_shoot_speed_ = this->safe_shoot_speed_;
   ROS_INFO("Enter raw mode");
 }
 
@@ -26,6 +24,8 @@ void StateRaw<T>::run() {
   ros::Time now = ros::Time::now();
 
   this->loadParam();
+  this->actual_shoot_speed_ = this->safe_shoot_speed_;
+  this->ultimate_shoot_speed_ = this->safe_shoot_speed_;
 
   // rc control
   // Send command to chassis

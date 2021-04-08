@@ -17,9 +17,9 @@ void State<T>::loadParam() {
   accel_y_ = getParam(nh_, "control_param/accel_y", 5.0);
   accel_angular_ = getParam(nh_, "control_param/accel_angular", 5.0);
   brake_multiple_ = getParam(nh_, "control_param/brake_multiple", 2);
-  expect_shoot_hz_ = getParam(nh_, "expect_shoot_hz", 5.0);
-  safe_shoot_hz_ = getParam(nh_, "safe_shoot_hz", 5.0);
-  safe_shoot_speed_ = getParam(nh_, "safe_shoot_speed", 5.0);
+  expect_shoot_hz_ = getParam(nh_, "control_param/expect_shoot_hz", 5.0);
+  safe_shoot_hz_ = getParam(nh_, "control_param/safe_shoot_hz", 2.0);
+  safe_shoot_speed_ = getParam(nh_, "control_param/safe_shoot_speed", 10.0);
   gimbal_error_limit_ = getParam(nh_, "control_param/gimbal_error_limit", 0.5);
   if (control_mode_ == "pc") { // pc mode
     coefficient_x_ = getParam(nh_, "control_param/pc_param/coefficient_x", 3.5);
@@ -78,7 +78,7 @@ void State<T>::setChassis(uint8_t chassis_mode, double linear_x, double linear_y
       data_->power_limit_->input(data_->referee_->referee_data_,
                                  data_->referee_->power_manager_data_,
                                  false,
-                                 true);
+                                 data_->dbus_data_.key_shift);
       data_->chassis_cmd_.effort_limit = data_->power_limit_->output();
     }
   } else {

@@ -12,7 +12,6 @@ StateFollow<T>::StateFollow(FsmData<T> *fsm_data,
   burst_critical_speed_ = getParam(nh, "control_param/pc_param/burst_critical_speed", 2);
   normal_angular_ = getParam(nh, "control_param/pc_param/normal_angular", 1);
   burst_angular_ = getParam(nh, "control_param/pc_param/burst_angular", 2);
-  robot_type_ = getParam(nh, "robot_type", (std::string) "hero");
 }
 
 template<typename T>
@@ -20,8 +19,6 @@ void StateFollow<T>::onEnter() {
   this->last_chassis_mode_ = rm_msgs::ChassisCmd::FOLLOW;
   this->last_shoot_mode_ = rm_msgs::ShootCmd::STOP;
   this->last_angular_z_ = 1;
-  this->actual_shoot_speed_ = this->safe_shoot_speed_;
-  this->ultimate_shoot_speed_ = this->safe_shoot_speed_;
   ROS_INFO("Enter follow mode");
 }
 
@@ -37,6 +34,8 @@ void StateFollow<T>::run() {
   int normal_critical_speed, burst_critical_speed, normal_angular, burst_angular;
 
   this->loadParam();
+  this->actual_shoot_speed_ = this->safe_shoot_speed_;
+  this->ultimate_shoot_speed_ = this->safe_shoot_speed_;
 
   if (this->control_mode_ == "pc") { // pc control
     // Check for press
@@ -44,16 +43,9 @@ void StateFollow<T>::run() {
       if (now - last_press_time_e_ < ros::Duration(0.25)) this->data_->dbus_data_.key_e = false;
       else last_press_time_e_ = now;
     }
-    if (this->data_->dbus_data_.key_f) {
-      if (now - last_press_time_f_ < ros::Duration(0.25)) this->data_->dbus_data_.key_f = false;
-      else last_press_time_f_ = now;
-    }
     if (this->data_->dbus_data_.key_q) {
       if (now - last_press_time_q_ < ros::Duration(0.25)) this->data_->dbus_data_.key_q = false;
       else last_press_time_q_ = now;
-    }
-    if (robot_type_ != "standard") {
-      this->data_->dbus_data_.key_shift = false;
     }
 
     // Send cmd to chassis
@@ -130,9 +122,9 @@ void StateFollow<T>::run() {
     // Switch friction mode
     if (this->data_->dbus_data_.key_f) {
       if (is_friction_ready_) {
-        shoot_mode = rm_msgs::ShootCmd::STOP;
         is_friction_ready_ = false;
       }
+      shoot_mode = rm_msgs::ShootCmd::STOP;
       this->last_shoot_mode_ = shoot_mode;
     } else {
       shoot_mode = this->last_shoot_mode_;
