@@ -64,9 +64,9 @@ class FsmData {
     dbus_sub_ = nh.subscribe<rm_msgs::DbusData>(
         "/dbus_data", 10, &FsmData::dbusDataCallback, this);
     track_sub_ = nh.subscribe<rm_msgs::TrackDataArray>(
-        "/controllers/gimbal_controller/track", 10, &FsmData::trackCallback, this);
+        "/track", 10, &FsmData::trackCallback, this);
     gimbal_des_error_sub_ = nh.subscribe<rm_msgs::GimbalDesError>(
-        "/controllers/gimbal_controller/error_des", 10, &FsmData::gimbalDesErrorCallback, this);
+        "/error_des", 10, &FsmData::gimbalDesErrorCallback, this);
     odom_sub_ = nh.subscribe<nav_msgs::Odometry>(
         "/odom", 10, &FsmData::odomCallback, this);
 
