@@ -12,15 +12,21 @@ StateAutomatic<T>::StateAutomatic(FsmData<T> *fsm_data,
   gimbal_position_ = 1;
   calibration_ = 0;
   speed_ = 0;
-  last_position_ = 0;
   current_position_ = 0;
   auto_move_chassis_speed_ = getParam(nh, "auto_move/chassis_speed", 1.0);
-  auto_move_chassis_accel_ = getParam(nh, "auto_move/chassis_accel", 1.0);
+  auto_move_accel_x_ = getParam(nh, "control_param/accel_x", 2.0);
   auto_move_pitch_speed_ = getParam(nh, "auto_move/pitch_speed", 0.5);
   auto_move_yaw_speed_ = getParam(nh, "auto_move/yaw_speed", 3.14);
+  collision_distance_ = getParam(nh, "auto_move/collision_distance", 0.3);
   start_ = getParam(nh, "auto_move/start", 0.3);
   end_ = getParam(nh, "auto_move/end", 2.5);
+  end_ = end_ - 0.275 - 0.275;
   calibration_speed_ = getParam(nh, "auto_move/calibration_speed", 0.15);
+  column_ = getParam(nh, "auto_move/column", 1);
+  if (column_)
+    std::cout << "use column_" << std::endl;
+  else
+    std::cout << "not use column_" << std::endl;
   map2odom_.header.stamp = ros::Time::now();
   map2odom_.header.frame_id = "map";
   map2odom_.child_frame_id = "odom";
@@ -45,16 +51,16 @@ void StateAutomatic<T>::run() {
   geometry_msgs::TransformStamped chassis_transformStamped;
   double now_effort = 0;
   static double sum_effort = 0;
-  static int time_counter1 = 0;
   static int time_counter2 = 0;
   double roll{}, pitch{}, yaw{};
   ros::Time now = ros::Time::now();
-
-
+  double stop_distance = 0.5 * auto_move_chassis_speed_ * auto_move_chassis_speed_ / auto_move_accel_x_;
   this->loadParam();
+  this->actual_shoot_speed_ = this->safe_shoot_speed_;
+  this->ultimate_shoot_speed_ = this->safe_shoot_speed_;
 
   try {
-    gimbal_transformStamped = this->tf_.lookupTransform("odom", "link_pitch", ros::Time(0));
+    gimbal_transformStamped = this->tf_.lookupTransform("yaw", "pitch", ros::Time(0));
   }
   catch (tf2::TransformException &ex) {
     //ROS_ERROR("%s",ex.what());
@@ -68,63 +74,88 @@ void StateAutomatic<T>::run() {
     //ROS_WARN("%s", ex.what());
   }
   sum_effort+=effort_data_.effort[0];
-
   time_counter2++;
  if(time_counter2==10){
     current_position_ = chassis_transformStamped.transform.translation.x;
-   std::cout << "position:" << current_position_;
     speed_ = effort_data_.velocity[0];
-    std::cout << "   speed:" << speed_;
     now_effort = sum_effort/10.0;
-   std::cout << "   now_effort:" << now_effort << std::endl;
-    last_position_ = current_position_;
     time_counter2=0;
     sum_effort = 0;
   }
   if(calibration_) {
-    // set shooter
-    this->setShoot(rm_msgs::ShootCmd::PASSIVE, rm_msgs::ShootCmd::SPEED_10M_PER_SECOND, this->shoot_hz_, now);
-
-    // set chassis
-    if ((current_position_ >= end_) && (point_side_ == 1))
-      point_side_ = 2;
-    else if ((current_position_ <= start_) && (point_side_ == 3))
-      point_side_ = 1;
-    if (point_side_ == 1) {
-      std::cout << "Enter 1 state" << std::endl;
-      this->setChassis(rm_msgs::ChassisCmd::RAW, auto_move_chassis_speed_, 0.0, 0.0);
-    } else if (point_side_ == 2) {
-      std::cout << "Enter 2 state" << std::endl;
-      this->setChassis(rm_msgs::ChassisCmd::PASSIVE, 0.0, 0.0, 0.0);
-      if(speed_ <= 0)
-        point_side_ = 3;
-    } else if (point_side_ == 3) {
-      std::cout << "Enter 3 state" << std::endl;
-      this->setChassis(rm_msgs::ChassisCmd::RAW, -auto_move_chassis_speed_, 0.0, 0.0);
-    } else if (point_side_ == 4) {
-      std::cout << "Enter 4 state" << std::endl;
-      this->setChassis(rm_msgs::ChassisCmd::PASSIVE, 0.0, 0.0, 0.0);
-      if (speed_ >= 0)
-        point_side_ = 1;
+    this->data_->shooter_heat_limit_->input(this->data_->referee_, this->expect_shoot_hz_, this->safe_shoot_hz_);
+    this->data_->target_cost_function_->input(this->data_->track_data_array_);
+    attack_id_ = this->data_->target_cost_function_->output();
+    //shooter control
+    if (attack_id_ != 0 && this->data_->gimbal_des_error_.error_yaw < this->gimbal_error_limit_
+        && this->data_->gimbal_des_error_.error_pitch < this->gimbal_error_limit_) {
+      this->setShoot(rm_msgs::ShootCmd::PUSH,
+                     30,
+                     this->data_->shooter_heat_limit_->output(),
+                     now);
+    } else if (now - last_time_ > ros::Duration(0.5)) {
+      this->setShoot(rm_msgs::ShootCmd::PUSH,
+                     30,
+                     this->data_->shooter_heat_limit_->output(),
+                     now);
+    } else {
+      this->setShoot(rm_msgs::ShootCmd::READY, 30, 0, now);
     }
 
-    // set gimbal
-    if (pitch > (0.75))
-      gimbal_position_ = 1;
-    else if (pitch < (-0.1))
-      gimbal_position_ = 2;
+    //chassis control
+    if (column_) {
+      if ((current_position_ >= end_ - collision_distance_) && (point_side_ == 1))
+        point_side_ = 2;
+      else if ((current_position_ <= start_ + collision_distance_) && (point_side_ == 3))
+        point_side_ = 4;
+      if (point_side_ == 1) {
+        this->setChassis(rm_msgs::ChassisCmd::RAW, auto_move_chassis_speed_, 0.0, 0.0);
+      } else if (point_side_ == 2) {
+        this->setChassis(rm_msgs::ChassisCmd::PASSIVE, 0.0, 0.0, 0.0);
+        if (speed_ <= 0)
+          point_side_ = 3;
+      } else if (point_side_ == 3) {
+        this->setChassis(rm_msgs::ChassisCmd::RAW, -auto_move_chassis_speed_, 0.0, 0.0);
+      } else if (point_side_ == 4) {
+        this->setChassis(rm_msgs::ChassisCmd::PASSIVE, 0.0, 0.0, 0.0);
+        if (speed_ >= 0)
+          point_side_ = 1;
+      }
+    } else {
+      if (current_position_ >= end_ - stop_distance - 0.2)
+        point_side_ = 2;
+      else if (current_position_ <= start_ + stop_distance)
+        point_side_ = 1;
+      if (point_side_ == 1) {
+        this->setChassis(rm_msgs::ChassisCmd::RAW, auto_move_chassis_speed_, 0.0, 0.0);
+      } else {
+        this->setChassis(rm_msgs::ChassisCmd::RAW, -auto_move_chassis_speed_, 0.0, 0.0);
+      }
+    }
 
-    if (gimbal_position_ == 1) {
-      this->setGimbal(rm_msgs::GimbalCmd::PASSIVE, auto_move_yaw_speed_, -auto_move_pitch_speed_, 0);
-    } else if (gimbal_position_ == 2) {
-      this->setGimbal(rm_msgs::GimbalCmd::PASSIVE, auto_move_yaw_speed_, auto_move_pitch_speed_, 0);
+
+    //gimbal control
+    if (attack_id_ != 0) {
+      this->setGimbal(rm_msgs::GimbalCmd::TRACK, 0, 0, attack_id_, 30);
+      last_time_ = now;
+    } else {
+      if (now - last_time_ > ros::Duration(0.5)) {
+        if (pitch > 0.750)
+          gimbal_position_ = 1;
+        else if (pitch < (0.459))
+          gimbal_position_ = 2;
+        if (gimbal_position_ == 1) {
+          this->setGimbal(rm_msgs::GimbalCmd::RATE, auto_move_yaw_speed_, -auto_move_pitch_speed_, 0, 0);
+        } else if (gimbal_position_ == 2) {
+          this->setGimbal(rm_msgs::GimbalCmd::RATE, auto_move_yaw_speed_, auto_move_pitch_speed_, 0, 0);
+        }
+      }
     }
 
   } else {
-    time_counter1++;
     this->setChassis(rm_msgs::ChassisCmd::RAW, -calibration_speed_, 0, 0);
-    this->setGimbal(rm_msgs::GimbalCmd::PASSIVE, 0, 0, 0);
-    if(time_counter1>40) {
+    this->setGimbal(rm_msgs::GimbalCmd::PASSIVE, 0, 0, 0, 0);
+    if (now - calibration_time_ > ros::Duration(0.4)) {
       if (now_effort < -1.1) {
         std::cout << "calibration finish !" << std::endl;
         calibration_ = 1;
@@ -154,6 +185,7 @@ template<typename T>
 void StateAutomatic<T>::onExit() {
   // Nothing to clean up when exiting
   ROS_INFO("Exit automatic mode");
+  calibration_ = 0;
 }
 
 template

@@ -7,9 +7,9 @@
 #include <cstdint>
 #include <serial/serial.h>
 #include <rm_msgs/Referee.h>
+#include <rm_msgs/PowerManagerData.h>
 #include "rm_fsm/protocol.h"
 
-namespace referee {
 struct RefereeData {
   GameStatus game_status_;
   GameResult game_result_;
@@ -30,11 +30,28 @@ struct RefereeData {
   BulletRemaining bullet_remaining_;
   RfidStatus rfid_status_;
   DartClientCmd dart_client_cmd_;
-  StudentInteractiveHeaderData student_interactive_header_data_;
+  StudentInteractiveData student_interactive_data_;
   GraphicDataStruct graphic_data_struct_;
   RobotInteractiveData robot_interactive_data_;
   RobotCommand robot_command_;
   int performance_system_; // Performance level system
+};
+
+class PowerManagerData {
+ public:
+  PowerManagerData() = default;
+  ~PowerManagerData() = default;
+  float parameters[4] = {0};
+  void read(const std::vector<uint8_t> &rx_buffer);
+
+ private:
+  void DTP_Received_CallBack(unsigned char Receive_Byte);
+  void Receive_CallBack(unsigned char PID, unsigned char Data[8]);
+
+  unsigned char Receive_Buffer[1024] = {0};
+  unsigned char PingPong_Buffer[1024] = {0};
+  unsigned int Receive_BufCounter = 0;
+  float Int16ToFloat(unsigned short data0);
 };
 
 class Referee {
@@ -43,25 +60,40 @@ class Referee {
   ~Referee() = default;
   void init();
   void read();
-  void drawGraphic(RobotId robot_id, ClientId client_id, int side, GraphicOperateType operate_type);
-  void drawCharacter(RobotId robot_id, ClientId client_id, int side, GraphicOperateType operate_type, std::string data);
-  void drawFloat(RobotId robot_id, ClientId client_id, float data, GraphicOperateType operate_type);
+  void write(const std::string &state_name, uint8_t operate_type, bool is_burst, bool key_shift);
+
+  void drawGraphic(int side, GraphicColorType color, GraphicOperateType operate_type);
+  void drawCharacter(int type, GraphicColorType color, uint8_t operate_type, std::string data);
+  void sendInteractiveData(int data_cmd_id, int receiver_id, const std::vector<uint8_t> &data);
+
+  double getActualBulletSpeed(int shoot_speed) const;
+  double getUltimateBulletSpeed(int shoot_speed) const;
 
   RefereeData referee_data_{};
-  bool flag = false;
+  PowerManagerData power_manager_data_;
+
+  bool is_open_ = false;
+  int robot_id_ = 0;
+  int client_id_ = 0;
   ros::Publisher referee_pub_;
+  ros::Publisher power_manager_pub_;
+  ros::Time last_send_ = ros::Time::now();
   rm_msgs::Referee referee_pub_data_;
+  rm_msgs::PowerManagerData power_manager_pub_data_;
 
  private:
-  serial::Serial serial_;
-  int rx_len_{};
-  UnpackData referee_unpack_obj{};
-  const int kProtocolFrameLength = 128, kProtocolHeaderLength = sizeof(FrameHeaderStruct),
-      kProtocolCmdIdLength = sizeof(uint16_t), kProtocolTailLength = 2;
+  void getId();
   void unpack(const std::vector<uint8_t> &rx_buffer);
   void getData(uint8_t *frame);
+
+  serial::Serial serial_;
+  std::vector<uint8_t> rx_data_;
+  UnpackData referee_unpack_obj{};
+
+  const std::string serial_port_ = "/dev/usbReferee";
+  const int kUnpackLength = 256;
+  const int kProtocolFrameLength = 128, kProtocolHeaderLength = 5, kProtocolCmdIdLength = 2, kProtocolTailLength = 2;
 };
-}
 
 uint8_t getCRC8CheckSum(unsigned char *pch_message, unsigned int dw_length, unsigned char ucCRC8);
 uint32_t verifyCRC8CheckSum(unsigned char *pch_message, unsigned int dw_length);

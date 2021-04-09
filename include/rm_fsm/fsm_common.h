@@ -6,12 +6,12 @@
 #define SRC_RM_SOFTWARE_RM_DECISION_SRC_FSM_FSM_STATE_H_
 
 #include <iostream>
-#include <tf/transform_listener.h>
 #include <queue>
+#include <utility>
+#include <tf/transform_listener.h>
+#include <control_toolbox/pid.h>
 #include <rm_common/ros_utilities.h>
 #include "rm_common/ori_tool.h"
-#include <utility>
-#include <control_toolbox/pid.h>
 #include "rm_fsm/fsm_data.h"
 
 /**
@@ -38,10 +38,12 @@ class State {
   // Load params from yaml file
   void loadParam();
 
+  uint8_t getShootSpeedCmd(int shoot_speed);
+
   // Base controllers.
   void setChassis(uint8_t chassis_mode, double linear_x, double linear_y, double angular_z);
-  void setGimbal(uint8_t gimbal_mode, double rate_yaw, double rate_pitch, uint8_t target_id);
-  void setShoot(uint8_t shoot_mode, uint8_t shoot_speed, double shoot_hz, ros::Time now);
+  void setGimbal(uint8_t gimbal_mode, double rate_yaw, double rate_pitch, uint8_t target_id, double bullet_speed);
+  void setShoot(uint8_t shoot_mode, int shoot_speed, double shoot_hz, ros::Time now);
 
   void setControlMode(const std::string &control_mode);
 
@@ -55,6 +57,7 @@ class State {
   tf2_ros::TransformListener *tf_listener_;
 
   std::string control_mode_;
+  uint8_t graph_operate_type_;
 
   // chassis fsm control accelerate
   double accel_x_ = 0.0;
@@ -70,13 +73,20 @@ class State {
   // gimbal fsm control coefficient
   double coefficient_yaw_ = 0.0;
   double coefficient_pitch_ = 0.0;
+  double gimbal_error_limit_ = 2.0;
 
-  double shoot_hz_ = 0.0;
-
-  double lowest_effort_;
+  double expect_shoot_hz_ = 0.0;
+  double safe_shoot_hz_ = 0.0;
+  double safe_shoot_speed_ = 0;
+  double actual_shoot_speed_ = 0;
+  int ultimate_shoot_speed_ = 0;
 
   uint8_t last_chassis_mode_;
   uint8_t last_shoot_mode_;
+  double last_angular_z_;
+
+  bool use_power_manager_;
+  bool default_power_limit_;
 };
 
 /**
@@ -101,7 +111,6 @@ class Fsm {
 
   // Runs the FSM logic and handles the state transitions and normal runs
   void run();
-
   // Get desired state decided by control fsm data.
   virtual std::string getDesiredState() = 0;
 

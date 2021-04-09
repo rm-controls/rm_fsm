@@ -38,7 +38,7 @@ typedef struct {
   uint16_t data_length;
   uint8_t seq;
   uint8_t crc8;
-} FrameHeaderStruct;
+} __packed FrameHeaderStruct;
 
 // Unpacking order
 typedef enum {
@@ -59,16 +59,16 @@ typedef struct {
   uint16_t index;
 } UnpackData;
 
-/*------------------------REFEREE_GAME_CMD---- 0x40 -------------------*/
 typedef struct {
   uint8_t game_type: 4;
   uint8_t game_progress: 4;
   uint16_t stage_remain_time;
-} GameStatus;
+  uint64_t SyncTimeStamp;
+} __packed GameStatus;
 
 typedef struct {
   uint8_t winner;
-} GameResult;
+} __packed GameResult;
 
 typedef struct {
   uint16_t red_1_robot_HP;
@@ -87,12 +87,12 @@ typedef struct {
   uint16_t blue_7_robot_HP;
   uint16_t blue_outpost_HP;
   uint16_t blue_base_HP;
-} GameRobotHp;
+} __packed GameRobotHp;
 
 typedef struct {
   uint8_t dart_belong;
   uint16_t stage_remaining_time;
-} DartStatus;
+} __packed DartStatus;
 
 typedef struct {
   uint8_t F1_zone_status: 1;
@@ -107,87 +107,98 @@ typedef struct {
   uint8_t F5_zone_buff_debuff_status: 3;
   uint8_t F6_zone_status: 1;
   uint8_t F6_zone_buff_debuff_status: 3;
-} IcraBuffDebuffZoneStatus;
+  uint16_t red1_bullet_left;
+  uint16_t red2_bullet_left;
+  uint16_t blue1_bullet_left;
+  uint16_t blue2_bullet_left;
+} __packed IcraBuffDebuffZoneStatus;
 
-/*-------------------REFEREE_BATTLEFIELD_CMD_SET---- 0x41 -------------*/
 typedef struct {
   uint32_t event_type;
-} EventData;
+} __packed EventData;
 
 typedef struct {
   uint8_t supply_projectile_id;
   uint8_t supply_robot_id;
   uint8_t supply_projectile_step;
   uint8_t supply_projectile_num;
-} SupplyProjectileAction;
+} __packed SupplyProjectileAction;
 
 typedef struct {
   uint8_t level;
   uint8_t foul_robot_id;
-} RefereeWarning;
+} __packed RefereeWarning;
 
 typedef struct {
   uint8_t dart_remaining_time;
-} DartRemainingTime;
+} __packed DartRemainingTime;
 
-/*------------------------REFEREE_ROBOT_CMD---- 0x42 -------------------*/
 typedef struct {
   uint8_t robot_id;
   uint8_t robot_level;
   uint16_t remain_HP;
   uint16_t max_HP;
-  uint16_t shooter_heat0_cooling_rate;
-  uint16_t shooter_heat0_cooling_limit;
-  uint16_t shooter_heat1_cooling_rate;
-  uint16_t shooter_heat1_cooling_limit;
+  uint16_t shooter_id1_17mm_cooling_rate;
+  uint16_t shooter_id1_17mm_cooling_limit;
+  uint16_t shooter_id1_17mm_speed_limit;
+  uint16_t shooter_id2_17mm_cooling_rate;
+  uint16_t shooter_id2_17mm_cooling_limit;
+  uint16_t shooter_id2_17mm_speed_limit;
+  uint16_t shooter_id1_42mm_cooling_rate;
+  uint16_t shooter_id1_42mm_cooling_limit;
+  uint16_t shooter_id1_42mm_speed_limit;
+  uint16_t chassis_power_limit;
   uint8_t mains_power_gimbal_output: 1;
   uint8_t mains_power_chassis_output: 1;
   uint8_t mains_power_shooter_output: 1;
-} GameRobotStatus;
+} __packed GameRobotStatus;
 
 typedef struct {
   uint16_t chassis_volt;
   uint16_t chassis_current;
   float chassis_power;
   uint16_t chassis_power_buffer;
-  uint16_t shooter_heat0;
-  uint16_t shooter_heat1;
-} PowerHeatData;
+  uint16_t shooter_id1_17mm_cooling_heat;
+  uint16_t shooter_id2_17mm_cooling_heat;
+  uint16_t shooter_id1_42mm_cooling_heat;
+} __packed PowerHeatData;
 
 typedef struct {
   float x;
   float y;
   float z;
   float yaw;
-} GameRobotPos;
+} __packed GameRobotPos;
 
 typedef struct {
   uint8_t power_rune_buff;
-} Buff;
+} __packed Buff;
 
 typedef struct {
-  uint8_t energy_point;
   uint8_t attack_time;
-} AerialRobotEnergy;
+} __packed AerialRobotEnergy;
 
 typedef struct {
   uint8_t armor_id: 4;
   uint8_t hurt_type: 4;
-} RobotHurt;
+} __packed RobotHurt;
 
 typedef struct {
   uint8_t bullet_type;
+  uint8_t shooter_id;
   uint8_t bullet_freq;
   float bullet_speed;
-} ShootData;
+} __packed ShootData;
 
 typedef struct {
-  uint8_t bullet_remaining_num;
-} BulletRemaining;
+  uint16_t bullet_remaining_num_17mm;
+  uint16_t bullet_remaining_num_42mm;
+  uint16_t coin_remaining_num;
+} __packed BulletRemaining;
 
 typedef struct {
   uint32_t rfid_status;
-} RfidStatus;
+} __packed RfidStatus;
 
 typedef struct {
   uint8_t dart_launch_opening_status;
@@ -199,7 +210,7 @@ typedef struct {
   uint8_t fourth_dart_speed;
   uint16_t last_dart_launch_time;
   uint16_t operate_launch_cmd_time;
-} DartClientCmd;
+} __packed DartClientCmd;
 
 /*********************** Interactive data between robots----0x0301 ********************/
 typedef enum {
@@ -247,17 +258,29 @@ typedef enum {
   kBlueAerialClientId = 0x016A,
 } ClientId;
 
+typedef enum {
+  kAdd = 1,
+  kUpdate = 2,
+  kDelete = 3
+} GraphicOperateType;
+
+typedef enum {
+  kMainColor = 0,
+  kYellow = 1,
+  kGreen = 2,
+  kOrange = 3,
+  kPurple = 4,
+  kPink = 5,
+  kCyan = 6,
+  kBlack = 7,
+  kWhite = 8
+} GraphicColorType;
+
 typedef struct {
   uint16_t data_cmd_id;
   uint16_t send_ID;
   uint16_t receiver_ID;
 }__packed StudentInteractiveHeaderData;
-
-typedef enum {
-  kAdd = 1,
-  kModify = 2,
-  kDelete = 3
-} GraphicOperateType;
 
 typedef struct {
   uint8_t graphic_name[3];
@@ -278,7 +301,7 @@ typedef struct {
 typedef struct {
   FrameHeaderStruct tx_frame_header_;
   uint16_t cmd_id_;
-  StudentInteractiveHeaderData graphic_header_data_;
+  StudentInteractiveHeaderData student_interactive_header_data_;
   GraphicDataStruct graphic_data_struct_;
   uint16_t frame_tail_;
 }__packed DrawClientGraphicData;
@@ -286,11 +309,24 @@ typedef struct {
 typedef struct {
   FrameHeaderStruct tx_frame_header_;
   uint16_t cmd_id_;
-  StudentInteractiveHeaderData graphic_header_data_;
+  StudentInteractiveHeaderData student_interactive_header_data_;
   GraphicDataStruct graphic_data_struct_;
   uint8_t data_[30];
   uint16_t frame_tail_;
 }__packed DrawClientCharData;
+
+typedef struct {
+  FrameHeaderStruct tx_frame_header_;
+  uint16_t cmd_id_;
+  StudentInteractiveHeaderData student_interactive_header_data_;
+  uint8_t data_[113];
+  uint16_t frame_tail_;
+}__packed SendInteractiveData;
+
+typedef struct {
+  StudentInteractiveHeaderData student_interactive_header_data_;
+  uint8_t data[113];
+}__packed StudentInteractiveData;
 
 /********************** Robot Interactive data ----0x0302 *******************************************/
 typedef struct {
@@ -307,8 +343,7 @@ typedef struct {
 }__packed RobotCommand;
 
 /***********************Frame tail(CRC8_CRC16)********************************************/
-const uint8_t
-    CRC8_INIT = 0xff;
+const uint8_t kCrc8Init = 0xff;
 const uint8_t CRC8_table[256] =
     {
         0x00, 0x5e, 0xbc, 0xe2, 0x61, 0x3f, 0xdd, 0x83, 0xc2, 0x9c, 0x7e, 0x20, 0xa3, 0xfd, 0x1f, 0x41,
@@ -328,7 +363,7 @@ const uint8_t CRC8_table[256] =
         0xe9, 0xb7, 0x55, 0x0b, 0x88, 0xd6, 0x34, 0x6a, 0x2b, 0x75, 0x97, 0xc9, 0x4a, 0x14, 0xf6, 0xa8,
         0x74, 0x2a, 0xc8, 0x96, 0x15, 0x4b, 0xa9, 0xf7, 0xb6, 0xe8, 0x0a, 0x54, 0xd7, 0x89, 0x6b, 0x35,
     };
-const uint16_t CRC16_INIT = 0xffff;
+const uint16_t kCrc16Init = 0xffff;
 const uint16_t wCRC_table[256] =
     {
         0x0000, 0x1189, 0x2312, 0x329b, 0x4624, 0x57ad, 0x6536, 0x74bf,

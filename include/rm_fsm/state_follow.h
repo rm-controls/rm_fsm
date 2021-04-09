@@ -18,8 +18,19 @@ class StateFollow : public State<T> {
  private:
   bool is_spin_ = false;
   bool is_friction_ready_ = false;
-  ros::Time last_press_time_shift = ros::Time::now();
-  ros::Time last_press_time_f = ros::Time::now();
+  bool is_burst_ = false;
+  ros::Time last_press_time_e_ = ros::Time::now();
+  ros::Time last_press_time_f_ = ros::Time::now();
+  ros::Time last_press_time_q_ = ros::Time::now();
+
+  double normal_critical_speed_;
+  double burst_critical_speed_;
+  double normal_angular_;
+  double burst_angular_;
+  double spin_sin_amplitude_;
+  double spin_sin_frequency_;
+
+  std::string robot_type_;
 };
 
 #endif //SRC_RM_SOFTWARE_RM_FSM_INCLUDE_RM_FSM_STATE_FOLLOW_H_

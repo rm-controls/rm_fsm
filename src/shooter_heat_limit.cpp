@@ -4,27 +4,49 @@
 
 #include "rm_fsm/shooter_heat_limit.h"
 
-ShooterHeatLimit::ShooterHeatLimit(ros::NodeHandle &nh) {
-  ros::NodeHandle shooter_heat_limit_nh = ros::NodeHandle(nh, "shooter_heat_limit");
-  ros::NodeHandle pid_nh = ros::NodeHandle(nh, "power_limit/pid_buffer");
-}
+void ShooterHeatLimit::input(Referee *referee, double expect_shoot_hz, double safe_shoot_hz) {
+  uint16_t cooling_limit;
+  uint16_t cooling_rate;
+  uint16_t shooter_heat;
+  double bullet_heat;
 
-void ShooterHeatLimit::input(referee::Referee *referee, double shoot_hz) {
-  uint16_t shooter_heat_max = referee->referee_data_.game_robot_status_.shooter_heat0_cooling_limit;
-  uint16_t shooter_cooling_rate = referee->referee_data_.game_robot_status_.shooter_heat0_cooling_rate;
-  uint16_t shooter_heat = referee->referee_data_.power_heat_data_.shooter_heat0;
-  double bullet_heat = 10.0;
+  if (referee->is_open_) { // using referee system
+    if (referee->robot_id_ == kRedHero || referee->robot_id_ == kBlueHero) { // 42mm
+      if (referee->referee_data_.game_robot_status_.shooter_id1_42mm_cooling_limit != 0) {
+        cooling_limit = referee->referee_data_.game_robot_status_.shooter_id1_42mm_cooling_limit;
+        shooter_heat = referee->referee_data_.power_heat_data_.shooter_id1_42mm_cooling_heat;
+        bullet_heat = 100.0;
 
-  if (referee->flag) { // using referee system
-    if (shooter_heat < shooter_heat_max - bullet_heat * 1.5) {
-      hz = shoot_hz;
-    } else if (shooter_heat >= shooter_heat_max) {
-      hz = 0.0;
-    } else {
-      hz = shooter_cooling_rate / bullet_heat;
+        if (shooter_heat < cooling_limit - bullet_heat) {
+          hz = expect_shoot_hz;
+        } else {
+          hz = 0.0;
+        }
+      } else {
+        hz = safe_shoot_hz;
+      }
+    } else { // 17mm
+      if (referee->referee_data_.game_robot_status_.shooter_id1_17mm_cooling_limit != 0) {
+        // get referee data
+        cooling_limit = referee->referee_data_.game_robot_status_.shooter_id1_17mm_cooling_limit;
+        cooling_rate = referee->referee_data_.game_robot_status_.shooter_id1_17mm_cooling_rate;
+        shooter_heat = referee->referee_data_.power_heat_data_.shooter_id1_17mm_cooling_heat;
+        bullet_heat = 10.0;
+
+        // heat limit
+        if (shooter_heat < cooling_limit - bullet_heat * 1.5) {
+          hz = expect_shoot_hz;
+        } else if (shooter_heat >= cooling_limit) {
+          hz = 0.0;
+        } else {
+          hz = cooling_rate / bullet_heat;
+        }
+      } else {
+        hz = safe_shoot_hz;
+      }
     }
   } else {
-    hz = shoot_hz;
+    hz = safe_shoot_hz;
   }
 }
 
