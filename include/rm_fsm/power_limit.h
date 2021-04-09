@@ -8,6 +8,7 @@
 #include <ros/ros.h>
 #include <control_toolbox/pid.h>
 #include "rm_fsm/referee.h"
+#include <rm_common/filters/filters.h>
 
 class PowerLimit {
  public:
@@ -31,6 +32,8 @@ class PowerLimit {
   double safety_effort_;
 
   bool have_capacity_;
+
+  RampFilter<double> *ramp_chassis_power{};
 
 };
 

@@ -12,6 +12,7 @@ PowerLimit::PowerLimit(ros::NodeHandle &nh) {
   if (!pid_buffer_.init(pid_nh))
     ROS_INFO("[PowerLimit] PID initialize fail!");
 
+  ramp_chassis_power = new RampFilter<double>(10, 0.001);
 }
 
 void PowerLimit::input(RefereeData referee_data_,
@@ -26,16 +27,26 @@ void PowerLimit::input(RefereeData referee_data_,
     error_power_ = real_chassis_power_ - limit_power_;
     have_capacity_ = true;
 
+    ramp_chassis_power->input(real_chassis_power_);
+    real_chassis_power_ = ramp_chassis_power->output();
+    ramp_chassis_power->clear(power_manager_data_.parameters[0]);
+
   } else {
     real_chassis_power_ = referee_data_.power_heat_data_.chassis_power;
-    limit_power_ = getLimitPower(referee_data_);
+    limit_power_ = 50;
     error_power_ = real_chassis_power_ - limit_power_;
     have_capacity_ = false;
+
+    ramp_chassis_power->input(real_chassis_power_);
+    real_chassis_power_ = ramp_chassis_power->output();
+    ramp_chassis_power->clear(referee_data_.power_heat_data_.chassis_power);
+
   }
 
   ros::Time now = ros::Time::now();
   this->pid_buffer_.computeCommand(error_power_, now - last_run_);
   last_run_ = now;
+
 }
 
 // Change limit power of different level and robot
@@ -76,7 +87,9 @@ double PowerLimit::getSafetyEffort() {
 double PowerLimit::output() {
   if (have_capacity_ && ((abs(capacity_ - 0.25) <= 0.05) || capacity_ < 0.25))
     return safety_effort_;
-  else
+  else{
+    ROS_INFO("%f", abs(pid_buffer_.getCurrentCmd()));
     return abs(pid_buffer_.getCurrentCmd());
+  }
 }
 
