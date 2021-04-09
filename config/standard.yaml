@@ -9,6 +9,7 @@ rm_fsm:
     safe_shoot_hz: 3
     safe_shoot_speed: 10.0
     gimbal_error_limit: 0.17
+    max_vel: 0.8
     rc_param:
       coefficient_x: 3.5
       coefficient_y: 3.5
@@ -34,4 +35,5 @@ rm_fsm:
     multiple: 7.0
     safety_current: 7.5
     use_power_manager: false
-    default_power_limit: true
+    pid_buffer_: { p: 0.8, i: 0, d: 0.0, i_max: 0.0, i_min: 0.0, antiwindup: true }
+

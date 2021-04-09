@@ -14,21 +14,20 @@ class PowerLimit {
   explicit PowerLimit(ros::NodeHandle &nh);
   void input(RefereeData referee_data_,
              PowerManagerData power_manager_data_,
-             bool use_power_manager, bool k_shift);
-  double output() const;
+             bool use_power_manager);
+  double output();
   double getLimitPower(RefereeData referee_data_);
-  double getSafetyEffort(bool enter_over_power_mode);
+  double getSafetyEffort();
 
  private:
-  double effort_ = 99;
-  double coeff_{};
-  double multiple_{};
-  double danger_surplus_{};
-  double roll_back_buffer_{};
-  double capacity_surplus_{};
-  double safety_current_{};
+  ros::Time last_run_;
+  control_toolbox::Pid pid_buffer_;
 
-  bool end_over_power_mode_flag_;
+  double real_chassis_power_;
+  double limit_power_;
+  double error_power_;
+
+  double safety_effort_;
 
 };
 

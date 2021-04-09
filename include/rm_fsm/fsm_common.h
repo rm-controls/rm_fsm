@@ -86,7 +86,6 @@ class State {
   double last_angular_z_;
 
   bool use_power_manager_;
-  bool default_power_limit_;
 };
 
 /**
