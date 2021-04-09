@@ -93,13 +93,15 @@ void StateAutomatic<T>::run() {
                      30,
                      this->data_->shooter_heat_limit_->output(),
                      now);
-    } else if (now - last_time_ > ros::Duration(0.5)) {
+    }/* else if (now - last_time_ > ros::Duration(0.5)) {
       this->setShoot(rm_msgs::ShootCmd::PUSH,
                      30,
                      this->data_->shooter_heat_limit_->output(),
                      now);
-    } else {
-      this->setShoot(rm_msgs::ShootCmd::READY, 30, 0, now);
+    } */
+    else {
+      if (now - last_time_ > ros::Duration(0.5))
+        this->setShoot(rm_msgs::ShootCmd::READY, 30, 0, now);
     }
 
     //chassis control
