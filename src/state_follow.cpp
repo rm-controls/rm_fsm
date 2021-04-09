@@ -42,11 +42,11 @@ void StateFollow<T>::run() {
   if (this->control_mode_ == "pc") { // pc control
     // Check for press
     if (this->data_->dbus_data_.key_e) {
-      if (now - last_press_time_e_ < ros::Duration(0.1)) this->data_->dbus_data_.key_e = false;
+      if (now - last_press_time_e_ < ros::Duration(0.8)) this->data_->dbus_data_.key_e = false;
       else last_press_time_e_ = now;
     }
     if (this->data_->dbus_data_.key_q) {
-      if (now - last_press_time_q_ < ros::Duration(0.1)) this->data_->dbus_data_.key_q = false;
+      if (now - last_press_time_q_ < ros::Duration(0.8)) this->data_->dbus_data_.key_q = false;
       else last_press_time_q_ = now;
     }
 
