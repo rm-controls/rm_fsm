@@ -25,9 +25,12 @@ class PowerLimit {
 
   double real_chassis_power_;
   double limit_power_;
+  double capacity_;
   double error_power_;
 
   double safety_effort_;
+
+  bool have_capacity_;
 
 };
 

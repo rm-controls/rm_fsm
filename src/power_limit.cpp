@@ -22,12 +22,15 @@ void PowerLimit::input(RefereeData referee_data_,
     //init some data from power manager
     real_chassis_power_ = power_manager_data_.parameters[0];
     limit_power_ = power_manager_data_.parameters[1];
+    capacity_ = power_manager_data_.parameters[3];
     error_power_ = real_chassis_power_ - limit_power_;
+    have_capacity_ = true;
 
   } else {
     real_chassis_power_ = referee_data_.power_heat_data_.chassis_power;
     limit_power_ = getLimitPower(referee_data_);
     error_power_ = real_chassis_power_ - limit_power_;
+    have_capacity_ = false;
   }
 
   ros::Time now = ros::Time::now();
@@ -71,6 +74,9 @@ double PowerLimit::getSafetyEffort() {
 }
 
 double PowerLimit::output() {
-  return abs(pid_buffer_.getCurrentCmd());
+  if (have_capacity_ && ((abs(capacity_ - 0.25) <= 0.05) || capacity_ < 0.25))
+    return safety_effort_;
+  else
+    return abs(pid_buffer_.getCurrentCmd());
 }
 
