@@ -87,7 +87,7 @@ void StateAutomatic<T>::run() {
     this->data_->target_cost_function_->input(this->data_->track_data_array_);
     attack_id_ = this->data_->target_cost_function_->output();
     //shooter control
-    if ((attack_id_ == 1 || attack_id_ == 3)
+    if ((attack_id_ == 1 || attack_id_ == 3 || attack_id_ == 4)
         && std::abs(this->data_->gimbal_des_error_.error_yaw) < this->gimbal_error_limit_
         && std::abs(this->data_->gimbal_des_error_.error_pitch) < this->gimbal_error_limit_) {
       this->setShoot(rm_msgs::ShootCmd::PUSH,
@@ -132,7 +132,7 @@ void StateAutomatic<T>::run() {
 
 
     //gimbal control
-    if (attack_id_ == 1 || attack_id_ == 3) {
+    if (attack_id_ == 1 || attack_id_ == 3 || attack_id_ == 4) {
       this->setGimbal(rm_msgs::GimbalCmd::TRACK, 0, 0, attack_id_, 30);
       last_time_ = now;
     } else {
