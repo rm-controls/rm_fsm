@@ -29,9 +29,9 @@ rm_fsm:
       spin_sin_amplitude: 3.0
       spin_sin_frequency: 6.28
   power_limit:
-    coeff: 0.05
+    coeff: 0.3
     safety_current: 7.5
     use_power_manager: false
-    pid_buffer: { p: 0.5, i: 0, d: 0.0, i_max: 0.0, i_min: 0.0, antiwindup: true }
+    pid_buffer: { p: 10.0, i: 0.1, d: 0.05, i_max: 0.0, i_min: 0.0, antiwindup: true }
 
 

@@ -28,24 +28,25 @@ void PowerLimit::input(RefereeData referee_data_,
     real_chassis_power_ = power_manager_data_.parameters[0];
     limit_power_ = power_manager_data_.parameters[1];
     capacity_ = power_manager_data_.parameters[3];
-    error_power_ = real_chassis_power_ - limit_power_;
+    error_power_ = limit_power_ - real_chassis_power_;
     have_capacity_ = true;
 
-    ramp_chassis_power->input(real_chassis_power_);
-    real_chassis_power_ = ramp_chassis_power->output();
-    ramp_chassis_power->clear(power_manager_data_.parameters[0]);
+//    ramp_chassis_power->input(real_chassis_power_);
+//    real_chassis_power_ = ramp_chassis_power->output();
+//    ramp_chassis_power->clear(power_manager_data_.parameters[0]);
 
   } else {
     real_chassis_power_ = referee_data_.power_heat_data_.chassis_power;
-    limit_power_ = 20 + 40 * (sin(M_PI / 8 * last_run_.toSec()) > 0); //for test
-    //limit_power_ = 60;
+    //limit_power_ = 20 + 40 * (sin(M_PI / 2 * last_run_.toSec()) > 0); //for test
+    limit_power_ = getLimitPower(referee_data_);
 
-    ramp_chassis_power->input(real_chassis_power_);
-    real_chassis_power_ = ramp_chassis_power->output();
-    ramp_chassis_power->clear(referee_data_.power_heat_data_.chassis_power);
+//    ramp_chassis_power->input(real_chassis_power_);
+//    real_chassis_power_ = ramp_chassis_power->output();
+//    ramp_chassis_power->clear(referee_data_.power_heat_data_.chassis_power);
 
     error_power_ = limit_power_ - real_chassis_power_;
-    if (vel_total < 0.5) vel_total = 1.0;
+    if (vel_total < 20.0)
+      vel_total = 20.0;
     error_power_ = coeff_ * error_power_ / vel_total;
     have_capacity_ = false;
 
@@ -55,10 +56,10 @@ void PowerLimit::input(RefereeData referee_data_,
 
   }
 
-  if (pid_counter_ < 20) {
+  if (pid_counter_ < 10) {
     pid_counter_++;
   }
-  if (pid_counter_ == 20) {
+  if (pid_counter_ == 10) {
     pid_counter_ = 0;
     ros::Time now = ros::Time::now();
     this->pid_buffer_.computeCommand(error_power_, now - last_run_);
