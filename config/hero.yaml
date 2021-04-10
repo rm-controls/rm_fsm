@@ -30,8 +30,10 @@ rm_fsm:
   power_limit:
     danger_surplus: 28.0
     roll_back_buffer: 55.0
-    coeff: 0.3
+    coeff: 1.0
     multiple: 13.0
     safety_current: 6.0
     use_power_manager: false
     default_power_limit: true
+    pid_buffer: { p: 1.0, i: 0, d: 0.0, i_max: 0.0, i_min: 0.0, antiwindup: true }
+

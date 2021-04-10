@@ -9,6 +9,7 @@
 #include <control_toolbox/pid.h>
 #include "rm_fsm/referee.h"
 #include <rm_common/filters/filters.h>
+#include <sensor_msgs/JointState.h>
 
 class PowerLimit {
  public:
@@ -32,8 +33,17 @@ class PowerLimit {
   double safety_effort_;
 
   bool have_capacity_;
+  double pid_counter_;
+  double coeff_;
+
+  ros::Publisher limit_power_pub_;
+  ros::Subscriber joint_state_sub_;
+  rm_msgs::Referee limit_power_pub_data_;
 
   RampFilter<double> *ramp_chassis_power{};
+
+  void jointVelCB(const sensor_msgs::JointState &data);
+  double vel_total;
 
 };
 
