@@ -8,7 +8,7 @@
 #include <ros/ros.h>
 #include <control_toolbox/pid.h>
 #include "rm_fsm/referee.h"
-#include <rm_common/filters/filters.h>
+#include <rm_common/filters/lp_filter.h>
 #include <sensor_msgs/JointState.h>
 
 class PowerLimit {
@@ -24,6 +24,7 @@ class PowerLimit {
  private:
   ros::Time last_run_;
   control_toolbox::Pid pid_buffer_;
+  control_toolbox::Pid pid_buffer_power_manager_;
 
   double real_chassis_power_;
   double limit_power_;
@@ -40,10 +41,10 @@ class PowerLimit {
   ros::Subscriber joint_state_sub_;
   rm_msgs::Referee limit_power_pub_data_;
 
-  RampFilter<double> *ramp_chassis_power{};
 
   void jointVelCB(const sensor_msgs::JointState &data);
   double vel_total;
+  LowPassFilter *lp_error_{};
 
 };
 

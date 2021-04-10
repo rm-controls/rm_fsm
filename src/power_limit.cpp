@@ -10,10 +10,13 @@ PowerLimit::PowerLimit(ros::NodeHandle &nh) {
   power_nh.param("coeff", coeff_, 0.3);
 
   ros::NodeHandle pid_nh = ros::NodeHandle(nh, "power_limit/pid_buffer");
-  if (!pid_buffer_.init(pid_nh))
-    ROS_INFO("[PowerLimit] PID initialize fail!");
+  ros::NodeHandle pid_power_manager_nh = ros::NodeHandle(nh, "power_limit/pid_buffer_power_manager");
 
-  ramp_chassis_power = new RampFilter<double>(10, 0.1);
+  if (!pid_buffer_.init(pid_nh)) ROS_INFO("[PowerLimit] PID initialize fail!");
+  if (!pid_buffer_power_manager_.init(pid_power_manager_nh)) ROS_INFO("[PowerLimit] Power Manager PID initialize fail!");
+
+  lp_error_ = new LowPassFilter(10.0);
+
   limit_power_pub_ = power_nh.advertise<rm_msgs::Referee>("/limit_power", 1);
   joint_state_sub_ = power_nh.subscribe("/joint_states", 1, &PowerLimit::jointVelCB, this);
   pid_counter_ = 0.0;
@@ -31,41 +34,42 @@ void PowerLimit::input(RefereeData referee_data_,
     error_power_ = limit_power_ - real_chassis_power_;
     have_capacity_ = true;
 
-//    ramp_chassis_power->input(real_chassis_power_);
-//    real_chassis_power_ = ramp_chassis_power->output();
-//    ramp_chassis_power->clear(power_manager_data_.parameters[0]);
+    ros::Time now = ros::Time::now();
+    this->pid_buffer_power_manager_.computeCommand(error_power_, now - last_run_);
+    last_run_ = now;
 
   } else {
     real_chassis_power_ = referee_data_.power_heat_data_.chassis_power;
     //limit_power_ = 20 + 40 * (sin(M_PI / 2 * last_run_.toSec()) > 0); //for test
     limit_power_ = getLimitPower(referee_data_);
 
-//    ramp_chassis_power->input(real_chassis_power_);
-//    real_chassis_power_ = ramp_chassis_power->output();
-//    ramp_chassis_power->clear(referee_data_.power_heat_data_.chassis_power);
-    limit_power_ -= referee_data_.power_heat_data_.chassis_power_buffer * 10.0 / 60.0;
+    if (referee_data_.power_heat_data_.chassis_power_buffer <= 30)
+      limit_power_ -= 5.0;
     error_power_ = limit_power_ - real_chassis_power_;
     if (vel_total < 20.0)
       vel_total = 20.0;
     error_power_ = coeff_ * error_power_ / vel_total;
+
+    lp_error_->input(error_power_);
+    error_power_ = lp_error_->output();
+
     have_capacity_ = false;
+
+    if (pid_counter_ < 10) {
+      pid_counter_++;
+    }
+    if (pid_counter_ == 10) {
+      pid_counter_ = 0;
+      ros::Time now = ros::Time::now();
+      this->pid_buffer_.computeCommand(error_power_, now - last_run_);
+      last_run_ = now;
+    }
 
     limit_power_pub_data_.chassis_power = vel_total;
     limit_power_pub_data_.chassis_current = limit_power_;
+    limit_power_pub_data_.bullet_speed = abs(pid_buffer_.getCurrentCmd());
     limit_power_pub_.publish(limit_power_pub_data_);
-
   }
-
-  if (pid_counter_ < 10) {
-    pid_counter_++;
-  }
-  if (pid_counter_ == 10) {
-    pid_counter_ = 0;
-    ros::Time now = ros::Time::now();
-    this->pid_buffer_.computeCommand(error_power_, now - last_run_);
-    last_run_ = now;
-  }
-
 }
 
 // Change limit power of different level and robot
@@ -106,16 +110,14 @@ double PowerLimit::getSafetyEffort() {
 void PowerLimit::jointVelCB(const sensor_msgs::JointState &data) {
   vel_total = abs(data.velocity[0]) + abs(data.velocity[1]) + abs(data.velocity[2]) + abs(data.velocity[3]);
 
-  ROS_INFO("%f", vel_total);
-
 }
 
 double PowerLimit::output() {
   if (have_capacity_ && ((abs(capacity_ - 0.25) <= 0.05) || capacity_ < 0.25))
     return safety_effort_;
   else {
-    //ROS_INFO("%f", abs(pid_buffer_.getCurrentCmd()));
-    return abs(pid_buffer_.getCurrentCmd());
+    if (have_capacity_) return abs(pid_buffer_power_manager_.getCurrentCmd());
+    else return abs(pid_buffer_.getCurrentCmd());
   }
 }
 
