@@ -42,11 +42,11 @@ void StateFollow<T>::run() {
   if (this->control_mode_ == "pc") { // pc control
     // Check for press
     if (this->data_->dbus_data_.key_e) {
-      if (now - last_press_time_e_ < ros::Duration(0.1)) this->data_->dbus_data_.key_e = false;
+      if (now - last_press_time_e_ < ros::Duration(0.8)) this->data_->dbus_data_.key_e = false;
       else last_press_time_e_ = now;
     }
     if (this->data_->dbus_data_.key_q) {
-      if (now - last_press_time_q_ < ros::Duration(0.1)) this->data_->dbus_data_.key_q = false;
+      if (now - last_press_time_q_ < ros::Duration(0.8)) this->data_->dbus_data_.key_q = false;
       else last_press_time_q_ = now;
     }
 
@@ -154,28 +154,18 @@ void StateFollow<T>::run() {
           this->data_->gimbal_des_error_.error_pitch = 0;
           ROS_WARN("The time stamp of gimbal track error is too old");
         }
-        if (this->data_->gimbal_des_error_.error_yaw >= this->gimbal_error_limit_) { // check yaw error
+        if (std::abs(this->data_->gimbal_des_error_.error_yaw) >= this->gimbal_error_limit_
+            || std::abs(this->data_->gimbal_des_error_.error_pitch) >= this->gimbal_error_limit_) { // check  error
           shoot_mode = rm_msgs::ShootCmd::READY;
-          ROS_WARN("Gimbal track yaw error is too big, stop shooting");
-        }
-        if (this->data_->gimbal_des_error_.error_pitch >= this->gimbal_error_limit_) { // check pitch error
-          shoot_mode = rm_msgs::ShootCmd::READY;
-          ROS_WARN("Gimbal track pitch error is too big, stop shooting");
+          ROS_WARN("Gimbal track error is too big, stop shooting");
+        } else {
+          shoot_mode = rm_msgs::ShootCmd::PUSH;
         }
       } else {
         shoot_mode = rm_msgs::ShootCmd::PUSH;
       }
     }
     this->setShoot(shoot_mode, this->ultimate_shoot_speed_, shoot_hz, now);
-
-    // Send command to sentry
-//    if (this->data_->dbus_data_.key_z) {
-//      int receiver_id;
-//      std::vector<uint8_t> sentry_cmd(1, 1);
-//      if (this->data_->referee_->robot_id_ > 100) receiver_id = kBlueSentry;
-//      else receiver_id = kRedSentry;
-//      this->data_->referee_->sendInteractiveData(0x0200, receiver_id, sentry_cmd);
-//    }
 
     // Refresh client graph
     if (this->data_->dbus_data_.key_x) {

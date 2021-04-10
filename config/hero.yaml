@@ -1,9 +1,9 @@
 rm_fsm:
   robot_type: "hero"
   control_param:
-    accel_x: 5.0
-    accel_y: 5.0
-    accel_angular: 5.0
+    accel_x: 8.0
+    accel_y: 8.0
+    accel_angular: 6.0
     brake_multiple: 2
     expect_shoot_hz: 2
     safe_shoot_hz: 1
@@ -19,8 +19,8 @@ rm_fsm:
       coefficient_x: 3.5
       coefficient_y: 3.5
       coefficient_angular: 1.0
-      coefficient_yaw: 12.56
-      coefficient_pitch: 12.56
+      coefficient_yaw: 750.0
+      coefficient_pitch: 750.0
       normal_critical_speed: 1
       burst_critical_speed: 2
       normal_angular: 1
@@ -28,10 +28,10 @@ rm_fsm:
       spin_sin_amplitude: 3.0
       spin_sin_frequency: 6.28
   power_limit:
-    danger_surplus: 20.0
+    danger_surplus: 28.0
     roll_back_buffer: 55.0
     coeff: 0.3
-    multiple: 15.0
+    multiple: 13.0
     safety_current: 6.0
     use_power_manager: false
     default_power_limit: true
