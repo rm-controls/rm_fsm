@@ -13,9 +13,9 @@ PowerLimit::PowerLimit(ros::NodeHandle &nh) {
   if (!pid_buffer_.init(pid_nh))
     ROS_INFO("[PowerLimit] PID initialize fail!");
 
-  ramp_chassis_power = new RampFilter<double>(10, 0.001);
+  ramp_chassis_power = new RampFilter<double>(10, 0.1);
   limit_power_pub_ = power_nh.advertise<rm_msgs::Referee>("/limit_power", 1);
-  joint_state_sub_ = power_nh.subscribe("/joint_state", 1, &PowerLimit::jointVelCB, this);
+  joint_state_sub_ = power_nh.subscribe("/joint_states", 1, &PowerLimit::jointVelCB, this);
   pid_counter_ = 0.0;
 }
 
@@ -37,23 +37,22 @@ void PowerLimit::input(RefereeData referee_data_,
 
   } else {
     real_chassis_power_ = referee_data_.power_heat_data_.chassis_power;
-    limit_power_ = 20 + 40 * (sin(2 * M_PI * last_run_.toSec()) > 0); //for test
+    limit_power_ = 20 + 40 * (sin(M_PI / 8 * last_run_.toSec()) > 0); //for test
     //limit_power_ = 60;
 
+    ramp_chassis_power->input(real_chassis_power_);
+    real_chassis_power_ = ramp_chassis_power->output();
+    ramp_chassis_power->clear(referee_data_.power_heat_data_.chassis_power);
 
     error_power_ = limit_power_ - real_chassis_power_;
     if (vel_total < 0.5) vel_total = 1.0;
     error_power_ = coeff_ * error_power_ / vel_total;
     have_capacity_ = false;
 
-    limit_power_pub_data_.chassis_power = error_power_;
+    limit_power_pub_data_.chassis_power = vel_total;
     limit_power_pub_data_.chassis_current = limit_power_;
     limit_power_pub_.publish(limit_power_pub_data_);
-/*
-    ramp_chassis_power->input(real_chassis_power_);
-    real_chassis_power_ = ramp_chassis_power->output();
-    ramp_chassis_power->clear(referee_data_.power_heat_data_.chassis_power);
-*/
+
   }
 
   if (pid_counter_ < 20) {
@@ -105,6 +104,9 @@ double PowerLimit::getSafetyEffort() {
 
 void PowerLimit::jointVelCB(const sensor_msgs::JointState &data) {
   vel_total = abs(data.velocity[0]) + abs(data.velocity[1]) + abs(data.velocity[2]) + abs(data.velocity[3]);
+
+  ROS_INFO("%f", vel_total);
+
 }
 
 double PowerLimit::output() {
