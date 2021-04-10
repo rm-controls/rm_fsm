@@ -43,7 +43,7 @@ void PowerLimit::input(RefereeData referee_data_,
 //    ramp_chassis_power->input(real_chassis_power_);
 //    real_chassis_power_ = ramp_chassis_power->output();
 //    ramp_chassis_power->clear(referee_data_.power_heat_data_.chassis_power);
-
+    limit_power_ -= referee_data_.power_heat_data_.chassis_power_buffer * 10.0 / 60.0;
     error_power_ = limit_power_ - real_chassis_power_;
     if (vel_total < 20.0)
       vel_total = 20.0;
