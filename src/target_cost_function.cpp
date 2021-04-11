@@ -27,24 +27,24 @@ void TargetCostFunction::input(rm_msgs::TrackDataArray track_data_array, bool on
         }
       }
     }
-/*    if (only_attack_base) {
+    if (only_attack_base) {
       if (id_ != 9) {
         for (int i = 0; i < target_numbers; i++) {
-          if (track_data_array.tracks[i].id == 4) {
-            id_ = 4;
+          if (track_data_array.tracks[i].id == 8) {
+            id_ = 8;
             break;
           }
         }
-*//*        for (int i = 0; i < target_numbers; i++) {
+/*        for (int i = 0; i < target_numbers; i++) {
           cost_temp = calculateCost(track_data_array.tracks[i]);
           if (cost_temp <= cost_) {
             cost_ = cost_temp;
             id_ = track_data_array.tracks[i].id;
           }
-        }*//*
+        }*/
       }
 
-    }*/
+    }
     cost_ = 10000000;
   } else id_ = 0;
 
