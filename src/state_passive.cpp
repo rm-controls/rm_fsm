@@ -32,7 +32,7 @@ void StatePassive<T>::run() {
     graph_operate_type = kUpdate;
   }
 
-  this->data_->referee_->write(this->state_name_, graph_operate_type, false, false);
+  this->data_->referee_->write(this->state_name_, graph_operate_type, false, false, false);
 }
 
 template<typename T>

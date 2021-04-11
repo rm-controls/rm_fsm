@@ -14,7 +14,7 @@
 class TargetCostFunction {
  public:
   explicit TargetCostFunction(ros::NodeHandle &nh);
-  void input(rm_msgs::TrackDataArray track_data_array);
+  void input(rm_msgs::TrackDataArray track_data_array, bool only_attack_base = false);
   int output() const;
   static double calculateCost(rm_msgs::TrackData track_data);
 
