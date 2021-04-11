@@ -32,7 +32,11 @@ void Referee::init() {
   }
 }
 
-void Referee::write(const std::string &state_name, uint8_t operate_type, bool is_burst, bool key_shift) {
+void Referee::write(const std::string &state_name,
+                    uint8_t operate_type,
+                    bool is_burst,
+                    bool key_shift,
+                    bool only_attack_base) {
   char power_string[30];
   float power_float;
   ros::Time now = ros::Time::now();
@@ -65,6 +69,10 @@ void Referee::write(const std::string &state_name, uint8_t operate_type, bool is
         drawCharacter(3, kOrange, operate_type, "Chassis: Burst");
       else
         drawCharacter(3, kYellow, operate_type, "Chassis: Normal");
+      if (only_attack_base)
+        drawCharacter(4, kOrange, operate_type, "target: base");
+      else
+        drawCharacter(4, kYellow, operate_type, "target: all");
     }
   }
 }
@@ -515,16 +523,20 @@ void Referee::drawCharacter(int type, GraphicColorType color, uint8_t operate_ty
     send_data.graphic_data_struct_.start_y = 100;
   } else if (type == 1) { // fsm state name
     send_data.graphic_data_struct_.graphic_name[1] = 1;
-    send_data.graphic_data_struct_.start_x = 1670;
-    send_data.graphic_data_struct_.start_y = 890;
+    send_data.graphic_data_struct_.start_x = 1470;
+    send_data.graphic_data_struct_.start_y = 790;
   } else if (type == 2) { // shoot burst
     send_data.graphic_data_struct_.graphic_name[1] = 2;
-    send_data.graphic_data_struct_.start_x = 1620;
-    send_data.graphic_data_struct_.start_y = 840;
+    send_data.graphic_data_struct_.start_x = 1420;
+    send_data.graphic_data_struct_.start_y = 740;
   } else if (type == 3) { // chassis burst
     send_data.graphic_data_struct_.graphic_name[1] = 3;
-    send_data.graphic_data_struct_.start_x = 1620;
-    send_data.graphic_data_struct_.start_y = 790;
+    send_data.graphic_data_struct_.start_x = 1420;
+    send_data.graphic_data_struct_.start_y = 690;
+  } else if (type == 4) { // only attack base
+    send_data.graphic_data_struct_.graphic_name[1] = 4;
+    send_data.graphic_data_struct_.start_x = 1420;
+    send_data.graphic_data_struct_.start_y = 640;
   }
   send_data.graphic_data_struct_.graphic_name[0] = 1;
   send_data.graphic_data_struct_.graphic_name[2] = 0;

@@ -60,7 +60,7 @@ class Referee {
   ~Referee() = default;
   void init();
   void read();
-  void write(const std::string &state_name, uint8_t operate_type, bool is_burst, bool key_shift);
+  void write(const std::string &state_name, uint8_t operate_type, bool is_burst, bool key_shift, bool only_attack_base);
 
   void drawGraphic(int side, GraphicColorType color, GraphicOperateType operate_type);
   void drawCharacter(int type, GraphicColorType color, uint8_t operate_type, std::string data);

@@ -41,15 +41,22 @@ void StateFollow<T>::run() {
 
   if (this->control_mode_ == "pc") { // pc control
     // Check for press
-    if (this->data_->dbus_data_.key_e) {
-      if (now - last_press_time_e_ < ros::Duration(0.1)) this->data_->dbus_data_.key_e = false;
-      else last_press_time_e_ = now;
+    if (this->data_->dbus_data_.key_g) {
+      if (now - last_press_time_g_ < ros::Duration(0.5)) this->data_->dbus_data_.key_g = false;
+      else last_press_time_g_ = now;
+    }
+    if (this->data_->dbus_data_.key_r) {
+      if (now - last_press_time_r_ < ros::Duration(0.5)) this->data_->dbus_data_.key_r = false;
+      else last_press_time_r_ = now;
     }
     if (this->data_->dbus_data_.key_q) {
-      if (now - last_press_time_q_ < ros::Duration(0.1)) this->data_->dbus_data_.key_q = false;
+      if (now - last_press_time_q_ < ros::Duration(0.5)) this->data_->dbus_data_.key_q = false;
       else last_press_time_q_ = now;
     }
-
+    if (this->data_->dbus_data_.key_c) {
+      if (now - last_press_time_c_ < ros::Duration(0.5)) this->data_->dbus_data_.key_c = false;
+      else last_press_time_c_ = now;
+    }
     // Send cmd to chassis
     linear_x = (this->data_->dbus_data_.key_w - this->data_->dbus_data_.key_s); // W/S
     linear_y = (this->data_->dbus_data_.key_a - this->data_->dbus_data_.key_d); // A/D
@@ -63,14 +70,32 @@ void StateFollow<T>::run() {
         normal_angular_ * pow(1.1, this->data_->referee_->referee_data_.game_robot_status_.robot_level);
     burst_angular =
         burst_angular_ * pow(1.1, this->data_->referee_->referee_data_.game_robot_status_.robot_level);
-
+    //switch attack mode
+    if (this->data_->dbus_data_.key_c) {
+      if (only_attack_base_) {
+        only_attack_base_ = false;
+      } else {
+        only_attack_base_ = true;
+      }
+    }
     // Switch spin mode
-    if (this->data_->dbus_data_.key_e) {
+    if (this->data_->dbus_data_.key_g) {
       if (is_spin_) {
         is_spin_ = false;
         this->last_chassis_mode_ = rm_msgs::ChassisCmd::FOLLOW;
       } else {
         is_spin_ = true;
+        twist_ = false;
+      }
+    }
+    // Switch spin mode
+    if (this->data_->dbus_data_.key_r) {
+      if (twist_) {
+        twist_ = false;
+        this->last_chassis_mode_ = rm_msgs::ChassisCmd::FOLLOW;
+      } else {
+        twist_ = true;
+        is_spin_ = false;
       }
     }
     if (is_spin_) {
@@ -95,6 +120,28 @@ void StateFollow<T>::run() {
       }
       this->last_chassis_mode_ = chassis_mode;
       this->last_angular_z_ = angular_z;
+    } else if (twist_) {
+      if (this->data_->dbus_data_.key_shift) { // burst mode
+        if (pow(this->data_->odom_.twist.twist.linear.x, 2) + pow(this->data_->odom_.twist.twist.linear.y, 2)
+            <= pow(burst_critical_speed, 2)) {
+          chassis_mode = rm_msgs::ChassisCmd::TWIST;
+          angular_z = burst_angular + spin_sin_amplitude_ * abs(sin(spin_sin_frequency_ * now.toNSec()));
+        } else {
+          chassis_mode = rm_msgs::ChassisCmd::FOLLOW;
+          angular_z = burst_angular + spin_sin_amplitude_ * abs(sin(spin_sin_frequency_ * now.toNSec()));
+        }
+      } else { // normal mode
+        if (pow(this->data_->odom_.twist.twist.linear.x, 2) + pow(this->data_->odom_.twist.twist.linear.y, 2)
+            <= pow(normal_critical_speed, 2)) {
+          chassis_mode = rm_msgs::ChassisCmd::TWIST;
+          angular_z = normal_angular + spin_sin_amplitude_ * abs(sin(spin_sin_frequency_ * now.toNSec()));
+        } else {
+          chassis_mode = rm_msgs::ChassisCmd::FOLLOW;
+          angular_z = normal_angular + spin_sin_amplitude_ * abs(sin(spin_sin_frequency_ * now.toNSec()));
+        }
+      }
+      this->last_chassis_mode_ = chassis_mode;
+      this->last_angular_z_ = angular_z;
     } else {
       chassis_mode = this->last_chassis_mode_;
       angular_z = this->last_angular_z_;
@@ -107,7 +154,7 @@ void StateFollow<T>::run() {
     this->actual_shoot_speed_ = this->data_->referee_->getActualBulletSpeed(this->actual_shoot_speed_);
     // Switch track mode
     if (this->data_->dbus_data_.p_r) {
-      this->data_->target_cost_function_->input(this->data_->track_data_array_);
+      this->data_->target_cost_function_->input(this->data_->track_data_array_, only_attack_base_);
       target_id = this->data_->target_cost_function_->output();
       if (target_id == 0) {
         gimbal_mode = rm_msgs::GimbalCmd::RATE;
@@ -174,7 +221,11 @@ void StateFollow<T>::run() {
       graph_operate_type = kUpdate;
     }
 
-    this->data_->referee_->write(this->state_name_, graph_operate_type, is_burst_, this->data_->dbus_data_.key_shift);
+    this->data_->referee_->write(this->state_name_,
+                                 graph_operate_type,
+                                 is_burst_,
+                                 this->data_->dbus_data_.key_shift,
+                                 only_attack_base_);
 
   } else { // rc control
     // Send command to chassis
