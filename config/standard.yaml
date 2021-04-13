@@ -29,11 +29,17 @@ rm_fsm:
       spin_sin_amplitude: 3.0
       spin_sin_frequency: 6.28
   power_limit:
-    coeff: 0.3
+    ff: 1.0
     safety_current: 7.5
+    wheel_radius: 0.07625
     use_power_manager: false
-    max_limit: 100
-    pid_buffer: { p: 10.0, i: 0.1, d: 0.05, i_max: 0.0, i_min: 0.0, antiwindup: true }
+    max_limit_50w: 4.00
+    max_limit_60w: 4.60
+    max_limit_70w: 6.00
+    max_limit_80w: 7.00
+    max_limit_100w: 8.00
+    max_limit_120w: 9.00
+    pid_buffer: { p: 0.021, i: 0.005, d: 0.0, i_max: 0.0, i_min: 0.0, antiwindup: true }
     pid_buffer_power_manager: { p: 10.0, i: 0.1, d: 0.05, i_max: 0.0, i_min: 0.0, antiwindup: true }
 
 

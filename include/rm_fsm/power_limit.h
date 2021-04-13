@@ -8,6 +8,7 @@
 #include <ros/ros.h>
 #include <control_toolbox/pid.h>
 #include "rm_fsm/referee.h"
+#include <rm_msgs/PowerLimit.h>
 #include <rm_common/filters/lp_filter.h>
 #include <sensor_msgs/JointState.h>
 
@@ -20,11 +21,14 @@ class PowerLimit {
   double output();
   double getLimitPower(RefereeData referee_data_);
   double getSafetyEffort();
+  void getLimitEffort();
 
  private:
   ros::Time last_run_;
+  ros::Subscriber joint_state_sub_;
   control_toolbox::Pid pid_buffer_;
   control_toolbox::Pid pid_buffer_power_manager_;
+  void jointVelCB(const sensor_msgs::JointState &data);
 
   double real_chassis_power_;
   double limit_power_;
@@ -32,19 +36,24 @@ class PowerLimit {
   double error_power_;
 
   double safety_effort_;
+  double wheel_radius_;
+  double ff_;
+  double max_limit_;
+  double max_limit_50w_;
+  double max_limit_60w_;
+  double max_limit_70w_;
+  double max_limit_80w_;
+  double max_limit_100w_;
+  double max_limit_120w_;
 
   bool have_capacity_;
   double pid_counter_;
-  double coeff_;
-
-  ros::Publisher limit_power_pub_;
-  ros::Subscriber joint_state_sub_;
-  rm_msgs::Referee limit_power_pub_data_;
-
-
-  void jointVelCB(const sensor_msgs::JointState &data);
   double vel_total;
   LowPassFilter *lp_error_{};
+
+  //publish some data for test
+  ros::Publisher power_limit_pub_;
+  rm_msgs::PowerLimit power_limit_pub_data_;
 
 };
 

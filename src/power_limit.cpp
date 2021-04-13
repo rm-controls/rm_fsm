@@ -7,7 +7,14 @@
 PowerLimit::PowerLimit(ros::NodeHandle &nh) {
   ros::NodeHandle power_nh = ros::NodeHandle(nh, "power_limit");
   power_nh.param("safety_effort", safety_effort_, 7.5 * 0.3);
-  power_nh.param("coeff", coeff_, 0.3);
+  power_nh.param("ff", ff_, 0.3);
+  power_nh.param("wheel_radius", wheel_radius_, 0.07625);
+  power_nh.param("max_limit_50w", max_limit_50w_, 4.0);
+  power_nh.param("max_limit_60w", max_limit_60w_, 4.0);
+  power_nh.param("max_limit_70w", max_limit_70w_, 4.0);
+  power_nh.param("max_limit_80w", max_limit_80w_, 4.0);
+  power_nh.param("max_limit_100w", max_limit_100w_, 4.0);
+  power_nh.param("max_limit_120w", max_limit_120w_, 4.0);
 
   ros::NodeHandle pid_nh = ros::NodeHandle(nh, "power_limit/pid_buffer");
   ros::NodeHandle pid_power_manager_nh = ros::NodeHandle(nh, "power_limit/pid_buffer_power_manager");
@@ -15,10 +22,10 @@ PowerLimit::PowerLimit(ros::NodeHandle &nh) {
   if (!pid_buffer_.init(pid_nh)) ROS_INFO("[PowerLimit] PID initialize fail!");
   if (!pid_buffer_power_manager_.init(pid_power_manager_nh)) ROS_INFO("[PowerLimit] Power Manager PID initialize fail!");
 
-  lp_error_ = new LowPassFilter(10.0);
-
-  limit_power_pub_ = power_nh.advertise<rm_msgs::Referee>("/limit_power", 1);
+  power_limit_pub_ = power_nh.advertise<rm_msgs::PowerLimit>("/limit_power", 1);
   joint_state_sub_ = power_nh.subscribe("/joint_states", 1, &PowerLimit::jointVelCB, this);
+
+  lp_error_ = new LowPassFilter(10.0);
   pid_counter_ = 0.0;
 }
 
@@ -40,15 +47,16 @@ void PowerLimit::input(RefereeData referee_data_,
 
   } else {
     real_chassis_power_ = referee_data_.power_heat_data_.chassis_power;
-    //limit_power_ = 20 + 40 * (sin(M_PI / 2 * last_run_.toSec()) > 0); //for test
-    limit_power_ = getLimitPower(referee_data_);
+    //limit_power_ = 50 + 70 * (sin(M_PI / 2 * last_run_.toSec()) > 0); //for test
+    //limit_power_ = getLimitPower(referee_data_);
+    limit_power_ = 50;
 
     if (referee_data_.power_heat_data_.chassis_power_buffer <= 30)
       limit_power_ -= 5.0;
     error_power_ = limit_power_ - real_chassis_power_;
     if (vel_total < 20.0)
       vel_total = 20.0;
-    error_power_ = coeff_ * error_power_ / vel_total;
+    error_power_ = ((error_power_ / vel_total) / wheel_radius_ - ff_) / wheel_radius_;
 
     lp_error_->input(error_power_);
     error_power_ = lp_error_->output();
@@ -65,10 +73,10 @@ void PowerLimit::input(RefereeData referee_data_,
       last_run_ = now;
     }
 
-    limit_power_pub_data_.chassis_power = vel_total;
-    limit_power_pub_data_.chassis_current = limit_power_;
-    limit_power_pub_data_.bullet_speed = abs(pid_buffer_.getCurrentCmd());
-    limit_power_pub_.publish(limit_power_pub_data_);
+    power_limit_pub_data_.vel_total = vel_total;
+    power_limit_pub_data_.limit_power = limit_power_;
+    power_limit_pub_data_.effort = abs(pid_buffer_.getCurrentCmd()) / 100;
+    power_limit_pub_.publish(power_limit_pub_data_);
   }
 }
 
@@ -103,7 +111,6 @@ double PowerLimit::getLimitPower(RefereeData referee_data_) {
 }
 
 double PowerLimit::getSafetyEffort() {
-
   return safety_effort_;
 }
 
@@ -112,12 +119,40 @@ void PowerLimit::jointVelCB(const sensor_msgs::JointState &data) {
 
 }
 
+void PowerLimit::getLimitEffort() {
+  if (this->limit_power_ <= 50) this->max_limit_ = max_limit_50w_;
+  else if (this->limit_power_ <= 60 && this->limit_power_ > 50) this->max_limit_ = max_limit_60w_;
+  else if (this->limit_power_ <= 70 && this->limit_power_ > 60) this->max_limit_ = max_limit_70w_;
+  else if (this->limit_power_ <= 80 && this->limit_power_ > 70) this->max_limit_ = max_limit_80w_;
+  else if (this->limit_power_ <= 100 && this->limit_power_ > 80) this->max_limit_ = max_limit_100w_;
+  else if (this->limit_power_ <= 120 && this->limit_power_ > 100) this->max_limit_ = max_limit_120w_;
+
+}
+
 double PowerLimit::output() {
+  /*
+  this->getLimitEffort();
+
   if (have_capacity_ && ((abs(capacity_ - 0.25) <= 0.05) || capacity_ < 0.25))
     return safety_effort_;
   else {
-    if (have_capacity_) return abs(pid_buffer_power_manager_.getCurrentCmd());
-    else return abs(pid_buffer_.getCurrentCmd());
+    if (have_capacity_) {
+      if (abs(pid_buffer_power_manager_.getCurrentCmd()) > max_limit_) return max_limit_;
+      else return abs(pid_buffer_power_manager_.getCurrentCmd());
+    } else {
+      if (abs(pid_buffer_.getCurrentCmd()) > max_limit_) return max_limit_;
+      else return abs(pid_buffer_.getCurrentCmd());
+    }
+  }
+   */
+  if (have_capacity_ && ((abs(capacity_ - 0.25) <= 0.05) || capacity_ < 0.25))
+    return safety_effort_;
+  else {
+    if (have_capacity_) {
+      return abs(pid_buffer_power_manager_.getCurrentCmd());
+    } else {
+      return abs(pid_buffer_.getCurrentCmd());
+    }
   }
 }
 
