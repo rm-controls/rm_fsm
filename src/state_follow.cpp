@@ -246,12 +246,16 @@ void StateFollow<T>::run() {
 
     // Send command to shooter
     this->ultimate_shoot_speed_ = this->data_->referee_->getUltimateBulletSpeed(this->ultimate_shoot_speed_);
+    this->data_->target_cost_function_->input(this->data_->track_data_array_, only_attack_base_);
+    target_id = this->data_->target_cost_function_->output();
     if (this->data_->dbus_data_.s_l == rm_msgs::DbusData::UP) {
       this->data_->shooter_heat_limit_->input(this->data_->referee_, this->expect_shoot_hz_, this->safe_shoot_hz_);
       shoot_hz = this->data_->shooter_heat_limit_->output();
       shoot_mode = rm_msgs::ShootCmd::PUSH;
+      this->setGimbal(rm_msgs::GimbalCmd::TRACK, 0, 0,target_id, 9.5);
     } else if (this->data_->dbus_data_.s_l == rm_msgs::DbusData::MID) {
       shoot_mode = rm_msgs::ShootCmd::READY;
+      this->setGimbal(rm_msgs::GimbalCmd::TRACK, 0, 0,target_id, 9.5);
     } else {
       shoot_mode = rm_msgs::ShootCmd::STOP;
     }
