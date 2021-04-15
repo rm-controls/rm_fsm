@@ -228,19 +228,32 @@ void StateFollow<T>::run() {
     // Send command to gimbal
     rate_yaw = -this->data_->dbus_data_.ch_l_x;
     rate_pitch = -this->data_->dbus_data_.ch_l_y;
-    this->setGimbal(rm_msgs::GimbalCmd::RATE, rate_yaw, rate_pitch, 0, 0.0);
 
     // Send command to shooter
     this->ultimate_shoot_speed_ = this->data_->referee_->getUltimateBulletSpeed(this->ultimate_shoot_speed_);
+    this->data_->target_cost_function_->input(this->data_->track_data_array_, only_attack_base_);
+    target_id = this->data_->target_cost_function_->output();
     if (this->data_->dbus_data_.s_l == rm_msgs::DbusData::UP) {
+      if (target_id == 0) {
+        this->setGimbal(rm_msgs::GimbalCmd::RATE, rate_yaw, rate_pitch, 0, 0.0);
+      } else {
+        this->setGimbal(rm_msgs::GimbalCmd::TRACK, rate_yaw, rate_pitch, target_id, this->actual_shoot_speed_);
+      }
       this->data_->shooter_heat_limit_->input(this->data_->referee_, this->expect_shoot_hz_, this->safe_shoot_hz_);
       shoot_hz = this->data_->shooter_heat_limit_->output();
       shoot_mode = rm_msgs::ShootCmd::PUSH;
     } else if (this->data_->dbus_data_.s_l == rm_msgs::DbusData::MID) {
+      if (target_id == 0) {
+        this->setGimbal(rm_msgs::GimbalCmd::RATE, rate_yaw, rate_pitch, 0, 0.0);
+      } else {
+        this->setGimbal(rm_msgs::GimbalCmd::TRACK, rate_yaw, rate_pitch, target_id, this->actual_shoot_speed_);
+      }
       shoot_mode = rm_msgs::ShootCmd::READY;
     } else {
       shoot_mode = rm_msgs::ShootCmd::STOP;
+      this->setGimbal(rm_msgs::GimbalCmd::RATE, rate_yaw, rate_pitch, 0, 0.0);
     }
+
     this->setShoot(shoot_mode, this->ultimate_shoot_speed_, shoot_hz, now);
   }
 }
