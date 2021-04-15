@@ -75,7 +75,7 @@ void PowerLimit::input(RefereeData referee_data_,
 
     power_limit_pub_data_.vel_total = vel_total;
     power_limit_pub_data_.limit_power = limit_power_;
-    power_limit_pub_data_.effort = abs(pid_buffer_.getCurrentCmd()) / 100;
+    power_limit_pub_data_.effort = abs(pid_buffer_.getCurrentCmd());
     power_limit_pub_.publish(power_limit_pub_data_);
   }
 }
