@@ -58,8 +58,6 @@ class FsmData {
     shooter_heat_limit_ = new ShooterHeatLimit();
     target_cost_function_ = new TargetCostFunction(nh);
     referee_ = new Referee();
-
-    referee_->init();
     // sub
     dbus_sub_ = nh.subscribe<rm_msgs::DbusData>(
         "/dbus_data", 10, &FsmData::dbusDataCallback, this);
@@ -69,7 +67,6 @@ class FsmData {
         "/error_des", 10, &FsmData::gimbalDesErrorCallback, this);
     odom_sub_ = nh.subscribe<nav_msgs::Odometry>(
         "/odom", 10, &FsmData::odomCallback, this);
-
     // pub
     ros::NodeHandle root_nh;
     vel_cmd_pub_ = root_nh.advertise<geometry_msgs::Twist>("/cmd_vel", 1);
@@ -78,6 +75,7 @@ class FsmData {
     shooter_cmd_pub_ = root_nh.advertise<rm_msgs::ShootCmd>("/cmd_shoot", 1);
     referee_->referee_pub_ = root_nh.advertise<rm_msgs::Referee>("/referee", 1);
     referee_->power_manager_pub_ = root_nh.advertise<rm_msgs::PowerManagerData>("/power_manager_data", 1);
+    referee_->init(nh);
   }
 
   void dbusDataCallback(const rm_msgs::DbusData::ConstPtr &data) {

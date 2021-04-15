@@ -8,6 +8,10 @@
 #include <serial/serial.h>
 #include <rm_msgs/Referee.h>
 #include <rm_msgs/PowerManagerData.h>
+#include <rm_msgs/DbusData.h>
+#include <rm_msgs/ChassisCmd.h>
+#include <rm_msgs/GimbalCmd.h>
+#include <geometry_msgs/Twist.h>
 #include "rm_fsm/protocol.h"
 
 struct RefereeData {
@@ -58,20 +62,39 @@ class Referee {
  public:
   Referee() = default;
   ~Referee() = default;
-  void init();
+  void init(ros::NodeHandle nh);
   void read();
-  void write(const std::string &state_name, uint8_t operate_type, bool is_burst, bool key_shift, bool only_attack_base);
-
-  void drawGraphic(int side, GraphicColorType color, GraphicOperateType operate_type);
-  void drawCharacter(int type, GraphicColorType color, uint8_t operate_type, std::string data);
+  void run();
+  void drawRectangle(int start_x,
+                     int start_y,
+                     int end_x,
+                     int end_y,
+                     int picture_name,
+                     GraphicColorType color,
+                     GraphicOperateType operate_type);
+  void drawString(int x, int y, int picture_name, GraphicColorType color, uint8_t operate_type, std::string data);
   void sendInteractiveData(int data_cmd_id, int receiver_id, const std::vector<uint8_t> &data);
 
   double getActualBulletSpeed(int shoot_speed) const;
   double getUltimateBulletSpeed(int shoot_speed) const;
 
+  ros::Time last_press_time_g_ = ros::Time::now();
+  ros::Time last_press_time_r_ = ros::Time::now();
+  ros::Time last_press_time_f_ = ros::Time::now();
+  ros::Time last_press_time_q_ = ros::Time::now();
+  ros::Time last_press_time_c_ = ros::Time::now();
+  bool gyro_flag_ = 0;
+  bool twist_flag_ = 0;
+  bool burst_flag_ = 0;
+  bool only_attack_base_flag_ = 0;
+  ros::NodeHandle nh_;
   RefereeData referee_data_{};
   PowerManagerData power_manager_data_;
+  ros::Subscriber dbus_sub_;
 
+  rm_msgs::DbusData dbus_data_;
+  int chassis_mode_ = 0;
+  int gimbal_mode_ = 0;
   bool is_open_ = false;
   int robot_id_ = 0;
   int client_id_ = 0;
@@ -80,7 +103,9 @@ class Referee {
   ros::Time last_send_ = ros::Time::now();
   rm_msgs::Referee referee_pub_data_;
   rm_msgs::PowerManagerData power_manager_pub_data_;
-
+  void dbusDataCallback(const rm_msgs::DbusData::ConstPtr &data) {
+    dbus_data_ = *data;
+  }
  private:
   void getId();
   void unpack(const std::vector<uint8_t> &rx_buffer);
