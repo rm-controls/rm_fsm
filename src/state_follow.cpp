@@ -32,7 +32,6 @@ void StateFollow<T>::run() {
   uint8_t target_id;
   double shoot_hz = 0;
   ros::Time now = ros::Time::now();
-  uint8_t graph_operate_type;
   double normal_critical_speed, burst_critical_speed, normal_angular, burst_angular;
 
   this->loadParam();
@@ -213,19 +212,6 @@ void StateFollow<T>::run() {
       }
     }
     this->setShoot(shoot_mode, this->ultimate_shoot_speed_, shoot_hz, now);
-
-    // Refresh client graph
-    if (this->data_->dbus_data_.key_x) {
-      graph_operate_type = kAdd;
-    } else {
-      graph_operate_type = kUpdate;
-    }
-
-    this->data_->referee_->write(this->state_name_,
-                                 graph_operate_type,
-                                 is_burst_,
-                                 this->data_->dbus_data_.key_shift,
-                                 only_attack_base_);
 
   } else { // rc control
     // Send command to chassis
