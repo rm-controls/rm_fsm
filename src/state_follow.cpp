@@ -242,7 +242,6 @@ void StateFollow<T>::run() {
       this->data_->shooter_heat_limit_->input(this->data_->referee_, this->expect_shoot_hz_, this->safe_shoot_hz_);
       shoot_hz = this->data_->shooter_heat_limit_->output();
       shoot_mode = rm_msgs::ShootCmd::PUSH;
-      this->setGimbal(rm_msgs::GimbalCmd::TRACK, 0, 0,target_id, 9.5);
     } else if (this->data_->dbus_data_.s_l == rm_msgs::DbusData::MID) {
       if (target_id == 0) {
         this->setGimbal(rm_msgs::GimbalCmd::RATE, rate_yaw, rate_pitch, 0, 0.0);
@@ -250,7 +249,6 @@ void StateFollow<T>::run() {
         this->setGimbal(rm_msgs::GimbalCmd::TRACK, rate_yaw, rate_pitch, target_id, this->actual_shoot_speed_);
       }
       shoot_mode = rm_msgs::ShootCmd::READY;
-      this->setGimbal(rm_msgs::GimbalCmd::TRACK, 0, 0,target_id, 9.5);
     } else {
       shoot_mode = rm_msgs::ShootCmd::STOP;
       this->setGimbal(rm_msgs::GimbalCmd::RATE, rate_yaw, rate_pitch, 0, 0.0);
