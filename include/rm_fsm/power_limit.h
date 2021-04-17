@@ -12,6 +12,8 @@
 #include <rm_common/filters/lp_filter.h>
 #include <rm_common/filters/filters.h>
 #include <sensor_msgs/JointState.h>
+#include <rm_fsm/PowerLimitConfig.h>
+#include <math.h>
 
 class PowerLimit {
  public:
@@ -23,6 +25,9 @@ class PowerLimit {
   double getLimitPower(RefereeData referee_data_);
   double getSafetyEffort();
   void getLimitEffort();
+
+ protected:
+  virtual void reconfigCB(rm_fsm::PowerLimitConfig &config, uint32_t /*level*/);
 
  private:
   ros::Time last_run_;
@@ -55,6 +60,11 @@ class PowerLimit {
   //publish some data for test
   ros::Publisher power_limit_pub_;
   rm_msgs::PowerLimit power_limit_pub_data_;
+
+  struct Config {
+    double , block_effort, block_duration, block_speed, anti_block_angle, anti_block_error;
+  };
+  dynamic_reconfigure::Server<rm_fsm::PowerLimitConfig> *d_srv_{};
 
 };
 

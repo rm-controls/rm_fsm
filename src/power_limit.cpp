@@ -16,6 +16,13 @@ PowerLimit::PowerLimit(ros::NodeHandle &nh) {
   power_nh.param("max_limit_100w", max_limit_100w_, 4.0);
   power_nh.param("max_limit_120w", max_limit_120w_, 4.0);
 
+  d_srv_ = new dynamic_reconfigure::Server<rm_fsm::PowerLimitConfig>(nh);
+  dynamic_reconfigure::Server<rm_fsm::PowerLimitConfig>::CallbackType cb =
+      [this](auto &&PH1, auto &&PH2) {
+        reconfigCB(std::forward<decltype(PH1)>(PH1), std::forward<decltype(PH2)>(PH2));
+      };
+  d_srv_->setCallback(cb);
+
   ros::NodeHandle pid_nh = ros::NodeHandle(nh, "power_limit/pid_buffer");
   ros::NodeHandle pid_power_manager_nh = ros::NodeHandle(nh, "power_limit/pid_buffer_power_manager");
 
@@ -49,18 +56,19 @@ void PowerLimit::input(RefereeData referee_data_,
 
   } else {
     real_chassis_power_ = referee_data_.power_heat_data_.chassis_power;
-    //limit_power_ = 50 + 70 * (sin(M_PI / 2 * last_run_.toSec()) > 0); //for test
+//    limit_power_ = 50 + 70 * (sin(M_PI / 4 * last_run_.toSec()) > 0); //for test
+    //limit_power_ = 50 + 30 * (sin(last_run_.toSec()) + 1);
     //limit_power_ = getLimitPower(referee_data_);
-    limit_power_ = 100;
-
+//    limit_power_ = 100;
+//    limit_power_ += limit_power_ * 0.357142857 + 2.14286;
     if (referee_data_.power_heat_data_.chassis_power_buffer <= 30)
       limit_power_ -= 5.0;
     error_power_ = limit_power_ - real_chassis_power_;
-    if (vel_total < 60.0)
-      vel_total = 60.0;
+    if (vel_total < 30.0)
+      vel_total = 30.0;
     lp_error_->input(vel_total);
     vel_total = lp_error_->output();
-    error_power_ = ((error_power_ / vel_total) / wheel_radius_ - ff_) / wheel_radius_;
+    error_power_ = ((error_power_ / vel_total) / wheel_radius_ + ff_) / wheel_radius_;
 
     ramp_error_->input(error_power_);
     error_power_ = ramp_error_->output();
@@ -118,9 +126,13 @@ double PowerLimit::getSafetyEffort() {
   return safety_effort_;
 }
 
+void PowerLimit::reconfigCB(rm_fsm::PowerLimitConfig &config, uint32_t) {
+  ROS_INFO("[Fsm] Dynamic params change");
+  limit_power_ = config.limit_power;
+}
+
 void PowerLimit::jointVelCB(const sensor_msgs::JointState &data) {
   vel_total = abs(data.velocity[0]) + abs(data.velocity[1]) + abs(data.velocity[2]) + abs(data.velocity[3]);
-
 }
 
 void PowerLimit::getLimitEffort() {
@@ -130,7 +142,6 @@ void PowerLimit::getLimitEffort() {
   else if (this->limit_power_ <= 80 && this->limit_power_ > 70) this->max_limit_ = max_limit_80w_;
   else if (this->limit_power_ <= 100 && this->limit_power_ > 80) this->max_limit_ = max_limit_100w_;
   else if (this->limit_power_ <= 120 && this->limit_power_ > 100) this->max_limit_ = max_limit_120w_;
-
 }
 
 double PowerLimit::output() {

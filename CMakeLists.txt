@@ -14,15 +14,20 @@ find_package(serial REQUIRED)
 
 find_package(catkin REQUIRED
         COMPONENTS
-        roscpp
-        sensor_msgs
-        roslint
-        rm_msgs
-        rm_common
-        tf
-        serial
-        control_toolbox
-        )
+    roscpp
+    sensor_msgs
+    roslint
+    rm_msgs
+    rm_common
+    tf
+    serial
+    control_toolbox
+    dynamic_reconfigure
+    )
+
+generate_dynamic_reconfigure_options(
+    cfg/Powerlimit.cfg
+)
 
 ## Find system libraries
 #find_package(Eigen3 REQUIRED)
@@ -37,24 +42,25 @@ find_package(catkin REQUIRED
 ## CATKIN_DEPENDS: catkin_packages dependent projects also need
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
-        INCLUDE_DIRS
-        include
-        LIBRARIES
-        ${PROJECT_NAME}
-        CATKIN_DEPENDS
-        sensor_msgs
-        roslint
-        rm_msgs
-        rm_common
-        tf
-        control_toolbox
-        DEPENDS
-        ## find_package(Eigen3) provides a non standard EIGEN3_INCLUDE_DIR instead of Eigen3_INCLUDE_DIRS.
-        ## Therefore, the DEPEND does not work as expected and we need to add the directory to the INCLUDE_DIRS
-        # Eigen3
+    INCLUDE_DIRS
+    include
+    LIBRARIES
+    ${PROJECT_NAME}
+    CATKIN_DEPENDS
+    sensor_msgs
+    roslint
+    rm_msgs
+    rm_common
+    tf
+    control_toolbox
+    dynamic_reconfigure
+    DEPENDS
+    ## find_package(Eigen3) provides a non standard EIGEN3_INCLUDE_DIR instead of Eigen3_INCLUDE_DIRS.
+    ## Therefore, the DEPEND does not work as expected and we need to add the directory to the INCLUDE_DIRS
+    # Eigen3
 
-        ## Boost is not part of the DEPENDS since it is only used in source files,
-        ## Dependees do not depend on Boost when they depend on this package.
+    ## Boost is not part of the DEPENDS since it is only used in source files,
+    ## Dependees do not depend on Boost when they depend on this package.
 )
 
 ###########
