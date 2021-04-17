@@ -33,7 +33,7 @@ PowerLimit::PowerLimit(ros::NodeHandle &nh) {
   joint_state_sub_ = power_nh.subscribe("/joint_states", 1, &PowerLimit::jointVelCB, this);
 
   lp_error_ = new LowPassFilter(20.0);
-  ramp_error_ = new RampFilter<double>(400,0.01);
+  ramp_error_ = new RampFilter<double>(200, 0.01);
   pid_counter_ = 0.0;
 }
 
@@ -55,20 +55,22 @@ void PowerLimit::input(RefereeData referee_data_,
     last_run_ = now;
 
   } else {
+    double tmp_vel_total_;
     real_chassis_power_ = referee_data_.power_heat_data_.chassis_power;
 //    limit_power_ = 50 + 70 * (sin(M_PI / 4 * last_run_.toSec()) > 0); //for test
     //limit_power_ = 50 + 30 * (sin(last_run_.toSec()) + 1);
     //limit_power_ = getLimitPower(referee_data_);
-//    limit_power_ = 100;
+//    limit_power_ = 60;
 //    limit_power_ += limit_power_ * 0.357142857 + 2.14286;
-    if (referee_data_.power_heat_data_.chassis_power_buffer <= 30)
-      limit_power_ -= 5.0;
+    //if (referee_data_.power_heat_data_.chassis_power_buffer <= 30)
+    //limit_power_ -= 5.0;
+    tmp_vel_total_ = vel_total;
     error_power_ = limit_power_ - real_chassis_power_;
-    if (vel_total < 30.0)
-      vel_total = 30.0;
-    lp_error_->input(vel_total);
-    vel_total = lp_error_->output();
-    error_power_ = ((error_power_ / vel_total) / wheel_radius_ + ff_) / wheel_radius_;
+    if (tmp_vel_total_ < 60.0)
+      tmp_vel_total_ = 60.0 + 5.0 * (last_vel_total_ - vel_total);
+    lp_error_->input(tmp_vel_total_);
+    tmp_vel_total_ = lp_error_->output();
+    error_power_ = ((error_power_ / tmp_vel_total_) / wheel_radius_ + ff_) / wheel_radius_;
 
     ramp_error_->input(error_power_);
     error_power_ = ramp_error_->output();
@@ -85,7 +87,7 @@ void PowerLimit::input(RefereeData referee_data_,
       last_run_ = now;
     }
 
-    power_limit_pub_data_.vel_total = vel_total;
+    power_limit_pub_data_.vel_total = tmp_vel_total_;
     power_limit_pub_data_.limit_power = limit_power_;
     power_limit_pub_data_.effort = abs(pid_buffer_.getCurrentCmd());
     power_limit_pub_.publish(power_limit_pub_data_);
@@ -129,9 +131,11 @@ double PowerLimit::getSafetyEffort() {
 void PowerLimit::reconfigCB(rm_fsm::PowerLimitConfig &config, uint32_t) {
   ROS_INFO("[Fsm] Dynamic params change");
   limit_power_ = config.limit_power;
+  power_offset_ = config.power_offset;
 }
 
 void PowerLimit::jointVelCB(const sensor_msgs::JointState &data) {
+  last_vel_total_ = vel_total;
   vel_total = abs(data.velocity[0]) + abs(data.velocity[1]) + abs(data.velocity[2]) + abs(data.velocity[3]);
 }
 
@@ -166,7 +170,7 @@ double PowerLimit::output() {
     if (have_capacity_) {
       return abs(pid_buffer_power_manager_.getCurrentCmd());
     } else {
-      return abs(pid_buffer_.getCurrentCmd());
+      return abs(pid_buffer_.getCurrentCmd()) + power_offset_;
     }
   }
 }

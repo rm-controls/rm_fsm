@@ -55,15 +55,14 @@ class PowerLimit {
   bool have_capacity_;
   double pid_counter_;
   double vel_total;
+  double last_vel_total_;
+
+  double power_offset_;
   LowPassFilter *lp_error_{};
   RampFilter<double> *ramp_error_{};
   //publish some data for test
   ros::Publisher power_limit_pub_;
   rm_msgs::PowerLimit power_limit_pub_data_;
-
-  struct Config {
-    double , block_effort, block_duration, block_speed, anti_block_angle, anti_block_error;
-  };
   dynamic_reconfigure::Server<rm_fsm::PowerLimitConfig> *d_srv_{};
 
 };
