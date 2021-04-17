@@ -25,7 +25,8 @@ PowerLimit::PowerLimit(ros::NodeHandle &nh) {
   power_limit_pub_ = power_nh.advertise<rm_msgs::PowerLimit>("/limit_power", 1);
   joint_state_sub_ = power_nh.subscribe("/joint_states", 1, &PowerLimit::jointVelCB, this);
 
-  lp_error_ = new LowPassFilter(10.0);
+  lp_error_ = new LowPassFilter(20.0);
+  ramp_error_ = new RampFilter<double>(400,0.01);
   pid_counter_ = 0.0;
 }
 
@@ -34,6 +35,7 @@ void PowerLimit::input(RefereeData referee_data_,
                        bool use_power_manager) {
 
   if (use_power_manager) {
+    ROS_INFO("USE POWER MANAGER");
     //init some data from power manager
     real_chassis_power_ = power_manager_data_.parameters[0];
     limit_power_ = power_manager_data_.parameters[1];
@@ -49,24 +51,26 @@ void PowerLimit::input(RefereeData referee_data_,
     real_chassis_power_ = referee_data_.power_heat_data_.chassis_power;
     //limit_power_ = 50 + 70 * (sin(M_PI / 2 * last_run_.toSec()) > 0); //for test
     //limit_power_ = getLimitPower(referee_data_);
-    limit_power_ = 50;
+    limit_power_ = 100;
 
     if (referee_data_.power_heat_data_.chassis_power_buffer <= 30)
       limit_power_ -= 5.0;
     error_power_ = limit_power_ - real_chassis_power_;
-    if (vel_total < 20.0)
-      vel_total = 20.0;
+    if (vel_total < 60.0)
+      vel_total = 60.0;
+    lp_error_->input(vel_total);
+    vel_total = lp_error_->output();
     error_power_ = ((error_power_ / vel_total) / wheel_radius_ - ff_) / wheel_radius_;
 
-    lp_error_->input(error_power_);
-    error_power_ = lp_error_->output();
+    ramp_error_->input(error_power_);
+    error_power_ = ramp_error_->output();
 
     have_capacity_ = false;
 
-    if (pid_counter_ < 10) {
+    if (pid_counter_ < 6) {
       pid_counter_++;
     }
-    if (pid_counter_ == 10) {
+    if (pid_counter_ == 6) {
       pid_counter_ = 0;
       ros::Time now = ros::Time::now();
       this->pid_buffer_.computeCommand(error_power_, now - last_run_);

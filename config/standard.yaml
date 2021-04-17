@@ -29,7 +29,7 @@ rm_fsm:
       spin_sin_amplitude: 3.0
       spin_sin_frequency: 6.28
   power_limit:
-    ff: 1.0
+    ff: 1
     safety_current: 7.5
     wheel_radius: 0.07625
     use_power_manager: false

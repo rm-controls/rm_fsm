@@ -10,6 +10,7 @@
 #include "rm_fsm/referee.h"
 #include <rm_msgs/PowerLimit.h>
 #include <rm_common/filters/lp_filter.h>
+#include <rm_common/filters/filters.h>
 #include <sensor_msgs/JointState.h>
 
 class PowerLimit {
@@ -50,7 +51,7 @@ class PowerLimit {
   double pid_counter_;
   double vel_total;
   LowPassFilter *lp_error_{};
-
+  RampFilter<double> *ramp_error_{};
   //publish some data for test
   ros::Publisher power_limit_pub_;
   rm_msgs::PowerLimit power_limit_pub_data_;
