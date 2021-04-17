@@ -59,6 +59,7 @@ class PowerLimit {
 
   double power_offset_;
   LowPassFilter *lp_error_{};
+  LowPassFilter *lp_real_power_{};
   RampFilter<double> *ramp_error_{};
   //publish some data for test
   ros::Publisher power_limit_pub_;
