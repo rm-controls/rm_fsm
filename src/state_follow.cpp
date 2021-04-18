@@ -236,7 +236,7 @@ void StateFollow<T>::run() {
     if (this->data_->dbus_data_.s_l == rm_msgs::DbusData::UP) {
       if (target_id == 0) {
         if (last_target_id_ != 0)
-          this->setGimbal(rm_msgs::GimbalCmd::TRACK, rate_yaw, rate_pitch, last_target_id_, 0.0);
+          this->setGimbal(rm_msgs::GimbalCmd::TRACK, rate_yaw, rate_pitch, last_target_id_, this->actual_shoot_speed_);
         else
           this->setGimbal(rm_msgs::GimbalCmd::RATE, rate_yaw, rate_pitch, 0, 0.0);
       } else {
@@ -249,7 +249,7 @@ void StateFollow<T>::run() {
     } else if (this->data_->dbus_data_.s_l == rm_msgs::DbusData::MID) {
       if (target_id == 0) {
         if (last_target_id_ != 0)
-          this->setGimbal(rm_msgs::GimbalCmd::TRACK, rate_yaw, rate_pitch, last_target_id_, 0.0);
+          this->setGimbal(rm_msgs::GimbalCmd::TRACK, rate_yaw, rate_pitch, last_target_id_, this->actual_shoot_speed_);
         else
           this->setGimbal(rm_msgs::GimbalCmd::RATE, rate_yaw, rate_pitch, 0, 0.0);
       } else {
