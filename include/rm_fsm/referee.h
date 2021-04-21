@@ -65,13 +65,8 @@ class Referee {
   void init(ros::NodeHandle nh);
   void read();
   void run();
-  void drawRectangle(int start_x,
-                     int start_y,
-                     int end_x,
-                     int end_y,
-                     int picture_name,
-                     GraphicColorType color,
-                     GraphicOperateType operate_type);
+  void drawCircle(int center_x, int center_y, int radius, int picture_name,
+                  GraphicColorType color, uint8_t operate_type);
   void drawString(int x, int y, int picture_name, GraphicColorType color, uint8_t operate_type, std::string data);
   void sendInteractiveData(int data_cmd_id, int receiver_id, const std::vector<uint8_t> &data);
 

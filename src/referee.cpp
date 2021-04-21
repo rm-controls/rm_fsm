@@ -367,13 +367,8 @@ double Referee::getUltimateBulletSpeed(int shoot_speed) const {
  * @param side
  * @param operate_type
  */
-void Referee::drawRectangle(int start_x,
-                            int start_y,
-                            int end_x,
-                            int end_y,
-                            int picture_name,
-                            GraphicColorType color,
-                            GraphicOperateType operate_type) {
+void Referee::drawCircle(int center_x, int center_y, int radius, int picture_name,
+                         GraphicColorType color, uint8_t operate_type) {
   uint8_t tx_buffer[128] = {0};
   DrawClientGraphicData send_data;
   int index = 0;
@@ -405,17 +400,15 @@ void Referee::drawRectangle(int start_x,
   send_data.graphic_data_struct_.graphic_name[1] = (uint8_t) ((picture_name >> 8) & 0xff);
   send_data.graphic_data_struct_.graphic_name[2] = (uint8_t) ((picture_name >> 16) & 0xff);
 
-  send_data.graphic_data_struct_.start_x = start_x;
-  send_data.graphic_data_struct_.start_y = start_y;
-  send_data.graphic_data_struct_.end_x = end_x; // 11 bit
-  send_data.graphic_data_struct_.end_y = end_y; // 11 bit
-
+  send_data.graphic_data_struct_.start_x = center_x;
+  send_data.graphic_data_struct_.start_y = center_y;
+  send_data.graphic_data_struct_.radius = radius;
 
   send_data.graphic_data_struct_.operate_type = operate_type;
-  send_data.graphic_data_struct_.graphic_type = 1; // rectangle
+  send_data.graphic_data_struct_.graphic_type = 2; // circle
   send_data.graphic_data_struct_.layer = 0;
   send_data.graphic_data_struct_.color = color;
-  send_data.graphic_data_struct_.width = 10;
+  send_data.graphic_data_struct_.width = 3;
   memcpy(tx_buffer + index, &send_data.graphic_data_struct_, sizeof(GraphicDataStruct));
 
   // Frame tail
