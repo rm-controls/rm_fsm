@@ -41,9 +41,8 @@ PowerLimit::PowerLimit(ros::NodeHandle &nh) {
 void PowerLimit::input(RefereeData referee_data_,
                        PowerManagerData power_manager_data_,
                        bool use_power_manager) {
-
+  double tmp_vel_total_;
   if (use_power_manager) {
-    double tmp_vel_total_;
     ROS_INFO("USE POWER MANAGER");
     //init some data from power manager
     real_chassis_power_ = power_manager_data_.parameters[0];
@@ -58,7 +57,7 @@ void PowerLimit::input(RefereeData referee_data_,
 
     tmp_vel_total_ = vel_total;
     if (tmp_vel_total_ < 60.0)
-      tmp_vel_total_ = 60.0 + 5.0 * (last_vel_total_ - vel_total);
+      tmp_vel_total_ = 60.0;//+ 5.0 * (last_vel_total_ - vel_total);
     lp_error_->input(tmp_vel_total_);
     tmp_vel_total_ = lp_error_->output();
     error_power_ = ((error_power_ / tmp_vel_total_) / wheel_radius_ + ff_) / wheel_radius_;
@@ -71,7 +70,6 @@ void PowerLimit::input(RefereeData referee_data_,
     last_run_ = now;
 
   } else {
-    double tmp_vel_total_;
     real_chassis_power_ = referee_data_.power_heat_data_.chassis_power;
 //    limit_power_ = 50 + 70 * (sin(M_PI / 4 * last_run_.toSec()) > 0); //for test
     //limit_power_ = 50 + 30 * (sin(last_run_.toSec()) + 1);
@@ -102,13 +100,12 @@ void PowerLimit::input(RefereeData referee_data_,
       this->pid_buffer_.computeCommand(error_power_, now - last_run_);
       last_run_ = now;
     }
-
-    power_limit_pub_data_.vel_total = tmp_vel_total_;
-    power_limit_pub_data_.limit_power = limit_power_;
-    power_limit_pub_data_.effort = abs(pid_buffer_.getCurrentCmd());
-    power_limit_pub_data_.real_power = real_chassis_power_;
-    power_limit_pub_.publish(power_limit_pub_data_);
   }
+  power_limit_pub_data_.vel_total = tmp_vel_total_;
+  power_limit_pub_data_.limit_power = limit_power_;
+  power_limit_pub_data_.effort = abs(pid_buffer_.getCurrentCmd());
+  power_limit_pub_data_.real_power = real_chassis_power_;
+  power_limit_pub_.publish(power_limit_pub_data_);
 }
 
 // Change limit power of different level and robot
