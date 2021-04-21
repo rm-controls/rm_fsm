@@ -6,6 +6,8 @@
 //Referee System
 #include <cstdint>
 #include <serial/serial.h>
+#include <tf/transform_listener.h>
+#include "rm_common/ori_tool.h"
 #include <rm_msgs/Referee.h>
 #include <rm_msgs/PowerManagerData.h>
 #include <rm_msgs/DbusData.h>
@@ -82,6 +84,11 @@ class Referee {
   bool twist_flag_ = false;
   bool burst_flag_ = false;
   bool only_attack_base_flag_ = false;
+
+  bool chassis_update_flag_ = true;
+  bool gimbal_update_flag_ = true;
+  bool attack_mode_update_flag_ = true;
+
   ros::NodeHandle nh_;
   RefereeData referee_data_{};
   PowerManagerData power_manager_data_;
@@ -98,10 +105,13 @@ class Referee {
 
   ros::Time last_send_ = ros::Time::now();
 
-  ros::Time last_get_hurt_id0_ = ros::Time::now();
-  ros::Time last_get_hurt_id1_ = ros::Time::now();
-  ros::Time last_get_hurt_id2_ = ros::Time::now();
-  ros::Time last_get_hurt_id3_ = ros::Time::now();
+  ros::Time last_hurt_id0_ = ros::Time::now();
+  ros::Time last_hurt_id1_ = ros::Time::now();
+  ros::Time last_hurt_id2_ = ros::Time::now();
+  ros::Time last_hurt_id3_ = ros::Time::now();
+
+  tf2_ros::Buffer tf_;
+  tf2_ros::TransformListener *tf_listener_;
 
   rm_msgs::Referee referee_pub_data_;
   rm_msgs::PowerManagerData power_manager_pub_data_;
