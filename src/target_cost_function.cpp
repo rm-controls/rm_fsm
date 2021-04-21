@@ -58,9 +58,9 @@ double TargetCostFunction::calculateCost(rm_msgs::TrackData track_data) {
    */
 
   //not speed
-  double delta_x_2 = pow(track_data.pose2map.position.x, 2);
-  double delta_y_2 = pow(track_data.pose2map.position.y, 2);
-  double delta_z_2 = pow(track_data.pose2map.position.z, 2);
+  double delta_x_2 = pow(track_data.map2detection.position.x, 2);
+  double delta_y_2 = pow(track_data.map2detection.position.y, 2);
+  double delta_z_2 = pow(track_data.map2detection.position.z, 2);
 
   double distance = sqrt(delta_x_2 + delta_y_2 + delta_z_2);
   double cost = distance;

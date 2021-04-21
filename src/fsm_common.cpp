@@ -157,7 +157,6 @@ void Fsm<T>::run() {
 
   // run referee system
   data_.referee_->read();
-
   // Run the robot control code if operating mode is not unsafe
   if (operating_mode_ != FsmOperatingMode::kEStop) {
     // Run normal controls if no transition is detected
@@ -200,12 +199,13 @@ void Fsm<T>::run() {
       // Check the robot state for safe operation
       // TODO: Safety post check.
     }
-
   } else { // if ESTOP
     current_state_ = string2state["passive"];
     ROS_INFO("Current state is passive.");
     next_state_name_ = current_state_->state_name_;
   }
+  //UI
+  data_.referee_->run();
 }
 
 // RobotRunner a template

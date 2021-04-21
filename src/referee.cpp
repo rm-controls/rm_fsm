@@ -4,10 +4,9 @@
 #include <ros/ros.h>
 #include "rm_fsm/referee.h"
 
-void Referee::init() {
+void Referee::init(ros::NodeHandle nh) {
   serial::Timeout timeout = serial::Timeout::simpleTimeout(50);
   rx_data_.insert(rx_data_.begin(), kUnpackLength, 0);
-
   try {
     serial_.setPort(serial_port_);
     serial_.setBaudrate(115200);
@@ -30,51 +29,10 @@ void Referee::init() {
     referee_unpack_obj.index = 0;
     referee_unpack_obj.unpack_step = kStepHeaderSof;
   }
-}
+  nh_ = nh;
+  dbus_sub_ = nh.subscribe<rm_msgs::DbusData>(
+      "/dbus_data", 10, &Referee::dbusDataCallback, this);
 
-void Referee::write(const std::string &state_name,
-                    uint8_t operate_type,
-                    bool is_burst,
-                    bool key_shift,
-                    bool only_attack_base) {
-  char power_string[30];
-  float power_float;
-  ros::Time now = ros::Time::now();
-
-  if (is_open_) {
-    if (now - last_send_ > ros::Duration(0.1)) {
-      last_send_ = now;
-
-      // Draw power manager data
-      power_float = power_manager_data_.parameters[3] * 100;
-      sprintf(power_string, "Power: %1.0f%%", power_float);
-      if (power_float >= 60)
-        drawCharacter(0, kGreen, operate_type, power_string);
-      else if (power_float < 60 && power_float >= 30)
-        drawCharacter(0, kYellow, operate_type, power_string);
-      else if (power_float < 30)
-        drawCharacter(0, kOrange, operate_type, power_string);
-
-      // Draw fsm information
-      drawCharacter(1, kYellow, operate_type, "Fsm: " + state_name);
-
-      // Draw shooter information
-      if (is_burst)
-        drawCharacter(2, kOrange, operate_type, "Shooter: Burst");
-      else
-        drawCharacter(2, kYellow, operate_type, "Shooter: Normal");
-
-      // Draw chassis information
-      if (key_shift)
-        drawCharacter(3, kOrange, operate_type, "Chassis: Burst");
-      else
-        drawCharacter(3, kYellow, operate_type, "Chassis: Normal");
-      if (only_attack_base)
-        drawCharacter(4, kOrange, operate_type, "target: base");
-      else
-        drawCharacter(4, kYellow, operate_type, "target: all");
-    }
-  }
 }
 
 /******************* Receive data from referee system *************************/
@@ -409,7 +367,13 @@ double Referee::getUltimateBulletSpeed(int shoot_speed) const {
  * @param side
  * @param operate_type
  */
-void Referee::drawGraphic(int side, GraphicColorType color, GraphicOperateType operate_type) {
+void Referee::drawRectangle(int start_x,
+                            int start_y,
+                            int end_x,
+                            int end_y,
+                            int picture_name,
+                            GraphicColorType color,
+                            GraphicOperateType operate_type) {
   uint8_t tx_buffer[128] = {0};
   DrawClientGraphicData send_data;
   int index = 0;
@@ -436,39 +400,17 @@ void Referee::drawGraphic(int side, GraphicColorType color, GraphicOperateType o
   index += sizeof(StudentInteractiveHeaderData);
 
   // Graph data
-  if (side == 0) { // up
-    send_data.graphic_data_struct_.graphic_name[0] = 0;
-    send_data.graphic_data_struct_.start_x = 910;
-    send_data.graphic_data_struct_.start_y = 850;
-    send_data.graphic_data_struct_.end_x = 1010; // 11 bit
-    send_data.graphic_data_struct_.end_y = 900; // 11 bit
-  } else if (side == 1) { // left
-    send_data.graphic_data_struct_.graphic_name[0] = 1;
-    send_data.graphic_data_struct_.start_x = 100;
-    send_data.graphic_data_struct_.start_y = 540;
-    send_data.graphic_data_struct_.end_x = 150;
-    send_data.graphic_data_struct_.end_y = 640;
-  } else if (side == 2) { // down
-    send_data.graphic_data_struct_.graphic_name[0] = 2;
-    send_data.graphic_data_struct_.start_x = 910;
-    send_data.graphic_data_struct_.start_y = 0;
-    send_data.graphic_data_struct_.end_x = 1010; // 11 bit
-    send_data.graphic_data_struct_.end_y = 50; // 11 bit
-  } else if (side == 3) { // right
-    send_data.graphic_data_struct_.graphic_name[0] = 3;
-    send_data.graphic_data_struct_.start_x = 1770;
-    send_data.graphic_data_struct_.start_y = 540;
-    send_data.graphic_data_struct_.end_x = 1820; // 11 bit
-    send_data.graphic_data_struct_.end_y = 640; // 11 bit
-  } else if (side == 4) {
-    send_data.graphic_data_struct_.graphic_name[0] = 4;
-    send_data.graphic_data_struct_.start_x = 910;
-    send_data.graphic_data_struct_.start_y = 540;
-    send_data.graphic_data_struct_.end_x = 1010; // 11 bit
-    send_data.graphic_data_struct_.end_y = 640; // 11 bit
-  }
-  send_data.graphic_data_struct_.graphic_name[1] = 0;
-  send_data.graphic_data_struct_.graphic_name[2] = 0;
+
+  send_data.graphic_data_struct_.graphic_name[0] = (uint8_t) (picture_name & 0xff);
+  send_data.graphic_data_struct_.graphic_name[1] = (uint8_t) ((picture_name >> 8) & 0xff);
+  send_data.graphic_data_struct_.graphic_name[2] = (uint8_t) ((picture_name >> 16) & 0xff);
+
+  send_data.graphic_data_struct_.start_x = start_x;
+  send_data.graphic_data_struct_.start_y = start_y;
+  send_data.graphic_data_struct_.end_x = end_x; // 11 bit
+  send_data.graphic_data_struct_.end_y = end_y; // 11 bit
+
+
   send_data.graphic_data_struct_.operate_type = operate_type;
   send_data.graphic_data_struct_.graphic_type = 1; // rectangle
   send_data.graphic_data_struct_.layer = 0;
@@ -489,7 +431,12 @@ void Referee::drawGraphic(int side, GraphicColorType color, GraphicOperateType o
   }
 }
 
-void Referee::drawCharacter(int type, GraphicColorType color, uint8_t operate_type, std::string data) {
+void Referee::drawString(int x,
+                         int y,
+                         int picture_name,
+                         GraphicColorType color,
+                         uint8_t operate_type,
+                         std::string data) {
   uint8_t tx_buffer[128] = {0};
   DrawClientCharData send_data;
   int index = 0;
@@ -516,30 +463,12 @@ void Referee::drawCharacter(int type, GraphicColorType color, uint8_t operate_ty
   memcpy(tx_buffer + index, &send_data.student_interactive_header_data_, sizeof(StudentInteractiveHeaderData));
   index += sizeof(StudentInteractiveHeaderData);
 
-  // Graph data
-  if (type == 0) { // power manager
-    send_data.graphic_data_struct_.graphic_name[1] = 0;
-    send_data.graphic_data_struct_.start_x = 910;
-    send_data.graphic_data_struct_.start_y = 100;
-  } else if (type == 1) { // fsm state name
-    send_data.graphic_data_struct_.graphic_name[1] = 1;
-    send_data.graphic_data_struct_.start_x = 1470;
-    send_data.graphic_data_struct_.start_y = 790;
-  } else if (type == 2) { // shoot burst
-    send_data.graphic_data_struct_.graphic_name[1] = 2;
-    send_data.graphic_data_struct_.start_x = 1420;
-    send_data.graphic_data_struct_.start_y = 740;
-  } else if (type == 3) { // chassis burst
-    send_data.graphic_data_struct_.graphic_name[1] = 3;
-    send_data.graphic_data_struct_.start_x = 1420;
-    send_data.graphic_data_struct_.start_y = 690;
-  } else if (type == 4) { // only attack base
-    send_data.graphic_data_struct_.graphic_name[1] = 4;
-    send_data.graphic_data_struct_.start_x = 1420;
-    send_data.graphic_data_struct_.start_y = 640;
-  }
-  send_data.graphic_data_struct_.graphic_name[0] = 1;
-  send_data.graphic_data_struct_.graphic_name[2] = 0;
+  send_data.graphic_data_struct_.graphic_name[1] = (uint8_t) (picture_name & 0xff);
+  send_data.graphic_data_struct_.start_x = x;
+  send_data.graphic_data_struct_.start_y = y;
+
+  send_data.graphic_data_struct_.graphic_name[0] = (uint8_t) ((picture_name >> 8) & 0xff);
+  send_data.graphic_data_struct_.graphic_name[2] = (uint8_t) ((picture_name >> 16) & 0xff);
   send_data.graphic_data_struct_.graphic_type = 7; // char
   send_data.graphic_data_struct_.operate_type = operate_type;
   send_data.graphic_data_struct_.start_angle = 20; // char size
@@ -812,4 +741,86 @@ float PowerManagerData::Int16ToFloat(unsigned short data0) {
       | ((data0 & 0x03FF) << 13);
   fp32 = (float *) &fInt32;
   return *fp32;
+}
+void Referee::run() {
+  ros::Time now = ros::Time::now();
+  char power_string[30];
+  uint8_t graph_operate_type;
+  float power_float;
+  if (robot_id_ != 0 && robot_id_ != kRedSentry && robot_id_ != kBlueSentry) {
+    if (dbus_data_.key_g) {
+      if (now - last_press_time_g_ < ros::Duration(0.5)) dbus_data_.key_g = false;
+      else last_press_time_g_ = now;
+    }
+    if (dbus_data_.key_r) {
+      if (now - last_press_time_r_ < ros::Duration(0.5)) dbus_data_.key_r = false;
+      else last_press_time_r_ = now;
+    }
+    if (dbus_data_.key_q) {
+      if (now - last_press_time_q_ < ros::Duration(0.5)) dbus_data_.key_q = false;
+      else last_press_time_q_ = now;
+    }
+    if (dbus_data_.key_c) {
+      if (now - last_press_time_c_ < ros::Duration(0.5)) dbus_data_.key_c = false;
+      else last_press_time_c_ = now;
+    }
+    if (dbus_data_.key_g) {
+      gyro_flag_ = !gyro_flag_;
+    }
+    if (dbus_data_.key_r) {
+      twist_flag_ = !twist_flag_;
+    }
+    if (dbus_data_.key_q) {
+      burst_flag_ = !burst_flag_;
+    }
+    if (dbus_data_.key_c) {
+      only_attack_base_flag_ = !only_attack_base_flag_;
+    }
+
+    if (dbus_data_.key_x) {
+      graph_operate_type = kAdd;
+    } else {
+      graph_operate_type = kUpdate;
+    }
+    if (dbus_data_.key_ctrl && dbus_data_.key_q) {
+      chassis_mode_ = 0;
+      gimbal_mode_ = 0;
+    }
+    if (dbus_data_.key_ctrl && dbus_data_.key_w) {
+      chassis_mode_ = 1;
+      gimbal_mode_ = 1;
+    }
+    if (chassis_mode_) {
+      if (twist_flag_)
+        drawString(1470, 790, 1, kYellow, graph_operate_type, "chassis:twist");
+      else if (gyro_flag_)
+        drawString(1470, 790, 1, kYellow, graph_operate_type, "chassis:gyro");
+      else
+        drawString(1470, 790, 1, kYellow, graph_operate_type, "chassis:follow");
+    } else {
+      drawString(1470, 790, 1, kYellow, graph_operate_type, "chassis:passive");
+    }
+    if (gimbal_mode_) {
+      if (dbus_data_.p_r)
+        drawString(1470, 740, 2, kYellow, graph_operate_type, "gimbal:track");
+      else
+        drawString(1470, 740, 2, kYellow, graph_operate_type, "gimbal:rate");
+    } else {
+      drawString(1470, 740, 2, kYellow, graph_operate_type, "gimbal:passive");
+    }
+    if (only_attack_base_flag_) {
+      drawString(1470, 690, 3, kYellow, graph_operate_type, "target:base");
+    } else {
+      drawString(1470, 690, 3, kYellow, graph_operate_type, "target:all");
+    }
+    power_float = power_manager_data_.parameters[3] * 100;
+    sprintf(power_string, "Cap: %1.0f%%", power_float);
+    if (power_float >= 60)
+      drawString(910, 100, 4, kGreen, graph_operate_type, power_string);
+    else if (power_float < 60 && power_float >= 30)
+      drawString(910, 100, 4, kYellow, graph_operate_type, power_string);
+    else if (power_float < 30)
+      drawString(910, 100, 4, kOrange, graph_operate_type, power_string);
+  }
+
 }

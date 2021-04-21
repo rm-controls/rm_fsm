@@ -21,6 +21,7 @@ class StateFollow : public State<T> {
   bool only_attack_base_ = false;
   bool is_burst_ = false;
   bool twist_ = false;
+  int last_target_id_ = 0;
   ros::Time last_press_time_g_ = ros::Time::now();
   ros::Time last_press_time_r_ = ros::Time::now();
   ros::Time last_press_time_f_ = ros::Time::now();
