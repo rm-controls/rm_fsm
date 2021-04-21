@@ -78,10 +78,10 @@ class Referee {
   ros::Time last_press_time_f_ = ros::Time::now();
   ros::Time last_press_time_q_ = ros::Time::now();
   ros::Time last_press_time_c_ = ros::Time::now();
-  bool gyro_flag_ = 0;
-  bool twist_flag_ = 0;
-  bool burst_flag_ = 0;
-  bool only_attack_base_flag_ = 0;
+  bool gyro_flag_ = false;
+  bool twist_flag_ = false;
+  bool burst_flag_ = false;
+  bool only_attack_base_flag_ = false;
   ros::NodeHandle nh_;
   RefereeData referee_data_{};
   PowerManagerData power_manager_data_;
@@ -95,7 +95,14 @@ class Referee {
   int client_id_ = 0;
   ros::Publisher referee_pub_;
   ros::Publisher power_manager_pub_;
+
   ros::Time last_send_ = ros::Time::now();
+
+  ros::Time last_get_hurt_id0_ = ros::Time::now();
+  ros::Time last_get_hurt_id1_ = ros::Time::now();
+  ros::Time last_get_hurt_id2_ = ros::Time::now();
+  ros::Time last_get_hurt_id3_ = ros::Time::now();
+
   rm_msgs::Referee referee_pub_data_;
   rm_msgs::PowerManagerData power_manager_pub_data_;
   void dbusDataCallback(const rm_msgs::DbusData::ConstPtr &data) {

@@ -60,6 +60,7 @@ void Referee::run() {
       if (now - last_press_time_c_ < ros::Duration(0.5)) dbus_data_.key_c = false;
       else last_press_time_c_ = now;
     }
+
     if (dbus_data_.key_g) {
       gyro_flag_ = !gyro_flag_;
     }
@@ -117,6 +118,42 @@ void Referee::run() {
       drawString(910, 100, 4, kYellow, graph_operate_type, power_string);
     else if (power_float < 30)
       drawString(910, 100, 4, kOrange, graph_operate_type, power_string);
+  }
+
+  // clean old armor hurt data
+  if (referee_data_.robot_hurt_.hurt_type == 0x0 && referee_data_.robot_hurt_.armor_id == 0) {
+    last_get_hurt_id0_ = ros::Time::now();
+  }
+  if (referee_data_.robot_hurt_.hurt_type == 0x0 && referee_data_.robot_hurt_.armor_id == 1) {
+    last_get_hurt_id1_ = ros::Time::now();
+  }
+  if (referee_data_.robot_hurt_.hurt_type == 0x0 && referee_data_.robot_hurt_.armor_id == 2) {
+    last_get_hurt_id2_ = ros::Time::now();
+  }
+  if (referee_data_.robot_hurt_.hurt_type == 0x0 && referee_data_.robot_hurt_.armor_id == 3) {
+    last_get_hurt_id3_ = ros::Time::now();
+  }
+
+  // display information of armor
+  if (ros::Time::now() - last_get_hurt_id0_ <= ros::Duration(0.5)) {
+    drawCircle(960 + 340 * sin(0), 540 + 340 * cos(0), 50, 5, kPurple, graph_operate_type);
+  } else {
+    drawCircle(960 + 340 * sin(0), 540 + 340 * cos(0), 50, 5, kGreen, graph_operate_type);
+  }
+  if (ros::Time::now() - last_get_hurt_id1_ <= ros::Duration(0.5)) {
+    drawCircle(960 + 340 * sin(90), 540 + 340 * cos(90), 50, 6, kPurple, graph_operate_type);
+  } else {
+    drawCircle(960 + 340 * sin(90), 540 + 340 * cos(90), 50, 6, kGreen, graph_operate_type);
+  }
+  if (ros::Time::now() - last_get_hurt_id2_ <= ros::Duration(0.5)) {
+    drawCircle(960 + 340 * sin(180), 540 + 340 * cos(180), 50, 7, kPurple, graph_operate_type);
+  } else {
+    drawCircle(960 + 340 * sin(180), 540 + 340 * cos(180), 50, 7, kGreen, graph_operate_type);
+  }
+  if (ros::Time::now() - last_get_hurt_id3_ <= ros::Duration(0.5)) {
+    drawCircle(960 + 340 * sin(270), 540 + 340 * cos(270), 50, 8, kPurple, graph_operate_type);
+  } else {
+    drawCircle(960 + 340 * sin(270), 540 + 340 * cos(270), 50, 8, kGreen, graph_operate_type);
   }
 
 }
