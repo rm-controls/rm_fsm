@@ -35,6 +35,92 @@ void Referee::init(ros::NodeHandle nh) {
 
 }
 
+/**
+ * Send data to client UI
+ */
+void Referee::run() {
+  ros::Time now = ros::Time::now();
+  char power_string[30];
+  uint8_t graph_operate_type;
+  float power_float;
+  if (robot_id_ != 0 && robot_id_ != kRedSentry && robot_id_ != kBlueSentry) {
+    if (dbus_data_.key_g) {
+      if (now - last_press_time_g_ < ros::Duration(0.5)) dbus_data_.key_g = false;
+      else last_press_time_g_ = now;
+    }
+    if (dbus_data_.key_r) {
+      if (now - last_press_time_r_ < ros::Duration(0.5)) dbus_data_.key_r = false;
+      else last_press_time_r_ = now;
+    }
+    if (dbus_data_.key_q) {
+      if (now - last_press_time_q_ < ros::Duration(0.5)) dbus_data_.key_q = false;
+      else last_press_time_q_ = now;
+    }
+    if (dbus_data_.key_c) {
+      if (now - last_press_time_c_ < ros::Duration(0.5)) dbus_data_.key_c = false;
+      else last_press_time_c_ = now;
+    }
+    if (dbus_data_.key_g) {
+      gyro_flag_ = !gyro_flag_;
+    }
+    if (dbus_data_.key_r) {
+      twist_flag_ = !twist_flag_;
+    }
+    if (dbus_data_.key_q) {
+      burst_flag_ = !burst_flag_;
+    }
+    if (dbus_data_.key_c) {
+      only_attack_base_flag_ = !only_attack_base_flag_;
+    }
+
+    if (dbus_data_.key_x) {
+      graph_operate_type = kAdd;
+    } else {
+      graph_operate_type = kUpdate;
+    }
+    if (dbus_data_.key_ctrl && dbus_data_.key_q) {
+      chassis_mode_ = 0;
+      gimbal_mode_ = 0;
+    }
+    if (dbus_data_.key_ctrl && dbus_data_.key_w) {
+      chassis_mode_ = 1;
+      gimbal_mode_ = 1;
+    }
+    if (chassis_mode_) {
+      if (twist_flag_)
+        drawString(1470, 790, 1, kYellow, graph_operate_type, "chassis:twist");
+      else if (gyro_flag_)
+        drawString(1470, 790, 1, kYellow, graph_operate_type, "chassis:gyro");
+      else
+        drawString(1470, 790, 1, kYellow, graph_operate_type, "chassis:follow");
+    } else {
+      drawString(1470, 790, 1, kYellow, graph_operate_type, "chassis:passive");
+    }
+    if (gimbal_mode_) {
+      if (dbus_data_.p_r)
+        drawString(1470, 740, 2, kYellow, graph_operate_type, "gimbal:track");
+      else
+        drawString(1470, 740, 2, kYellow, graph_operate_type, "gimbal:rate");
+    } else {
+      drawString(1470, 740, 2, kYellow, graph_operate_type, "gimbal:passive");
+    }
+    if (only_attack_base_flag_) {
+      drawString(1470, 690, 3, kYellow, graph_operate_type, "target:base");
+    } else {
+      drawString(1470, 690, 3, kYellow, graph_operate_type, "target:all");
+    }
+    power_float = power_manager_data_.parameters[3] * 100;
+    sprintf(power_string, "Cap: %1.0f%%", power_float);
+    if (power_float >= 60)
+      drawString(910, 100, 4, kGreen, graph_operate_type, power_string);
+    else if (power_float < 60 && power_float >= 30)
+      drawString(910, 100, 4, kYellow, graph_operate_type, power_string);
+    else if (power_float < 30)
+      drawString(910, 100, 4, kOrange, graph_operate_type, power_string);
+  }
+
+}
+
 /******************* Receive data from referee system *************************/
 void Referee::read() {
   std::vector<uint8_t> rx_buffer;
@@ -734,86 +820,4 @@ float PowerManagerData::Int16ToFloat(unsigned short data0) {
       | ((data0 & 0x03FF) << 13);
   fp32 = (float *) &fInt32;
   return *fp32;
-}
-void Referee::run() {
-  ros::Time now = ros::Time::now();
-  char power_string[30];
-  uint8_t graph_operate_type;
-  float power_float;
-  if (robot_id_ != 0 && robot_id_ != kRedSentry && robot_id_ != kBlueSentry) {
-    if (dbus_data_.key_g) {
-      if (now - last_press_time_g_ < ros::Duration(0.5)) dbus_data_.key_g = false;
-      else last_press_time_g_ = now;
-    }
-    if (dbus_data_.key_r) {
-      if (now - last_press_time_r_ < ros::Duration(0.5)) dbus_data_.key_r = false;
-      else last_press_time_r_ = now;
-    }
-    if (dbus_data_.key_q) {
-      if (now - last_press_time_q_ < ros::Duration(0.5)) dbus_data_.key_q = false;
-      else last_press_time_q_ = now;
-    }
-    if (dbus_data_.key_c) {
-      if (now - last_press_time_c_ < ros::Duration(0.5)) dbus_data_.key_c = false;
-      else last_press_time_c_ = now;
-    }
-    if (dbus_data_.key_g) {
-      gyro_flag_ = !gyro_flag_;
-    }
-    if (dbus_data_.key_r) {
-      twist_flag_ = !twist_flag_;
-    }
-    if (dbus_data_.key_q) {
-      burst_flag_ = !burst_flag_;
-    }
-    if (dbus_data_.key_c) {
-      only_attack_base_flag_ = !only_attack_base_flag_;
-    }
-
-    if (dbus_data_.key_x) {
-      graph_operate_type = kAdd;
-    } else {
-      graph_operate_type = kUpdate;
-    }
-    if (dbus_data_.key_ctrl && dbus_data_.key_q) {
-      chassis_mode_ = 0;
-      gimbal_mode_ = 0;
-    }
-    if (dbus_data_.key_ctrl && dbus_data_.key_w) {
-      chassis_mode_ = 1;
-      gimbal_mode_ = 1;
-    }
-    if (chassis_mode_) {
-      if (twist_flag_)
-        drawString(1470, 790, 1, kYellow, graph_operate_type, "chassis:twist");
-      else if (gyro_flag_)
-        drawString(1470, 790, 1, kYellow, graph_operate_type, "chassis:gyro");
-      else
-        drawString(1470, 790, 1, kYellow, graph_operate_type, "chassis:follow");
-    } else {
-      drawString(1470, 790, 1, kYellow, graph_operate_type, "chassis:passive");
-    }
-    if (gimbal_mode_) {
-      if (dbus_data_.p_r)
-        drawString(1470, 740, 2, kYellow, graph_operate_type, "gimbal:track");
-      else
-        drawString(1470, 740, 2, kYellow, graph_operate_type, "gimbal:rate");
-    } else {
-      drawString(1470, 740, 2, kYellow, graph_operate_type, "gimbal:passive");
-    }
-    if (only_attack_base_flag_) {
-      drawString(1470, 690, 3, kYellow, graph_operate_type, "target:base");
-    } else {
-      drawString(1470, 690, 3, kYellow, graph_operate_type, "target:all");
-    }
-    power_float = power_manager_data_.parameters[3] * 100;
-    sprintf(power_string, "Cap: %1.0f%%", power_float);
-    if (power_float >= 60)
-      drawString(910, 100, 4, kGreen, graph_operate_type, power_string);
-    else if (power_float < 60 && power_float >= 30)
-      drawString(910, 100, 4, kYellow, graph_operate_type, power_string);
-    else if (power_float < 30)
-      drawString(910, 100, 4, kOrange, graph_operate_type, power_string);
-  }
-
 }
