@@ -206,8 +206,10 @@ void Fsm<T>::run() {
     ROS_INFO("Current state is passive.");
     next_state_name_ = current_state_->state_name_;
   }
-  //UI
-  data_.referee_->run();
+  // draw UI
+  if (data_.referee_->is_open_) {
+    data_.referee_->run();
+  }
 }
 
 // RobotRunner a template
