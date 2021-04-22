@@ -40,17 +40,11 @@ class PowerLimit {
   double limit_power_;
   double capacity_;
   double error_power_;
+  double error_effort_;
 
   double safety_effort_;
   double wheel_radius_;
   double ff_;
-  double max_limit_;
-  double max_limit_50w_;
-  double max_limit_60w_;
-  double max_limit_70w_;
-  double max_limit_80w_;
-  double max_limit_100w_;
-  double max_limit_120w_;
 
   bool have_capacity_;
   double pid_counter_;
@@ -60,7 +54,7 @@ class PowerLimit {
   double power_offset_;
   LowPassFilter *lp_error_{};
   LowPassFilter *lp_real_power_{};
-  RampFilter<double> *ramp_error_{};
+  RampFilter<double> *ramp_effort_{};
   //publish some data for test
   ros::Publisher power_limit_pub_;
   rm_msgs::PowerLimit power_limit_pub_data_;

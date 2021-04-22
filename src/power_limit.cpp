@@ -9,13 +9,8 @@ PowerLimit::PowerLimit(ros::NodeHandle &nh) {
   power_nh.param("safety_effort", safety_effort_, 7.5 * 0.3);
   power_nh.param("ff", ff_, 0.3);
   power_nh.param("wheel_radius", wheel_radius_, 0.07625);
-  power_nh.param("max_limit_50w", max_limit_50w_, 4.0);
-  power_nh.param("max_limit_60w", max_limit_60w_, 4.0);
-  power_nh.param("max_limit_70w", max_limit_70w_, 4.0);
-  power_nh.param("max_limit_80w", max_limit_80w_, 4.0);
-  power_nh.param("max_limit_100w", max_limit_100w_, 4.0);
-  power_nh.param("max_limit_120w", max_limit_120w_, 4.0);
 
+  //dynamic reconfigure
   d_srv_ = new dynamic_reconfigure::Server<rm_fsm::PowerLimitConfig>(nh);
   dynamic_reconfigure::Server<rm_fsm::PowerLimitConfig>::CallbackType cb =
       [this](auto &&PH1, auto &&PH2) {
@@ -29,26 +24,25 @@ PowerLimit::PowerLimit(ros::NodeHandle &nh) {
   if (!pid_buffer_.init(pid_nh)) ROS_INFO("[PowerLimit] PID initialize fail!");
   if (!pid_buffer_power_manager_.init(pid_power_manager_nh)) ROS_INFO("[PowerLimit] Power Manager PID initialize fail!");
 
-  power_limit_pub_ = power_nh.advertise<rm_msgs::PowerLimit>("/limit_power", 1);
+  power_limit_pub_ = power_nh.advertise<rm_msgs::PowerLimit>("/Powerlimit", 1);
   joint_state_sub_ = power_nh.subscribe("/joint_states", 1, &PowerLimit::jointVelCB, this);
 
   lp_error_ = new LowPassFilter(100.0);
   lp_real_power_ = new LowPassFilter(40.0);
-  ramp_error_ = new RampFilter<double>(200, 0.01);
+  ramp_effort_ = new RampFilter<double>(200, 0.01);
   pid_counter_ = 0.0;
 }
 
 void PowerLimit::input(RefereeData referee_data_,
                        PowerManagerData power_manager_data_,
                        bool use_power_manager) {
-  double tmp_vel_total_;
+  double tmp_vel_total_ = 0.0;
   if (use_power_manager) {
-    ROS_INFO("USE POWER MANAGER");
     //init some data from power manager
     real_chassis_power_ = power_manager_data_.parameters[0];
-//    limit_power_ = power_manager_data_.parameters[1];
+    limit_power_ = power_manager_data_.parameters[1];
     capacity_ = power_manager_data_.parameters[3];
-
+    //filter the real power
     lp_real_power_->input(real_chassis_power_);
     real_chassis_power_ = lp_real_power_->output();
 
@@ -56,14 +50,16 @@ void PowerLimit::input(RefereeData referee_data_,
     have_capacity_ = true;
 
     tmp_vel_total_ = vel_total;
-    if (tmp_vel_total_ < 60.0)
+    if (tmp_vel_total_ < 60.0) //give a const value when the total velocity is too low
       tmp_vel_total_ = 60.0;//+ 5.0 * (last_vel_total_ - vel_total);
+    //filter the total velocity
     lp_error_->input(tmp_vel_total_);
     tmp_vel_total_ = lp_error_->output();
-    error_power_ = ((error_power_ / tmp_vel_total_) / wheel_radius_ + ff_) / wheel_radius_;
 
-    ramp_error_->input(error_power_);
-    error_power_ = ramp_error_->output();
+    error_effort_ = ((error_power_ / tmp_vel_total_) / wheel_radius_ + ff_) * wheel_radius_;//need to be verified
+    //filer the error effort
+    ramp_effort_->input(error_effort_);
+    error_power_ = ramp_effort_->output();
 
     ros::Time now = ros::Time::now();
     this->pid_buffer_power_manager_.computeCommand(error_power_, now - last_run_);
@@ -81,13 +77,13 @@ void PowerLimit::input(RefereeData referee_data_,
     tmp_vel_total_ = vel_total;
     error_power_ = limit_power_ - real_chassis_power_;
     if (tmp_vel_total_ < 60.0)
-      tmp_vel_total_ = 60.0 + 5.0 * (last_vel_total_ - vel_total);
+      tmp_vel_total_ = 60.0;
     lp_error_->input(tmp_vel_total_);
     tmp_vel_total_ = lp_error_->output();
     error_power_ = ((error_power_ / tmp_vel_total_) / wheel_radius_ + ff_) / wheel_radius_;
 
-    ramp_error_->input(error_power_);
-    error_power_ = ramp_error_->output();
+    ramp_effort_->input(error_power_);
+    error_power_ = ramp_effort_->output();
 
     have_capacity_ = false;
 
@@ -151,15 +147,6 @@ void PowerLimit::reconfigCB(rm_fsm::PowerLimitConfig &config, uint32_t) {
 void PowerLimit::jointVelCB(const sensor_msgs::JointState &data) {
   last_vel_total_ = vel_total;
   vel_total = abs(data.velocity[0]) + abs(data.velocity[1]) + abs(data.velocity[2]) + abs(data.velocity[3]);
-}
-
-void PowerLimit::getLimitEffort() {
-  if (this->limit_power_ <= 50) this->max_limit_ = max_limit_50w_;
-  else if (this->limit_power_ <= 60 && this->limit_power_ > 50) this->max_limit_ = max_limit_60w_;
-  else if (this->limit_power_ <= 70 && this->limit_power_ > 60) this->max_limit_ = max_limit_70w_;
-  else if (this->limit_power_ <= 80 && this->limit_power_ > 70) this->max_limit_ = max_limit_80w_;
-  else if (this->limit_power_ <= 100 && this->limit_power_ > 80) this->max_limit_ = max_limit_100w_;
-  else if (this->limit_power_ <= 120 && this->limit_power_ > 100) this->max_limit_ = max_limit_120w_;
 }
 
 double PowerLimit::output() {
