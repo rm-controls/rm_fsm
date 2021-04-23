@@ -2,7 +2,6 @@
 // Created by peter on 2020/12/3.
 //
 
-#include <utility>
 #include "rm_fsm/fsm_common.h"
 
 template<typename T>

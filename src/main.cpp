@@ -2,7 +2,6 @@
 // Created by luohx on 7/27/20.
 //
 
-#include <ros/ros.h>
 #include "rm_fsm/fsm_common.h"
 #include "rm_fsm/fsm_sentry.h"
 #include "rm_fsm/fsm_standard.h"

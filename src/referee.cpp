@@ -1,8 +1,8 @@
 //
 // Created by luohx on 20-2-19.
 //
-#include <ros/ros.h>
 #include "rm_fsm/referee.h"
+#include <ros/ros.h>
 
 void Referee::init(ros::NodeHandle nh) {
   serial::Timeout timeout = serial::Timeout::simpleTimeout(50);
@@ -40,12 +40,12 @@ void Referee::init(ros::NodeHandle nh) {
  * Send data to client UI
  */
 void Referee::run() {
-  ros::Time now = ros::Time::now();
-  geometry_msgs::TransformStamped gimbal_transformStamped;
+  uint8_t graph_operate_type;
   double roll{}, pitch{}, yaw{};
   char power_string[30];
-  uint8_t graph_operate_type;
   float power_float;
+  ros::Time now = ros::Time::now();
+  geometry_msgs::TransformStamped gimbal_transformStamped;
 
   if (robot_id_ != 0 && robot_id_ != kRedSentry && robot_id_ != kBlueSentry) {
     if (dbus_data_.key_g) {
@@ -65,6 +65,23 @@ void Referee::run() {
       else last_press_time_c_ = now;
     }
 
+    if (dbus_data_.key_ctrl && dbus_data_.key_q) {
+      is_chassis_passive_ = true;
+      is_gimbal_passive_ = true;
+      is_shooter_passive_ = true;
+      chassis_update_flag_ = true;
+      gimbal_update_flag_ = true;
+      shooter_update_flag_ = true;
+    }
+    if (dbus_data_.key_ctrl && dbus_data_.key_w) {
+      is_chassis_passive_ = false;
+      is_gimbal_passive_ = false;
+      is_shooter_passive_ = false;
+      chassis_update_flag_ = true;
+      gimbal_update_flag_ = true;
+      shooter_update_flag_ = true;
+    }
+
     if (dbus_data_.key_g) {
       gyro_flag_ = !gyro_flag_;
       chassis_update_flag_ = true;
@@ -73,8 +90,9 @@ void Referee::run() {
       twist_flag_ = !twist_flag_;
       chassis_update_flag_ = true;
     }
-    if (dbus_data_.key_q) {
+    if (!is_shooter_passive_ && dbus_data_.key_q) {
       burst_flag_ = !burst_flag_;
+      shooter_update_flag_ = true;
     }
     if (dbus_data_.key_c) {
       only_attack_base_flag_ = !only_attack_base_flag_;
@@ -84,23 +102,13 @@ void Referee::run() {
       graph_operate_type = kAdd;
       chassis_update_flag_ = true;
       gimbal_update_flag_ = true;
+      shooter_update_flag_ = true;
       attack_mode_update_flag_ = true;
     } else {
       graph_operate_type = kUpdate;
     }
-    if (dbus_data_.key_ctrl && dbus_data_.key_q) {
-      chassis_mode_ = 0;
-      gimbal_mode_ = 0;
-      chassis_update_flag_ = true;
-      gimbal_update_flag_ = true;
-    }
-    if (dbus_data_.key_ctrl && dbus_data_.key_w) {
-      chassis_mode_ = 1;
-      gimbal_mode_ = 1;
-      chassis_update_flag_ = true;
-      gimbal_update_flag_ = true;
-    }
 
+/*
     // get armors' position
     try {
       gimbal_transformStamped = this->tf_.lookupTransform("yaw", "base_link", ros::Time(0));
@@ -123,12 +131,8 @@ void Referee::run() {
     }
     if (referee_data_.robot_hurt_.armor_id == 1) {
       if (referee_data_.robot_hurt_.hurt_type == 0x0) {
-        drawCircle((int) (960 + 340 * sin(referee_data_.robot_hurt_.hurt_type == 0x0 && 3 * M_PI_2 - yaw)),
-                   (int) (540 + 340 * cos(3 * M_PI_2 - yaw)),
-                   50,
-                   6,
-                   kPurple,
-                   kAdd);
+        drawCircle((int) (960 + 340 * sin(3 * M_PI_2 - yaw)), (int) (540 + 340 * cos(3 * M_PI_2 - yaw)),
+                   50, 6, kPurple, kAdd);
       } else if (referee_data_.robot_hurt_.hurt_type == 0x5) {
         drawCircle((int) (960 + 340 * sin(3 * M_PI_2 - yaw)), (int) (540 + 340 * cos(3 * M_PI_2 - yaw)),
                    50, 6, kYellow, kAdd);
@@ -174,6 +178,7 @@ void Referee::run() {
       drawCircle((int) (960 + 340 * sin(M_PI_2 - yaw)), (int) (540 + 340 * cos(M_PI_2 - yaw)),
                  50, 8, kGreen, kDelete);
     }
+*/
 
     power_float = power_manager_data_.parameters[3] * 100;
     sprintf(power_string, "Cap: %1.0f%%", power_float);
@@ -185,7 +190,7 @@ void Referee::run() {
       drawString(910, 100, 4, kOrange, graph_operate_type, power_string);
 
     if (chassis_update_flag_) {
-      if (chassis_mode_) {
+      if (!is_chassis_passive_) {
         if (twist_flag_)
           drawString(1470, 790, 1, kYellow, graph_operate_type, "chassis:twist");
         else if (gyro_flag_)
@@ -198,7 +203,7 @@ void Referee::run() {
       chassis_update_flag_ = false;
     }
     if (gimbal_update_flag_) {
-      if (gimbal_mode_) {
+      if (!is_gimbal_passive_) {
         if (dbus_data_.p_r)
           drawString(1470, 740, 2, kYellow, graph_operate_type, "gimbal:track");
         else
@@ -208,11 +213,22 @@ void Referee::run() {
       }
       gimbal_update_flag_ = false;
     }
+    if (shooter_update_flag_) {
+      if (!is_shooter_passive_) {
+        if (burst_flag_)
+          drawString(1470, 690, 3, kYellow, graph_operate_type, "shooter:burst");
+        else
+          drawString(1470, 690, 3, kYellow, graph_operate_type, "shooter:normal");
+      } else {
+        drawString(1470, 690, 3, kYellow, graph_operate_type, "shooter:passive");
+      }
+      shooter_update_flag_ = false;
+    }
     if (attack_mode_update_flag_) {
       if (only_attack_base_flag_) {
-        drawString(1470, 690, 3, kYellow, graph_operate_type, "target:base");
+        drawString(1470, 640, 4, kYellow, graph_operate_type, "target:base");
       } else {
-        drawString(1470, 690, 3, kYellow, graph_operate_type, "target:all");
+        drawString(1470, 640, 4, kYellow, graph_operate_type, "target:all");
       }
       attack_mode_update_flag_ = false;
     }
