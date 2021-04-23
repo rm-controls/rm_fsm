@@ -51,36 +51,31 @@ void PowerLimit::input(RefereeData referee_data_,
 
     tmp_vel_total_ = vel_total;
     if (tmp_vel_total_ < 60.0) //give a const value when the total velocity is too low
-      tmp_vel_total_ = 60.0;//+ 5.0 * (last_vel_total_ - vel_total);
+      tmp_vel_total_ = 60.0 + 5.0 * (last_vel_total_ - vel_total);
     //filter the total velocity
     lp_error_->input(tmp_vel_total_);
     tmp_vel_total_ = lp_error_->output();
 
-    error_effort_ = ((error_power_ / tmp_vel_total_) / wheel_radius_ + ff_) * wheel_radius_;//need to be verified
+    error_effort_ = ((error_power_ / tmp_vel_total_) / wheel_radius_ + ff_) / wheel_radius_;//need to be verified
     //filer the error effort
     ramp_effort_->input(error_effort_);
     error_power_ = ramp_effort_->output();
 
     ros::Time now = ros::Time::now();
-    this->pid_buffer_power_manager_.computeCommand(error_power_, now - last_run_);
+    this->pid_buffer_power_manager_.computeCommand(error_effort_, now - last_run_);
     last_run_ = now;
 
   } else {
+    //init some data from referee
     real_chassis_power_ = referee_data_.power_heat_data_.chassis_power;
-//    limit_power_ = 50 + 70 * (sin(M_PI / 4 * last_run_.toSec()) > 0); //for test
-    //limit_power_ = 50 + 30 * (sin(last_run_.toSec()) + 1);
-    //limit_power_ = getLimitPower(referee_data_);
-//    limit_power_ = 60;
-//    limit_power_ += limit_power_ * 0.357142857 + 2.14286;
-    //if (referee_data_.power_heat_data_.chassis_power_buffer <= 30)
-    //limit_power_ -= 5.0;
+    limit_power_ = referee_data_.game_robot_status_.chassis_power_limit;
     tmp_vel_total_ = vel_total;
     error_power_ = limit_power_ - real_chassis_power_;
     if (tmp_vel_total_ < 60.0)
       tmp_vel_total_ = 60.0;
     lp_error_->input(tmp_vel_total_);
     tmp_vel_total_ = lp_error_->output();
-    error_power_ = ((error_power_ / tmp_vel_total_) / wheel_radius_ + ff_) / wheel_radius_;
+    error_effort_ = ((error_power_ / tmp_vel_total_) / wheel_radius_ + ff_) / wheel_radius_;;
 
     ramp_effort_->input(error_power_);
     error_power_ = ramp_effort_->output();
@@ -93,10 +88,11 @@ void PowerLimit::input(RefereeData referee_data_,
     if (pid_counter_ == 6) {
       pid_counter_ = 0;
       ros::Time now = ros::Time::now();
-      this->pid_buffer_.computeCommand(error_power_, now - last_run_);
+      this->pid_buffer_.computeCommand(error_effort_, now - last_run_);
       last_run_ = now;
     }
   }
+  //pubilsh the data for test
   power_limit_pub_data_.vel_total = tmp_vel_total_;
   power_limit_pub_data_.limit_power = limit_power_;
   power_limit_pub_data_.effort = abs(pid_buffer_.getCurrentCmd());
@@ -150,21 +146,6 @@ void PowerLimit::jointVelCB(const sensor_msgs::JointState &data) {
 }
 
 double PowerLimit::output() {
-  /*
-  this->getLimitEffort();
-
-  if (have_capacity_ && ((abs(capacity_ - 0.25) <= 0.05) || capacity_ < 0.25))
-    return safety_effort_;
-  else {
-    if (have_capacity_) {
-      if (abs(pid_buffer_power_manager_.getCurrentCmd()) > max_limit_) return max_limit_;
-      else return abs(pid_buffer_power_manager_.getCurrentCmd());
-    } else {
-      if (abs(pid_buffer_.getCurrentCmd()) > max_limit_) return max_limit_;
-      else return abs(pid_buffer_.getCurrentCmd());
-    }
-  }
-   */
   if (have_capacity_ && ((abs(capacity_ - 0.25) <= 0.05) || capacity_ < 0.25))
     return safety_effort_;
   else {

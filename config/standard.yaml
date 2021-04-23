@@ -32,7 +32,7 @@ rm_fsm:
     ff: 0
     safety_current: 7.5
     wheel_radius: 0.07625
-    use_power_manager: true
+    use_power_manager: false
     pid_buffer: { p: 0.021, i: 0.005, d: 0.0, i_max: 0.0, i_min: 0.0, antiwindup: true }
     pid_buffer_power_manager: { p: 10.0, i: 0.1, d: 0.05, i_max: 0.0, i_min: 0.0, antiwindup: true }
 
