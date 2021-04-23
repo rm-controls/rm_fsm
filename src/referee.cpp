@@ -195,6 +195,7 @@ void Referee::run() {
       } else {
         drawString(1470, 790, 1, kYellow, graph_operate_type, "chassis:passive");
       }
+      chassis_update_flag_ = false;
     }
     if (gimbal_update_flag_) {
       if (gimbal_mode_) {
@@ -205,6 +206,7 @@ void Referee::run() {
       } else {
         drawString(1470, 740, 2, kYellow, graph_operate_type, "gimbal:passive");
       }
+      gimbal_update_flag_ = false;
     }
     if (attack_mode_update_flag_) {
       if (only_attack_base_flag_) {
@@ -212,6 +214,7 @@ void Referee::run() {
       } else {
         drawString(1470, 690, 3, kYellow, graph_operate_type, "target:all");
       }
+      attack_mode_update_flag_ = false;
     }
   }
 
