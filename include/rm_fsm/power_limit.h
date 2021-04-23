@@ -5,9 +5,9 @@
 #ifndef SRC_RM_FSM_INCLUDE_RM_FSM_POWER_LIMIT_H_
 #define SRC_RM_FSM_INCLUDE_RM_FSM_POWER_LIMIT_H_
 
+#include "rm_fsm/referee.h"
 #include <ros/ros.h>
 #include <control_toolbox/pid.h>
-#include "rm_fsm/referee.h"
 
 class PowerLimit {
  public:

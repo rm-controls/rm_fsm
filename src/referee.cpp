@@ -1,8 +1,8 @@
 //
 // Created by luohx on 20-2-19.
 //
-#include <ros/ros.h>
 #include "rm_fsm/referee.h"
+#include <ros/ros.h>
 
 void Referee::init(ros::NodeHandle nh) {
   serial::Timeout timeout = serial::Timeout::simpleTimeout(50);
@@ -40,12 +40,12 @@ void Referee::init(ros::NodeHandle nh) {
  * Send data to client UI
  */
 void Referee::run() {
-  ros::Time now = ros::Time::now();
-  geometry_msgs::TransformStamped gimbal_transformStamped;
+  uint8_t graph_operate_type;
   double roll{}, pitch{}, yaw{};
   char power_string[30];
-  uint8_t graph_operate_type;
   float power_float;
+  ros::Time now = ros::Time::now();
+  geometry_msgs::TransformStamped gimbal_transformStamped;
 
   if (robot_id_ != 0 && robot_id_ != kRedSentry && robot_id_ != kBlueSentry) {
     if (dbus_data_.key_g) {

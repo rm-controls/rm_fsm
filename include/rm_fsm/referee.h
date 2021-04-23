@@ -3,18 +3,20 @@
 //
 #ifndef SRC_RM_BRIDGE_INCLUDE_RT_RT_REFEREE_H_
 #define SRC_RM_BRIDGE_INCLUDE_RT_RT_REFEREE_H_
-//Referee System
+
+#include "rm_fsm/protocol.h"
+
 #include <cstdint>
 #include <serial/serial.h>
 #include <tf/transform_listener.h>
-#include "rm_common/ori_tool.h"
+
+#include <rm_common/ori_tool.h>
 #include <rm_msgs/Referee.h>
 #include <rm_msgs/PowerManagerData.h>
 #include <rm_msgs/DbusData.h>
 #include <rm_msgs/ChassisCmd.h>
 #include <rm_msgs/GimbalCmd.h>
 #include <geometry_msgs/Twist.h>
-#include "rm_fsm/protocol.h"
 
 struct RefereeData {
   GameStatus game_status_;

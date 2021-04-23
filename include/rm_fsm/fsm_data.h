@@ -4,6 +4,12 @@
 
 #ifndef RM_BASE_RM_DECISION_INCLUDE_FSM_CONTROL_FSM_DATA_H_
 #define RM_BASE_RM_DECISION_INCLUDE_FSM_CONTROL_FSM_DATA_H_
+
+#include "rm_fsm/referee.h"
+#include "rm_fsm/power_limit.h"
+#include "rm_fsm/shooter_heat_limit.h"
+#include "rm_fsm/target_cost_function.h"
+
 #include <ros/ros.h>
 #include <geometry_msgs/Twist.h>
 #include <geometry_msgs/Vector3.h>
@@ -13,10 +19,6 @@
 #include <rm_msgs/GimbalCmd.h>
 #include <rm_msgs/ShootCmd.h>
 #include <rm_msgs/GimbalDesError.h>
-#include "rm_fsm/referee.h"
-#include "rm_fsm/power_limit.h"
-#include "rm_fsm/shooter_heat_limit.h"
-#include "rm_fsm/target_cost_function.h"
 
 template<typename T>
 class FsmData {
