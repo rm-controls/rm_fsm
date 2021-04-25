@@ -41,7 +41,6 @@ void Referee::init(ros::NodeHandle nh) {
  */
 void Referee::run() {
   uint8_t graph_operate_type;
-  double roll{}, pitch{}, yaw{};
   char power_string[30];
   float power_float;
   ros::Time now = ros::Time::now();
