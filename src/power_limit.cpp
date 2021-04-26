@@ -10,7 +10,7 @@ PowerLimit::PowerLimit(ros::NodeHandle &nh) {
   power_nh.param("ff", ff_, 0.3);
   power_nh.param("wheel_radius", wheel_radius_, 0.07625);
 
-  //dynamic reconfigure
+  //dynamic reconfigure for test
   d_srv_ = new dynamic_reconfigure::Server<rm_fsm::PowerLimitConfig>(nh);
   dynamic_reconfigure::Server<rm_fsm::PowerLimitConfig>::CallbackType cb =
       [this](auto &&PH1, auto &&PH2) {
@@ -37,10 +37,10 @@ void PowerLimit::input(RefereeData referee_data_,
                        PowerManagerData power_manager_data_,
                        bool use_power_manager) {
   double tmp_vel_total_ = 0.0;
-  if (use_power_manager) {
-    //init some data from power manager
+  if (use_power_manager) {//have capactiy and current sampleing
+    //init data from power manger and referee
     real_chassis_power_ = power_manager_data_.parameters[0];
-    limit_power_ = power_manager_data_.parameters[1];
+    limit_power_ = power_manager_data_.parameters[1];//use the power manger limit power
     capacity_ = power_manager_data_.parameters[3];
     //filter the real power
     lp_real_power_->input(real_chassis_power_);
@@ -53,7 +53,7 @@ void PowerLimit::input(RefereeData referee_data_,
     if (tmp_vel_total_ < 60.0) //give a const value when the total velocity is too low
       tmp_vel_total_ = 60.0 + 5.0 * (last_vel_total_ - vel_total);
 
-    error_effort_ = ((error_power_ / tmp_vel_total_) / wheel_radius_ + ff_) / wheel_radius_;//need to be verified
+    error_effort_ = ((error_power_ / tmp_vel_total_) / wheel_radius_ + ff_) / wheel_radius_;
     //filer the error effort
     ramp_effort_->input(error_effort_);
     error_power_ = ramp_effort_->output();
@@ -62,14 +62,32 @@ void PowerLimit::input(RefereeData referee_data_,
     this->pid_buffer_power_manager_.computeCommand(error_effort_, now - last_run_);
     last_run_ = now;
 
-  } else {
-    //init some data from referee
+  } else if (!(use_power_manager) && referee_data_.game_robot_status_.chassis_power_limit != 0) {
+    //init data from power manger and referee
     real_chassis_power_ = referee_data_.power_heat_data_.chassis_power;
-    limit_power_ = referee_data_.game_robot_status_.chassis_power_limit;
+    limit_power_ = referee_data_.game_robot_status_.chassis_power_limit;//use the referee limit power
     tmp_vel_total_ = vel_total;
     error_power_ = limit_power_ - real_chassis_power_;
     if (tmp_vel_total_ < 60.0)
-      tmp_vel_total_ = 60.0;
+      tmp_vel_total_ = 60.0 + 5.0 * (last_vel_total_ - vel_total);
+    error_effort_ = ((error_power_ / tmp_vel_total_) / wheel_radius_ + ff_) / wheel_radius_;
+
+    ramp_effort_->input(error_power_);
+    error_power_ = ramp_effort_->output();
+
+    ros::Time now = ros::Time::now();
+    this->pid_buffer_power_manager_.computeCommand(error_effort_, now - last_run_);
+    last_run_ = now;
+
+    have_capacity_ = true;
+  } else {//dose not have capacity but have current sampleing
+    limit_power_ = 60;
+    real_chassis_power_ = referee_data_.power_heat_data_.chassis_power;
+
+    tmp_vel_total_ = vel_total;
+    error_power_ = limit_power_ - real_chassis_power_;
+    if (tmp_vel_total_ < 60.0)
+      tmp_vel_total_ = 60.0 + 5.0 * (last_vel_total_ - vel_total);
     error_effort_ = ((error_power_ / tmp_vel_total_) / wheel_radius_ + ff_) / wheel_radius_;
 
     ramp_effort_->input(error_power_);
@@ -86,6 +104,7 @@ void PowerLimit::input(RefereeData referee_data_,
       this->pid_buffer_.computeCommand(error_effort_, now - last_run_);
       last_run_ = now;
     }
+
   }
   //pubilsh the data for test
   power_limit_pub_data_.vel_total = tmp_vel_total_;
