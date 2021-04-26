@@ -52,7 +52,7 @@ class PowerLimit {
   double last_vel_total_;
 
   double power_offset_;
-  LowPassFilter *lp_error_{};
+  LowPassFilter *lp_vel_total_{};
   LowPassFilter *lp_real_power_{};
   RampFilter<double> *ramp_effort_{};
   //publish some data for test

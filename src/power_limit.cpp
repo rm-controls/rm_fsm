@@ -27,7 +27,7 @@ PowerLimit::PowerLimit(ros::NodeHandle &nh) {
   power_limit_pub_ = power_nh.advertise<rm_msgs::PowerLimit>("/Powerlimit", 1);
   joint_state_sub_ = power_nh.subscribe("/joint_states", 1, &PowerLimit::jointVelCB, this);
 
-  lp_error_ = new LowPassFilter(100.0);
+  lp_vel_total_ = new LowPassFilter(100.0);
   lp_real_power_ = new LowPassFilter(40.0);
   ramp_effort_ = new RampFilter<double>(200, 0.01);
   pid_counter_ = 0.0;
@@ -52,9 +52,6 @@ void PowerLimit::input(RefereeData referee_data_,
     tmp_vel_total_ = vel_total;
     if (tmp_vel_total_ < 60.0) //give a const value when the total velocity is too low
       tmp_vel_total_ = 60.0 + 5.0 * (last_vel_total_ - vel_total);
-    //filter the total velocity
-    lp_error_->input(tmp_vel_total_);
-    tmp_vel_total_ = lp_error_->output();
 
     error_effort_ = ((error_power_ / tmp_vel_total_) / wheel_radius_ + ff_) / wheel_radius_;//need to be verified
     //filer the error effort
@@ -73,9 +70,7 @@ void PowerLimit::input(RefereeData referee_data_,
     error_power_ = limit_power_ - real_chassis_power_;
     if (tmp_vel_total_ < 60.0)
       tmp_vel_total_ = 60.0;
-    lp_error_->input(tmp_vel_total_);
-    tmp_vel_total_ = lp_error_->output();
-    error_effort_ = ((error_power_ / tmp_vel_total_) / wheel_radius_ + ff_) / wheel_radius_;;
+    error_effort_ = ((error_power_ / tmp_vel_total_) / wheel_radius_ + ff_) / wheel_radius_;
 
     ramp_effort_->input(error_power_);
     error_power_ = ramp_effort_->output();
@@ -143,6 +138,8 @@ void PowerLimit::reconfigCB(rm_fsm::PowerLimitConfig &config, uint32_t) {
 void PowerLimit::jointVelCB(const sensor_msgs::JointState &data) {
   last_vel_total_ = vel_total;
   vel_total = abs(data.velocity[0]) + abs(data.velocity[1]) + abs(data.velocity[2]) + abs(data.velocity[3]);
+  lp_vel_total_->input(vel_total);
+  vel_total = lp_vel_total_->output();
 }
 
 double PowerLimit::output() {
