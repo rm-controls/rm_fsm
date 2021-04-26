@@ -22,6 +22,7 @@ class TargetCostFunction {
   int id_{};
   double cost_ = 1000000;
   double time_interval_{};
+  ros::Time decide_old_target_time_, decide_new_target_time_;
 };
 
 #endif //SRC_RM_SOFTWARE_RM_FSM_INCLUDE_RM_FSM_TARGET_COST_FUNCTION_H_

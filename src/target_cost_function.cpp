@@ -6,46 +6,43 @@
 
 TargetCostFunction::TargetCostFunction(ros::NodeHandle &nh) {
   ros::NodeHandle cost_nh = ros::NodeHandle(nh, "target_cost_function");
-  cost_nh.param("time_interval_", time_interval_, 0.1);
-  id_=0;
+  cost_nh.param("time_interval", time_interval_, 0.1);
+  id_ = 0;
 }
 
 void TargetCostFunction::input(rm_msgs::TrackDataArray track_data_array, bool only_attack_base) {
   int target_numbers = track_data_array.tracks.size();
+  int id_temp;
   double cost_temp;
+  decide_old_target_time_ = ros::Time::now();
+
   if (target_numbers) {
     for (int i = 0; i < target_numbers; i++) {
-      if (only_attack_base) {
-        if (track_data_array.tracks[i].id == 9) {
-          id_ = 9;
-        }
-      } else {
-        cost_temp = calculateCost(track_data_array.tracks[i]);
-        if (cost_temp <= cost_) {
-          cost_ = cost_temp;
-          id_ = track_data_array.tracks[i].id;
-        }
+      cost_temp = calculateCost(track_data_array.tracks[i]);
+      if (cost_temp <= cost_) {
+        // detective a target near than last target,change target
+        cost_ = cost_temp;
+        id_temp = track_data_array.tracks[i].id;
+      } else if (only_attack_base && track_data_array.tracks[i].id == 8) {
+        // enter only attack base mode,can not detective base,choose to attack sentry if we can detective
+        id_ = 8;
+      } else if (only_attack_base && track_data_array.tracks[i].id == 9) {
+        // enter only attack base mode, detective base
+        id_ = 9;
+        break;
       }
     }
-    if (only_attack_base) {
-      if (id_ != 9) {
-        for (int i = 0; i < target_numbers; i++) {
-          if (track_data_array.tracks[i].id == 8) {
-            id_ = 8;
-            break;
-          }
-        }
-/*        for (int i = 0; i < target_numbers; i++) {
-          cost_temp = calculateCost(track_data_array.tracks[i]);
-          if (cost_temp <= cost_) {
-            cost_ = cost_temp;
-            id_ = track_data_array.tracks[i].id;
-          }
-        }*/
-      }
 
+
+    //maybe we can consider frequency at this part if did not enter attack base mode
+    if (!only_attack_base && id_temp != id_) {
+      decide_new_target_time_ = ros::Time::now();
+      time_interval_ = (decide_new_target_time_ - decide_old_target_time_).toSec();
+      cost_temp = cost_ + 1 / time_interval_;
+      id_ = (cost_temp > cost_) ? id_ : id_temp;
     }
-    cost_ = 10000000;
+
+    cost_ = 1000000.0;
   } else id_ = 0;
 
 }
