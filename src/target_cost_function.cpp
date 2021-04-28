@@ -6,8 +6,9 @@
 
 TargetCostFunction::TargetCostFunction(ros::NodeHandle &nh) {
   ros::NodeHandle cost_nh = ros::NodeHandle(nh, "target_cost_function");
-  cost_nh.param("time_interval", time_interval_, 0.1);
+  cost_nh.param("k_f", k_f_, 1.0);
   id_ = 0;
+  time_interval_ = 0.0;
 }
 
 void TargetCostFunction::input(rm_msgs::TrackDataArray track_data_array, bool only_attack_base) {
@@ -37,9 +38,12 @@ void TargetCostFunction::input(rm_msgs::TrackDataArray track_data_array, bool on
     //maybe we can consider frequency at this part if did not enter attack base mode
     if (!only_attack_base && id_temp != id_) {
       decide_new_target_time_ = ros::Time::now();
-      time_interval_ = (decide_new_target_time_ - decide_old_target_time_).toSec();
-      cost_temp = cost_ + 1 / time_interval_;
-      id_ = (cost_temp > cost_) ? id_ : id_temp;
+      time_interval_ = time_interval_ + (decide_new_target_time_ - decide_old_target_time_).toSec();
+      cost_temp = cost_ + k_f_ / time_interval_;
+      if (cost_temp < cost_) {
+        id_ = id_temp;
+        time_interval_ = 0.0;
+      }
     }
 
     cost_ = 1000000.0;
