@@ -6,9 +6,9 @@
 
 TargetCostFunction::TargetCostFunction(ros::NodeHandle &nh) {
   ros::NodeHandle cost_nh = ros::NodeHandle(nh, "target_cost_function");
-  cost_nh.param("k_f", k_f_, 1.0);
+  cost_nh.param("k_f", k_f_, 0.0);
   id_ = 0;
-  time_interval_ = 0.0;
+  time_interval_ = 1.0;
 }
 
 void TargetCostFunction::input(rm_msgs::TrackDataArray track_data_array, bool only_attack_base) {
@@ -40,7 +40,7 @@ void TargetCostFunction::input(rm_msgs::TrackDataArray track_data_array, bool on
       decide_new_target_time_ = ros::Time::now();
       time_interval_ = time_interval_ + (decide_new_target_time_ - decide_old_target_time_).toSec();
       cost_temp = cost_ + k_f_ / time_interval_;
-      if (cost_temp < cost_) {
+      if (cost_temp <= cost_) {
         id_ = id_temp;
         time_interval_ = 0.0;
       }
