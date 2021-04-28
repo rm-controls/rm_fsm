@@ -44,6 +44,7 @@ void TargetCostFunction::input(rm_msgs::TrackDataArray track_data_array, bool on
         id_ = id_temp;
         time_interval_ = 0.0;
       }
+      if (id_ == 0) id_ = id_temp;
     }
 
     cost_ = 1000000.0;
