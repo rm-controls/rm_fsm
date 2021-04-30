@@ -8,7 +8,7 @@ rm_fsm:
     expect_shoot_hz: 10
     safe_shoot_hz: 3
     safe_shoot_speed: 10
-    gimbal_error_limit: 1
+    gimbal_error_limit: 0.2
     rc_param:
       coefficient_x: 1.0
       coefficient_y: 1.0
@@ -31,5 +31,5 @@ rm_fsm:
     start: 0.0
     end: 2.0
     collision_distance: 0.3
-    calibration_speed: 0.15
+    calibration_speed: 0.2
     column: 1
