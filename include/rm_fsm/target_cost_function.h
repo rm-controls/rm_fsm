@@ -21,7 +21,8 @@ class TargetCostFunction {
  private:
   int id_{};
   double k_f_{};
-  double cost_ = 1000000;
+  double calculate_cost_ = 1000000;
+  double choose_cost_ = 1000000;
   double time_interval_{};
   ros::Time decide_old_target_time_, decide_new_target_time_;
 };
