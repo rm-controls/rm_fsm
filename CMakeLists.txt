@@ -25,10 +25,6 @@ find_package(catkin REQUIRED
     dynamic_reconfigure
     )
 
-generate_dynamic_reconfigure_options(
-    cfg/Powerlimit.cfg
-)
-
 ## Find system libraries
 #find_package(Eigen3 REQUIRED)
 

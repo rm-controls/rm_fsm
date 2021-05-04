@@ -73,15 +73,12 @@ void State<T>::setChassis(uint8_t chassis_mode, double linear_x, double linear_y
 
   if (data_->referee_->is_open_) {
     if (data_->referee_->referee_data_.power_heat_data_.chassis_volt == 0) {
-      data_->chassis_cmd_.effort_limit = data_->power_limit_->getSafetyEffort();
+      data_->chassis_cmd_.power_limit = data_->referee_->power_manager_data_.parameters[1];
     } else {
-      data_->power_limit_->input(data_->referee_->referee_data_,
-                                 data_->referee_->power_manager_data_,
-                                 use_power_manager_);
-      data_->chassis_cmd_.effort_limit = data_->power_limit_->output();
+      data_->chassis_cmd_.power_limit = data_->referee_->power_manager_data_.parameters[1];
     }
   } else {
-    data_->chassis_cmd_.effort_limit = data_->power_limit_->getSafetyEffort();
+    data_->chassis_cmd_.power_limit = data_->referee_->power_manager_data_.parameters[1];
   }
 
   data_->cmd_vel_.linear.x = 0.38 * linear_x * coefficient_x_;
