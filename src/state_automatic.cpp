@@ -84,12 +84,12 @@ void StateAutomatic<T>::run() {
   }
   if (calibration_) {
     this->data_->shooter_heat_limit_->input(this->data_->referee_, this->expect_shoot_hz_, this->safe_shoot_hz_);
-    this->data_->target_cost_function_->input(this->data_->track_data_array_);
+    this->data_->target_cost_function_->input(this->data_->track_data_array_, false);
     attack_id_ = this->data_->target_cost_function_->output();
     //shooter control
     if ((attack_id_ == 1 || attack_id_ == 3 || attack_id_ == 4)
-        && std::abs(this->data_->gimbal_des_error_.error_yaw) < this->gimbal_error_limit_
-        && std::abs(this->data_->gimbal_des_error_.error_pitch) < this->gimbal_error_limit_) {
+        && std::abs(this->data_->gimbal_des_error_.error) < this->gimbal_error_limit_
+        && this->data_->gimbal_des_error_.error > 0.0) {
       this->setShoot(rm_msgs::ShootCmd::PUSH,
                      30,
                      this->data_->shooter_heat_limit_->output(),

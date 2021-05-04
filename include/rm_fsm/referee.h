@@ -3,16 +3,20 @@
 //
 #ifndef SRC_RM_BRIDGE_INCLUDE_RT_RT_REFEREE_H_
 #define SRC_RM_BRIDGE_INCLUDE_RT_RT_REFEREE_H_
-//Referee System
+
+#include "rm_fsm/protocol.h"
+
 #include <cstdint>
 #include <serial/serial.h>
+#include <tf/transform_listener.h>
+
+#include <rm_common/ori_tool.h>
 #include <rm_msgs/Referee.h>
 #include <rm_msgs/PowerManagerData.h>
 #include <rm_msgs/DbusData.h>
 #include <rm_msgs/ChassisCmd.h>
 #include <rm_msgs/GimbalCmd.h>
 #include <geometry_msgs/Twist.h>
-#include "rm_fsm/protocol.h"
 
 struct RefereeData {
   GameStatus game_status_;
@@ -65,13 +69,8 @@ class Referee {
   void init(ros::NodeHandle nh);
   void read();
   void run();
-  void drawRectangle(int start_x,
-                     int start_y,
-                     int end_x,
-                     int end_y,
-                     int picture_name,
-                     GraphicColorType color,
-                     GraphicOperateType operate_type);
+  void drawCircle(int center_x, int center_y, int radius, int picture_name,
+                  GraphicColorType color, uint8_t operate_type);
   void drawString(int x, int y, int picture_name, GraphicColorType color, uint8_t operate_type, std::string data);
   void sendInteractiveData(int data_cmd_id, int receiver_id, const std::vector<uint8_t> &data);
 
@@ -83,24 +82,43 @@ class Referee {
   ros::Time last_press_time_f_ = ros::Time::now();
   ros::Time last_press_time_q_ = ros::Time::now();
   ros::Time last_press_time_c_ = ros::Time::now();
-  bool gyro_flag_ = 0;
-  bool twist_flag_ = 0;
-  bool burst_flag_ = 0;
-  bool only_attack_base_flag_ = 0;
+
+  bool gyro_flag_ = false;
+  bool twist_flag_ = false;
+  bool burst_flag_ = false;
+  bool only_attack_base_flag_ = false;
+
+  bool is_chassis_passive_ = true;
+  bool is_gimbal_passive_ = true;
+  bool is_shooter_passive_ = true;
+  bool is_open_ = false;
+  int robot_id_ = 0;
+  int client_id_ = 0;
+
+  bool chassis_update_flag_ = true;
+  bool gimbal_update_flag_ = true;
+  bool shooter_update_flag_ = true;
+  bool attack_mode_update_flag_ = true;
+
   ros::NodeHandle nh_;
+  rm_msgs::DbusData dbus_data_;
   RefereeData referee_data_{};
   PowerManagerData power_manager_data_;
   ros::Subscriber dbus_sub_;
 
-  rm_msgs::DbusData dbus_data_;
-  int chassis_mode_ = 0;
-  int gimbal_mode_ = 0;
-  bool is_open_ = false;
-  int robot_id_ = 0;
-  int client_id_ = 0;
   ros::Publisher referee_pub_;
   ros::Publisher power_manager_pub_;
+
   ros::Time last_send_ = ros::Time::now();
+
+  ros::Time last_hurt_id0_ = ros::Time::now();
+  ros::Time last_hurt_id1_ = ros::Time::now();
+  ros::Time last_hurt_id2_ = ros::Time::now();
+  ros::Time last_hurt_id3_ = ros::Time::now();
+
+  tf2_ros::Buffer tf_;
+  tf2_ros::TransformListener *tf_listener_;
+
   rm_msgs::Referee referee_pub_data_;
   rm_msgs::PowerManagerData power_manager_pub_data_;
   void dbusDataCallback(const rm_msgs::DbusData::ConstPtr &data) {
