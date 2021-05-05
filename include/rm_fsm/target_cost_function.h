@@ -22,7 +22,7 @@ class TargetCostFunction {
  private:
   int id_{};
   double k_f_{};
-  double timeout_;
+  double timeout_{};
   double calculate_cost_ = 1000000;
   double choose_cost_ = 1000000;
   double time_interval_{};
