@@ -15,12 +15,6 @@ rm_fsm:
       coefficient_angular: 6.0
       coefficient_yaw: 2.0
       coefficient_pitch: 2.0
-  power_limit:
-    ff: 0
-    safety_current: 7.5
-    wheel_radius: 0.07625
-    use_power_manager: false
-    pid_buffer: { p: 0.021, i: 0.005, d: 0.0, i_max: 0.0, i_min: 0.0, antiwindup: true }
   auto_move:
     chassis_speed: 1.6
     chassis_accel: 1.0
@@ -31,3 +25,6 @@ rm_fsm:
     collision_distance: 0.3
     calibration_speed: 0.2
     column: 1
+  power_limit:
+    safety_power: 30
+    use_power_manager: false
