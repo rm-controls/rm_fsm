@@ -153,7 +153,9 @@ void StateFollow<T>::run() {
     this->actual_shoot_speed_ = this->data_->referee_->getActualBulletSpeed(this->actual_shoot_speed_);
     // Switch track mode
     if (this->data_->dbus_data_.p_r) {
-      this->data_->target_cost_function_->input(this->data_->track_data_array_, only_attack_base_);
+      this->data_->target_cost_function_->input(this->data_->track_data_array_,
+                                                this->data_->referee_->referee_data_.game_robot_hp_,
+                                                only_attack_base_);
       target_id = this->data_->target_cost_function_->output();
       if (target_id == 0) {
         gimbal_mode = rm_msgs::GimbalCmd::RATE;
@@ -229,7 +231,9 @@ void StateFollow<T>::run() {
 
     // Send command to shooter
     this->ultimate_shoot_speed_ = this->data_->referee_->getUltimateBulletSpeed(this->ultimate_shoot_speed_);
-    this->data_->target_cost_function_->input(this->data_->track_data_array_, only_attack_base_);
+    this->data_->target_cost_function_->input(this->data_->track_data_array_,
+                                              this->data_->referee_->referee_data_.game_robot_hp_,
+                                              only_attack_base_);
     target_id = this->data_->target_cost_function_->output();
     if (this->data_->dbus_data_.s_l == rm_msgs::DbusData::UP) {
       if (target_id == 0) {

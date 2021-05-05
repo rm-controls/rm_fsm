@@ -35,3 +35,7 @@ rm_fsm:
     safety_current: 6.0
     use_power_manager: false
     default_power_limit: true
+  target_cost_function:
+    k_f: 0.0
+    k_hp: 0.0
+    track_msg_timeout_: 1.0

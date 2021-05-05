@@ -1,5 +1,6 @@
 <launch>
     <arg name="robot_type" default="$(env ROBOT_TYPE)" doc="Robot type [standard, hero, engineer]"/>
+    <arg name="enemy_color" default="$(env ENEMY_COLOR)" doc="Enemy Color [blue, red]"/>
     <arg name="load_controller" default="true"/>
     <arg name="ekf" default="false"/>
     <arg name="odom_tf" default="true"/>
@@ -32,6 +33,8 @@
     </node>
 
     <node name="rm_dbus" pkg="rm_dbus" type="rm_dbus" respawn="false"/>
-    <node name="rm_fsm" pkg="rm_fsm" type="rm_fsm" respawn="false"/>
+    <node name="rm_fsm" pkg="rm_fsm" type="rm_fsm" respawn="false">
+        <param name="target_cost_function/enemy_color" value="$(arg enemy_color)"/>
+    </node>
 
 </launch>
