@@ -7,11 +7,18 @@
 TargetCostFunction::TargetCostFunction(ros::NodeHandle &nh) {
   ros::NodeHandle cost_nh = ros::NodeHandle(nh, "target_cost_function");
   cost_nh.param("k_f", k_f_, 0.0);
+  cost_nh.param("timeout", timeout_, 1.0);
   id_ = 0;
   time_interval_ = 0.01;
 }
 
 void TargetCostFunction::input(rm_msgs::TrackDataArray track_data_array, bool only_attack_base) {
+  double timeout_judge = (ros::Time::now() - track_data_array.header.stamp).toSec();
+  if (timeout_judge > timeout_) id_ = 0;
+  else decideId(track_data_array, only_attack_base);
+}
+
+void TargetCostFunction::decideId(rm_msgs::TrackDataArray track_data_array, bool only_attack_base) {
   int target_numbers = track_data_array.tracks.size();
   int id_temp;
   double cost_temp;

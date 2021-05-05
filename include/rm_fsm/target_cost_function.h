@@ -15,12 +15,14 @@ class TargetCostFunction {
  public:
   explicit TargetCostFunction(ros::NodeHandle &nh);
   void input(rm_msgs::TrackDataArray track_data_array, bool only_attack_base = false);
+  void decideId(rm_msgs::TrackDataArray track_data_array, bool only_attack_base = false);
   int output() const;
   static double calculateCost(rm_msgs::TrackData track_data);
 
  private:
   int id_{};
   double k_f_{};
+  double timeout_;
   double calculate_cost_ = 1000000;
   double choose_cost_ = 1000000;
   double time_interval_{};
