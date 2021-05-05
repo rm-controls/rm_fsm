@@ -29,6 +29,6 @@ rm_fsm:
       spin_sin_frequency: 6.28
   power_limit:
     safety_power: 50
-    use_power_manager: false
+    have_power_manager: true
 
 

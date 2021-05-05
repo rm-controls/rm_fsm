@@ -27,4 +27,4 @@ rm_fsm:
     column: 1
   power_limit:
     safety_power: 30
-    use_power_manager: false
+    have_power_manager: false
