@@ -90,12 +90,12 @@ double TargetCostFunction::calculateCost(rm_msgs::TrackData track_data, GameRobo
     else if (track_data.id == 7) hp_cost = robot_hp.red_7_robot_HP;
     else hp_cost = 0.0;
   } else if (enemy_color_ == "blue") {
-    if (track_data.id == 1) hp_cost = robot_hp.red_1_robot_HP;
-    else if (track_data.id == 2) hp_cost = robot_hp.red_2_robot_HP;
-    else if (track_data.id == 3) hp_cost = robot_hp.red_3_robot_HP;
-    else if (track_data.id == 4) hp_cost = robot_hp.red_4_robot_HP;
-    else if (track_data.id == 5) hp_cost = robot_hp.red_5_robot_HP;
-    else if (track_data.id == 7) hp_cost = robot_hp.red_7_robot_HP;
+    if (track_data.id == 1) hp_cost = robot_hp.blue_1_robot_HP;
+    else if (track_data.id == 2) hp_cost = robot_hp.blue_2_robot_HP;
+    else if (track_data.id == 3) hp_cost = robot_hp.blue_3_robot_HP;
+    else if (track_data.id == 4) hp_cost = robot_hp.blue_4_robot_HP;
+    else if (track_data.id == 5) hp_cost = robot_hp.blue_5_robot_HP;
+    else if (track_data.id == 7) hp_cost = robot_hp.blue_7_robot_HP;
     else hp_cost = 0.0;
   } else hp_cost = 0.0;
 
