@@ -68,7 +68,6 @@ void State<T>::setChassis(uint8_t chassis_mode, double linear_x, double linear_y
 
   if (angular_z == 0.0)
     accel_angular = accel_angular_ * brake_multiple_;
-  //
   data_->chassis_cmd_.accel.linear.x = accel_x;
   data_->chassis_cmd_.accel.linear.y = accel_y;
   data_->chassis_cmd_.accel.angular.z = accel_angular;
