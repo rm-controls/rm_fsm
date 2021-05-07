@@ -34,6 +34,6 @@ rm_fsm:
     calibration_speed: 0.2
     column: 1
   target_cost_function:
-    k_f: 0.0
+    k_f: 100.0
     k_hp: 0.0
     track_msg_timeout_: 1.0

@@ -9,7 +9,7 @@ TargetCostFunction::TargetCostFunction(ros::NodeHandle &nh) {
   cost_nh.param("k_f", k_f_, 0.0);
   cost_nh.param("k_hp", k_hp_, 0.01);
   cost_nh.param("track_msg_timeout", track_msg_timeout_, 1.0);
-  cost_nh.param("enemy_group", enemy_color_, std::string("error"));
+  cost_nh.param("enemy_color", enemy_color_, std::string("error"));
   cost_nh.param("time_interval", time_interval_, 0.0);
   id_ = 0;
 }
@@ -61,7 +61,10 @@ void TargetCostFunction::decideId(rm_msgs::TrackDataArray track_data_array,
         id_ = id_temp;
         time_interval_ = 0.0;
       }
-      if (id_ == 0) id_ = id_temp;
+      if (id_ == 0) {
+        id_ = id_temp;
+        time_interval_ = 0.0;
+      }
     }
 
     //ROS_INFO("k_f:%f,Id_temp:%d,Id:%d,Time_interval:%f",k_f_,id_temp,id_,time_interval_);
@@ -81,9 +84,9 @@ double TargetCostFunction::calculateCost(rm_msgs::TrackData track_data, GameRobo
    */
 
   //not speed
-  double delta_x_2 = pow(track_data.map2detection.position.x, 2);
-  double delta_y_2 = pow(track_data.map2detection.position.y, 2);
-  double delta_z_2 = pow(track_data.map2detection.position.z, 2);
+  double delta_x_2 = pow(track_data.camera2detection.position.x, 2);
+  double delta_y_2 = pow(track_data.camera2detection.position.y, 2);
+  double delta_z_2 = pow(track_data.camera2detection.position.z, 2);
   double distance = sqrt(delta_x_2 + delta_y_2 + delta_z_2);
 
   //Hp
