@@ -10,17 +10,22 @@
 #include <rm_msgs/TrackData.h>
 #include <rm_msgs/TrackDataArray.h>
 #include <geometry_msgs/Twist.h>
+#include "rm_fsm/protocol.h"
 
 class TargetCostFunction {
  public:
   explicit TargetCostFunction(ros::NodeHandle &nh);
-  void input(rm_msgs::TrackDataArray track_data_array, bool only_attack_base = false);
+  void input(rm_msgs::TrackDataArray track_data_array, GameRobotHp robot_hp, bool only_attack_base = false);
+  void decideId(rm_msgs::TrackDataArray track_data_array, GameRobotHp robot_hp, bool only_attack_base = false);
   int output() const;
-  static double calculateCost(rm_msgs::TrackData track_data);
+  double calculateCost(rm_msgs::TrackData track_data, GameRobotHp robot_hp);
 
  private:
   int id_{};
   double k_f_{};
+  double k_hp_{};
+  double track_msg_timeout_{};
+  std::string enemy_color_;
   double calculate_cost_ = 1000000;
   double choose_cost_ = 1000000;
   double time_interval_{};

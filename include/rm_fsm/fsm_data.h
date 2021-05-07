@@ -6,7 +6,6 @@
 #define RM_BASE_RM_DECISION_INCLUDE_FSM_CONTROL_FSM_DATA_H_
 
 #include "rm_fsm/referee.h"
-#include "rm_fsm/power_limit.h"
 #include "rm_fsm/shooter_heat_limit.h"
 #include "rm_fsm/target_cost_function.h"
 
@@ -38,7 +37,6 @@ class FsmData {
   geometry_msgs::Twist cmd_vel_;
   ros::Publisher vel_cmd_pub_;
   ros::Publisher chassis_cmd_pub_;
-  PowerLimit *power_limit_{};
 
   //gimbal
   rm_msgs::GimbalCmd gimbal_cmd_;
@@ -56,7 +54,6 @@ class FsmData {
   Referee *referee_{};
 
   void init(ros::NodeHandle nh) {
-    power_limit_ = new PowerLimit(nh);
     shooter_heat_limit_ = new ShooterHeatLimit();
     target_cost_function_ = new TargetCostFunction(nh);
     referee_ = new Referee();

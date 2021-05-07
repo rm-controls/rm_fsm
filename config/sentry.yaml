@@ -1,7 +1,7 @@
 rm_fsm:
   robot_type: "sentry"
   control_param:
-    accel_x: 2.0
+    accel_x: 4.0
     accel_y: 5.0
     accel_angular: 10.0
     brake_multiple: 2
@@ -10,19 +10,11 @@ rm_fsm:
     safe_shoot_speed: 10
     gimbal_error_limit: 0.2
     rc_param:
-      coefficient_x: 1.0
-      coefficient_y: 1.0
+      coefficient_x: 3.0
+      coefficient_y: 3.0
       coefficient_angular: 6.0
-      coefficient_yaw: 1.0
-      coefficient_pitch: 1.0
-  power_limit:
-    danger_surplus: 20.0
-    roll_back_buffer: 55.0
-    coeff: 0.3
-    multiple: 15.0
-    safety_current: 6.0
-    use_power_manager: false
-    default_power_limit: true
+      coefficient_yaw: 2.0
+      coefficient_pitch: 2.0
   auto_move:
     chassis_speed: 1.6
     chassis_accel: 1.0
@@ -33,3 +25,6 @@ rm_fsm:
     collision_distance: 0.3
     calibration_speed: 0.2
     column: 1
+  power_limit:
+    safety_power: 30
+    have_power_manager: false

@@ -7,11 +7,22 @@
 TargetCostFunction::TargetCostFunction(ros::NodeHandle &nh) {
   ros::NodeHandle cost_nh = ros::NodeHandle(nh, "target_cost_function");
   cost_nh.param("k_f", k_f_, 0.0);
+  cost_nh.param("k_hp", k_hp_, 0.01);
+  cost_nh.param("track_msg_timeout", track_msg_timeout_, 1.0);
+  cost_nh.param("enemy_group", enemy_color_, std::string("error"));
   id_ = 0;
   time_interval_ = 0.01;
 }
 
-void TargetCostFunction::input(rm_msgs::TrackDataArray track_data_array, bool only_attack_base) {
+void TargetCostFunction::input(rm_msgs::TrackDataArray track_data_array, GameRobotHp robot_hp, bool only_attack_base) {
+  double timeout_judge = (ros::Time::now() - track_data_array.header.stamp).toSec();
+  if (timeout_judge > track_msg_timeout_) id_ = 0;
+  else decideId(track_data_array, robot_hp, only_attack_base);
+}
+
+void TargetCostFunction::decideId(rm_msgs::TrackDataArray track_data_array,
+                                  GameRobotHp robot_hp,
+                                  bool only_attack_base) {
   int target_numbers = track_data_array.tracks.size();
   int id_temp;
   double cost_temp;
@@ -19,7 +30,7 @@ void TargetCostFunction::input(rm_msgs::TrackDataArray track_data_array, bool on
 
   if (target_numbers) {
     for (int i = 0; i < target_numbers; i++) {
-      cost_temp = calculateCost(track_data_array.tracks[i]);
+      cost_temp = calculateCost(track_data_array.tracks[i], robot_hp);
       if (cost_temp <= calculate_cost_) {
         // detective a target near than last target,change target
         calculate_cost_ = cost_temp;
@@ -55,7 +66,7 @@ void TargetCostFunction::input(rm_msgs::TrackDataArray track_data_array, bool on
 
 }
 
-double TargetCostFunction::calculateCost(rm_msgs::TrackData track_data) {
+double TargetCostFunction::calculateCost(rm_msgs::TrackData track_data, GameRobotHp robot_hp) {
   /*
   double delta_x_2 = pow(track_data.pose.position.x + time_interval_ * track_data.speed.linear.x, 2);
   double delta_y_2 = pow(track_data.pose.position.y + time_interval_ * track_data.speed.linear.y, 2);
@@ -66,9 +77,29 @@ double TargetCostFunction::calculateCost(rm_msgs::TrackData track_data) {
   double delta_x_2 = pow(track_data.map2detection.position.x, 2);
   double delta_y_2 = pow(track_data.map2detection.position.y, 2);
   double delta_z_2 = pow(track_data.map2detection.position.z, 2);
-
   double distance = sqrt(delta_x_2 + delta_y_2 + delta_z_2);
-  double cost = distance;
+
+  //Hp
+  double hp_cost;
+  if (enemy_color_ == "red") {
+    if (track_data.id == 1) hp_cost = robot_hp.red_1_robot_HP;
+    else if (track_data.id == 2) hp_cost = robot_hp.red_2_robot_HP;
+    else if (track_data.id == 3) hp_cost = robot_hp.red_3_robot_HP;
+    else if (track_data.id == 4) hp_cost = robot_hp.red_4_robot_HP;
+    else if (track_data.id == 5) hp_cost = robot_hp.red_5_robot_HP;
+    else if (track_data.id == 7) hp_cost = robot_hp.red_7_robot_HP;
+    else hp_cost = 0.0;
+  } else if (enemy_color_ == "blue") {
+    if (track_data.id == 1) hp_cost = robot_hp.blue_1_robot_HP;
+    else if (track_data.id == 2) hp_cost = robot_hp.blue_2_robot_HP;
+    else if (track_data.id == 3) hp_cost = robot_hp.blue_3_robot_HP;
+    else if (track_data.id == 4) hp_cost = robot_hp.blue_4_robot_HP;
+    else if (track_data.id == 5) hp_cost = robot_hp.blue_5_robot_HP;
+    else if (track_data.id == 7) hp_cost = robot_hp.blue_7_robot_HP;
+    else hp_cost = 0.0;
+  } else hp_cost = 0.0;
+
+  double cost = distance - k_hp_ * hp_cost;
 
   return cost;
 }

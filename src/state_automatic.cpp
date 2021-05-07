@@ -84,7 +84,9 @@ void StateAutomatic<T>::run() {
   }
   if (calibration_) {
     this->data_->shooter_heat_limit_->input(this->data_->referee_, this->expect_shoot_hz_, this->safe_shoot_hz_);
-    this->data_->target_cost_function_->input(this->data_->track_data_array_, false);
+    this->data_->target_cost_function_->input(this->data_->track_data_array_,
+                                              this->data_->referee_->referee_data_.game_robot_hp_,
+                                              false);
     attack_id_ = this->data_->target_cost_function_->output();
     //shooter control
     if ((attack_id_ == 1 || attack_id_ == 3 || attack_id_ == 4)
