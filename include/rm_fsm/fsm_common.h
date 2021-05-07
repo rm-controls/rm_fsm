@@ -5,11 +5,14 @@
 #ifndef SRC_RM_SOFTWARE_RM_DECISION_SRC_FSM_FSM_STATE_H_
 #define SRC_RM_SOFTWARE_RM_DECISION_SRC_FSM_FSM_STATE_H_
 
-#include "rm_fsm/fsm_data.h"
+#include <iostream>
 #include <queue>
+#include <utility>
 #include <tf/transform_listener.h>
+#include <control_toolbox/pid.h>
 #include <rm_common/ros_utilities.h>
-#include <rm_common/ori_tool.h>
+#include "rm_common/ori_tool.h"
+#include "rm_fsm/fsm_data.h"
 
 /**
  * A base fsm state class for all robots.
@@ -51,10 +54,10 @@ class State {
   std::string state_name_;     // enumerated name of the current state
 
   tf2_ros::Buffer tf_;
-  tf2_ros::TransformListener *tf_listener_{};
+  tf2_ros::TransformListener *tf_listener_;
 
   std::string control_mode_;
-  uint8_t graph_operate_type_{};
+  uint8_t graph_operate_type_;
 
   // chassis fsm control accelerate
   double accel_x_ = 0.0;
@@ -78,12 +81,14 @@ class State {
   double actual_shoot_speed_ = 0;
   int ultimate_shoot_speed_ = 0;
 
-  uint8_t last_chassis_mode_{};
-  uint8_t last_shoot_mode_{};
-  double last_angular_z_{};
+  double safety_power_ = 0;
+  bool have_power_manager_ = false;
 
-  bool use_power_manager_{};
-  bool default_power_limit_{};
+  uint8_t last_chassis_mode_;
+  uint8_t last_shoot_mode_;
+  double last_angular_z_;
+
+  bool use_power_manager_;
 };
 
 /**
