@@ -10,14 +10,19 @@ TargetCostFunction::TargetCostFunction(ros::NodeHandle &nh) {
   cost_nh.param("k_hp", k_hp_, 0.01);
   cost_nh.param("track_msg_timeout", track_msg_timeout_, 1.0);
   cost_nh.param("enemy_group", enemy_color_, std::string("error"));
+  cost_nh.param("time_interval", time_interval_, 0.0);
   id_ = 0;
-  time_interval_ = 0.01;
 }
 
 void TargetCostFunction::input(rm_msgs::TrackDataArray track_data_array, GameRobotHp robot_hp, bool only_attack_base) {
+  /*
   double timeout_judge = (ros::Time::now() - track_data_array.header.stamp).toSec();
-  if (timeout_judge > track_msg_timeout_) id_ = 0;
+  if (timeout_judge > track_msg_timeout_) {
+    id_ = 0;
+  }
   else decideId(track_data_array, robot_hp, only_attack_base);
+   */
+  decideId(track_data_array, robot_hp, only_attack_base);
 }
 
 void TargetCostFunction::decideId(rm_msgs::TrackDataArray track_data_array,
@@ -27,7 +32,6 @@ void TargetCostFunction::decideId(rm_msgs::TrackDataArray track_data_array,
   int id_temp;
   double cost_temp;
   decide_old_target_time_ = ros::Time::now();
-
   if (target_numbers) {
     for (int i = 0; i < target_numbers; i++) {
       cost_temp = calculateCost(track_data_array.tracks[i], robot_hp);
@@ -59,6 +63,9 @@ void TargetCostFunction::decideId(rm_msgs::TrackDataArray track_data_array,
       }
       if (id_ == 0) id_ = id_temp;
     }
+
+    //ROS_INFO("k_f:%f,Id_temp:%d,Id:%d,Time_interval:%f",k_f_,id_temp,id_,time_interval_);
+
     calculate_cost_ = 1000000.0;
     choose_cost_ = (!only_attack_base && id_ == id_temp) ? calculate_cost_ : choose_cost_;
 
