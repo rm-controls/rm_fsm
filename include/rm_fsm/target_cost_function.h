@@ -29,11 +29,9 @@ class TargetCostFunction {
   double cost_[7] = {999999, 999999, 999999, 999999, 999999, 999999, 999999};
   std::string enemy_color_;
   double time_interval_{};
-  /*
-  ros::Time decide_old_target_time_, decide_new_target_time_;
-  double calculate_cost_ = 1000000;
-  double choose_cost_ = 1000000;
-   */
+  double cost_clean_time_{};
+  ros::Time last_clean_time_;
+
 };
 
 #endif //SRC_RM_SOFTWARE_RM_FSM_INCLUDE_RM_FSM_TARGET_COST_FUNCTION_H_

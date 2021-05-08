@@ -7,10 +7,11 @@
 TargetCostFunction::TargetCostFunction(ros::NodeHandle &nh) {
   ros::NodeHandle cost_nh = ros::NodeHandle(nh, "target_cost_function");
   cost_nh.param("k_f", k_f_, 0.0);
-  cost_nh.param("k_hp", k_hp_, 0.01);
+  cost_nh.param("k_hp", k_hp_, 0.0);
   cost_nh.param("track_msg_timeout", track_msg_timeout_, 1.0);
   cost_nh.param("enemy_color", enemy_color_, std::string("error"));
-  cost_nh.param("time_interval", time_interval_, 0.01);
+  cost_nh.param("time_interval", time_interval_, 0.1);
+  cost_nh.param("cost_clean_time", cost_clean_time_, 1.0);
   id_ = 0;
 }
 
@@ -31,7 +32,11 @@ void TargetCostFunction::decideId(rm_msgs::TrackDataArray track_data_array,
   double track_number = track_data_array.tracks.size();
 
   //clean cost
-  this->cleanCost(track_data_array);
+  if ((ros::Time::now() - last_clean_time_).toSec() > cost_clean_time_) {
+    this->cleanCost(track_data_array);
+    last_clean_time_ = ros::Time::now();
+    ROS_INFO("clean");
+  }
 
   if (!track_number) id_ = 0;
   else {
@@ -63,7 +68,7 @@ void TargetCostFunction::decideId(rm_msgs::TrackDataArray track_data_array,
       else {
         cost_[id_temp - 1] += k_f_ / time_interval_;
         id_ = (cost_[id_ - 1] < cost_[id_temp - 1]) ? id_ : id_temp;
-        time_interval_ = (cost_[id_ - 1] < cost_[id_temp - 1]) ? (time_interval_ + 0.01) : 0.01;
+        time_interval_ = (cost_[id_ - 1] < cost_[id_temp - 1]) ? (time_interval_ + 0.1) : 0.1;
       }
     }
   }

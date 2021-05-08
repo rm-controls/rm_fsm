@@ -29,6 +29,5 @@ rm_fsm:
     safety_power: 30
     have_power_manager: false
   target_cost_function:
-    k_f: 100.0
-    k_hp: 0.0
-    track_msg_timeout_: 1.0
+    k_f: 0.18
+    cost_clean_time: 2.5
