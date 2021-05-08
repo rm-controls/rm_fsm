@@ -19,17 +19,21 @@ class TargetCostFunction {
   void decideId(rm_msgs::TrackDataArray track_data_array, GameRobotHp robot_hp, bool only_attack_base = false);
   int output() const;
   double calculateCost(rm_msgs::TrackData track_data, GameRobotHp robot_hp);
+  void cleanCost(rm_msgs::TrackDataArray track_data_array);
 
  private:
   int id_{};
   double k_f_{};
   double k_hp_{};
   double track_msg_timeout_{};
+  double cost_[7] = {999999, 999999, 999999, 999999, 999999, 999999, 999999};
   std::string enemy_color_;
+  double time_interval_{};
+  /*
+  ros::Time decide_old_target_time_, decide_new_target_time_;
   double calculate_cost_ = 1000000;
   double choose_cost_ = 1000000;
-  double time_interval_{};
-  ros::Time decide_old_target_time_, decide_new_target_time_;
+   */
 };
 
 #endif //SRC_RM_SOFTWARE_RM_FSM_INCLUDE_RM_FSM_TARGET_COST_FUNCTION_H_

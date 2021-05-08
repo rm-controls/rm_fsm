@@ -10,7 +10,7 @@ TargetCostFunction::TargetCostFunction(ros::NodeHandle &nh) {
   cost_nh.param("k_hp", k_hp_, 0.01);
   cost_nh.param("track_msg_timeout", track_msg_timeout_, 1.0);
   cost_nh.param("enemy_color", enemy_color_, std::string("error"));
-  cost_nh.param("time_interval", time_interval_, 0.0);
+  cost_nh.param("time_interval", time_interval_, 0.01);
   id_ = 0;
 }
 
@@ -28,53 +28,48 @@ void TargetCostFunction::input(rm_msgs::TrackDataArray track_data_array, GameRob
 void TargetCostFunction::decideId(rm_msgs::TrackDataArray track_data_array,
                                   GameRobotHp robot_hp,
                                   bool only_attack_base) {
-  int target_numbers = track_data_array.tracks.size();
-  int id_temp;
-  double cost_temp;
-  decide_old_target_time_ = ros::Time::now();
-  if (target_numbers) {
-    for (int i = 0; i < target_numbers; i++) {
-      cost_temp = calculateCost(track_data_array.tracks[i], robot_hp);
-      if (cost_temp <= calculate_cost_) {
-        // detective a target near than last target,change target
-        calculate_cost_ = cost_temp;
-        id_temp = track_data_array.tracks[i].id;
-      }
-      if (only_attack_base && track_data_array.tracks[i].id == 8) {
-        // enter only attack base mode,can not detective base,choose to attack sentry if we can detective
-        id_ = 8;
-      }
-      if (only_attack_base && track_data_array.tracks[i].id == 9) {
-        // enter only attack base mode, detective base
-        id_ = 9;
-        break;
-      }
+  double track_number = track_data_array.tracks.size();
+
+  //clean cost
+  this->cleanCost(track_data_array);
+
+  if (!track_number) id_ = 0;
+  else {
+    //Update targets cost
+    for (int i = 0; i < track_number; i++) {
+      if (track_data_array.tracks[i].id == 1) cost_[0] = calculateCost(track_data_array.tracks[i], robot_hp);
+      else if (track_data_array.tracks[i].id == 2) cost_[1] = calculateCost(track_data_array.tracks[i], robot_hp);
+      else if (track_data_array.tracks[i].id == 3) cost_[2] = calculateCost(track_data_array.tracks[i], robot_hp);
+      else if (track_data_array.tracks[i].id == 4) cost_[3] = calculateCost(track_data_array.tracks[i], robot_hp);
+      else if (track_data_array.tracks[i].id == 5) cost_[4] = calculateCost(track_data_array.tracks[i], robot_hp);
+      else if (track_data_array.tracks[i].id == 7) cost_[6] = calculateCost(track_data_array.tracks[i], robot_hp);
+      else if (only_attack_base && track_data_array.tracks[i].id == 8) id_ = 8;
+      else if ((only_attack_base && track_data_array.tracks[i].id == 9)) id_ = 9;
+      else
+        ROS_INFO("Detect a non-existent id:%d", track_data_array.tracks[i].id);
     }
 
-
-    //maybe we can consider frequency at this part if did not enter attack base mode
-    if (!only_attack_base && id_temp != id_) {
-      decide_new_target_time_ = ros::Time::now();
-      time_interval_ = time_interval_ + (decide_new_target_time_ - decide_old_target_time_).toSec();
-      double judge = calculate_cost_ + k_f_ / time_interval_;
-      if (judge <= choose_cost_) {
-        id_ = id_temp;
-        time_interval_ = 0.0;
-      }
-      if (id_ == 0) {
-        id_ = id_temp;
-        time_interval_ = 0.0;
-      }
+    //find min cost
+    int id_temp = 1;
+    double cost_temp = cost_[0];
+    for (int j = 1; j < 7; j++) {
+      cost_temp = (cost_temp < cost_[j]) ? cost_temp : cost_[j];
+      id_temp = (cost_temp < cost_[j]) ? id_temp : j + 1;
     }
 
-    //ROS_INFO("k_f:%f,Id_temp:%d,Id:%d,Time_interval:%f",k_f_,id_temp,id_,time_interval_);
-
-    calculate_cost_ = 1000000.0;
-    choose_cost_ = (!only_attack_base && id_ == id_temp) ? calculate_cost_ : choose_cost_;
-
-  } else id_ = 0;
+    //decide change id or not
+    if (id_ != 9 && id_ != id_temp) {
+      if (id_ == 0) id_ = id_temp;
+      else {
+        cost_[id_temp - 1] += k_f_ / time_interval_;
+        id_ = (cost_[id_ - 1] < cost_[id_temp - 1]) ? id_ : id_temp;
+        time_interval_ = (cost_[id_ - 1] < cost_[id_temp - 1]) ? (time_interval_ + 0.01) : 0.01;
+      }
+    }
+  }
 
 }
+
 
 double TargetCostFunction::calculateCost(rm_msgs::TrackData track_data, GameRobotHp robot_hp) {
   /*
@@ -84,9 +79,9 @@ double TargetCostFunction::calculateCost(rm_msgs::TrackData track_data, GameRobo
    */
 
   //not speed
-  double delta_x_2 = pow(track_data.camera2detection.position.x, 2);
-  double delta_y_2 = pow(track_data.camera2detection.position.y, 2);
-  double delta_z_2 = pow(track_data.camera2detection.position.z, 2);
+  double delta_x_2 = pow(track_data.map2detection.position.x, 2);
+  double delta_y_2 = pow(track_data.map2detection.position.y, 2);
+  double delta_z_2 = pow(track_data.map2detection.position.z, 2);
   double distance = sqrt(delta_x_2 + delta_y_2 + delta_z_2);
 
   //Hp
@@ -112,6 +107,23 @@ double TargetCostFunction::calculateCost(rm_msgs::TrackData track_data, GameRobo
   double cost = distance - k_hp_ * hp_cost;
 
   return cost;
+}
+
+void TargetCostFunction::cleanCost(rm_msgs::TrackDataArray track_data_array) {
+  int track_id;
+  bool id_flag[7] = {false, false, false, false, false, false, false};
+
+  for (int i = 0; i < int(track_data_array.tracks.size()); i++) {
+    track_id = track_data_array.tracks[i].id;
+    if (track_id < 8 && track_id != 6) {
+      id_flag[track_id - 1] = true;
+    }
+  }
+
+  for (int j = 0; j < 7; j++) {
+    cost_[j] = id_flag[j] ? cost_[j] : 999999;
+  }
+
 }
 
 int TargetCostFunction::output() const {
