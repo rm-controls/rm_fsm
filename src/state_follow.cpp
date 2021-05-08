@@ -57,8 +57,16 @@ void StateFollow<T>::run() {
       else last_press_time_c_ = now;
     }
     // Send cmd to chassis
-    linear_x = (this->data_->dbus_data_.key_w - this->data_->dbus_data_.key_s); // W/S
-    linear_y = (this->data_->dbus_data_.key_a - this->data_->dbus_data_.key_d); // A/D
+//    linear_x = (this->data_->dbus_data_.key_w - this->data_->dbus_data_.key_s); // W/S
+//    linear_y = (this->data_->dbus_data_.key_a - this->data_->dbus_data_.key_d); // A/D
+    if(this->data_->dbus_data_.key_w) linear_x = 1.0;
+    else if(this->data_->dbus_data_.key_s) linear_x = -1.0;
+    else if(this->data_->dbus_data_.key_s && this->data_->dbus_data_.key_w) linear_x = 0.0;
+
+    if(this->data_->dbus_data_.key_a) linear_y = 1.0;
+    else if(this->data_->dbus_data_.key_d) linear_y = -1.0;
+    else if(this->data_->dbus_data_.key_a && this->data_->dbus_data_.key_d) linear_y = 0.0;
+
 
     // Update by robot level
     normal_critical_speed =
