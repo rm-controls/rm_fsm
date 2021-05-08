@@ -16,14 +16,13 @@ TargetCostFunction::TargetCostFunction(ros::NodeHandle &nh) {
 }
 
 void TargetCostFunction::input(rm_msgs::TrackDataArray track_data_array, GameRobotHp robot_hp, bool only_attack_base) {
-  /*
+
   double timeout_judge = (ros::Time::now() - track_data_array.header.stamp).toSec();
   if (timeout_judge > track_msg_timeout_) {
     id_ = 0;
   }
   else decideId(track_data_array, robot_hp, only_attack_base);
-   */
-  decideId(track_data_array, robot_hp, only_attack_base);
+
 }
 
 void TargetCostFunction::decideId(rm_msgs::TrackDataArray track_data_array,
