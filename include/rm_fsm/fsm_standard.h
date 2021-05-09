@@ -8,7 +8,6 @@
 #include "rm_fsm/fsm_common.h"
 #include "rm_fsm/state_follow.h"
 #include "rm_fsm/state_passive.h"
-#include "rm_fsm/state_fly_slope.h"
 
 template<typename T>
 class FsmStandard : public Fsm<T> {
@@ -17,7 +16,6 @@ class FsmStandard : public Fsm<T> {
   std::string getDesiredState();
   StatePassive<T> *state_passive_;
   StateFollow<T> *state_follow_;
-  StateFlySlope<T> *state_fly_slope_;
 
  private:
   bool enter_pc_ = false;

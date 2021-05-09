@@ -76,12 +76,13 @@ void State<T>::setChassis(uint8_t chassis_mode, double linear_x, double linear_y
     data_->chassis_cmd_.power_limit = data_->referee_->power_manager_data_.parameters[1];
   } else if (!(have_power_manager_) && data_->referee_->is_open_) {//do not have power manger and use referee data
     data_->chassis_cmd_.power_limit = data_->referee_->referee_data_.game_robot_status_.chassis_power_limit;
+    if (data_->chassis_cmd_.power_limit > 120) data_->chassis_cmd_.power_limit = 120;
   } else {//use safety power
     data_->chassis_cmd_.power_limit = safety_power_;
   }
 
-  data_->cmd_vel_.linear.x = 0.38 * linear_x * coefficient_x_;
-  data_->cmd_vel_.linear.y = 0.38 * linear_y * coefficient_y_;
+  data_->cmd_vel_.linear.x = linear_x * coefficient_x_;
+  data_->cmd_vel_.linear.y = linear_y * coefficient_y_;
   data_->cmd_vel_.angular.z = angular_z * coefficient_angular_;
 
   data_->vel_cmd_pub_.publish(data_->cmd_vel_);
