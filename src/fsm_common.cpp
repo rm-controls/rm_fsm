@@ -81,8 +81,8 @@ void State<T>::setChassis(uint8_t chassis_mode, double linear_x, double linear_y
     data_->chassis_cmd_.power_limit = safety_power_;
   }
 
-  data_->cmd_vel_.linear.x = 0.38 * linear_x * coefficient_x_;
-  data_->cmd_vel_.linear.y = 0.38 * linear_y * coefficient_y_;
+  data_->cmd_vel_.linear.x = linear_x * coefficient_x_;
+  data_->cmd_vel_.linear.y = linear_y * coefficient_y_;
   data_->cmd_vel_.angular.z = angular_z * coefficient_angular_;
 
   data_->vel_cmd_pub_.publish(data_->cmd_vel_);
