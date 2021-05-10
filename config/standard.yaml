@@ -30,5 +30,6 @@ rm_fsm:
   power_limit:
     safety_power: 50
     have_power_manager: true
-
-
+  target_cost_function:
+    k_f: 0.18
+    cost_clean_time: 2.5

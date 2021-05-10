@@ -1,7 +1,7 @@
 rm_fsm:
   robot_type: "sentry"
   control_param:
-    accel_x: 4.0
+    accel_x: 2.0
     accel_y: 5.0
     accel_angular: 10.0
     brake_multiple: 2
@@ -28,3 +28,6 @@ rm_fsm:
   power_limit:
     safety_power: 30
     have_power_manager: false
+  target_cost_function:
+    k_f: 0.18
+    cost_clean_time: 2.5
