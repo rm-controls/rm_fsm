@@ -41,6 +41,7 @@ void Referee::init(ros::NodeHandle nh) {
  */
 void Referee::run() {
   uint8_t graph_operate_type;
+  double roll, pitch, yaw;
   char power_string[30];
   float power_float;
   ros::Time now = ros::Time::now();
@@ -112,7 +113,6 @@ void Referee::run() {
       graph_operate_type = kUpdate;
     }
 
-/*
     // get armors' position
     try {
       gimbal_transformStamped = this->tf_.lookupTransform("yaw", "base_link", ros::Time(0));
@@ -129,7 +129,7 @@ void Referee::run() {
       } else if (referee_data_.robot_hurt_.hurt_type == 0x5) {
         drawCircle((int) (960 + 340 * sin(0 - yaw)), (int) (540 + 340 * cos(0 - yaw)), 50, 5, kYellow, kAdd);
       }
-      last_hurt_id0_ = now;
+      last_hurt_armor0_ = now;
       referee_data_.robot_hurt_.hurt_type = 0x9;
       referee_data_.robot_hurt_.armor_id = 9;
     }
@@ -141,7 +141,7 @@ void Referee::run() {
         drawCircle((int) (960 + 340 * sin(3 * M_PI_2 - yaw)), (int) (540 + 340 * cos(3 * M_PI_2 - yaw)),
                    50, 6, kYellow, kAdd);
       }
-      last_hurt_id1_ = now;
+      last_hurt_armor1_ = now;
       referee_data_.robot_hurt_.hurt_type = 0x9;
       referee_data_.robot_hurt_.armor_id = 9;
     }
@@ -151,7 +151,7 @@ void Referee::run() {
       } else if (referee_data_.robot_hurt_.hurt_type == 0x5) { // hit damage
         drawCircle((int) (960 + 340 * sin(M_PI - yaw)), (int) (540 + 340 * cos(M_PI - yaw)), 50, 7, kYellow, kAdd);
       }
-      last_hurt_id2_ = now;
+      last_hurt_armor2_ = now;
       referee_data_.robot_hurt_.hurt_type = 0x9;
       referee_data_.robot_hurt_.armor_id = 9;
     }
@@ -161,28 +161,27 @@ void Referee::run() {
       } else if (referee_data_.robot_hurt_.hurt_type == 0x5) {
         drawCircle((int) (960 + 340 * sin(M_PI_2 - yaw)), (int) (540 + 340 * cos(M_PI_2 - yaw)), 50, 8, kYellow, kAdd);
       }
-      last_hurt_id3_ = now;
+      last_hurt_armor3_ = now;
       referee_data_.robot_hurt_.hurt_type = 0x9;
       referee_data_.robot_hurt_.armor_id = 9;
     }
 
-    if (now - last_hurt_id0_ > ros::Duration(0.5)) {
+    if (now - last_hurt_armor0_ > ros::Duration(0.5)) {
       drawCircle((int) (960 + 340 * sin(0 - yaw)), (int) (540 + 340 * cos(0 - yaw)),
                  50, 5, kGreen, kDelete);
     }
-    if (now - last_hurt_id1_ > ros::Duration(0.5)) {
+    if (now - last_hurt_armor1_ > ros::Duration(0.5)) {
       drawCircle((int) (960 + 340 * sin(3 * M_PI_2 - yaw)), (int) (540 + 340 * cos(3 * M_PI_2 - yaw)),
                  50, 6, kGreen, kDelete);
     }
-    if (now - last_hurt_id2_ > ros::Duration(0.5)) {
+    if (now - last_hurt_armor2_ > ros::Duration(0.5)) {
       drawCircle((int) (960 + 340 * sin(M_PI - yaw)), (int) (540 + 340 * cos(M_PI - yaw)),
                  50, 7, kGreen, kDelete);
     }
-    if (now - last_hurt_id3_ > ros::Duration(0.5)) {
+    if (now - last_hurt_armor3_ > ros::Duration(0.5)) {
       drawCircle((int) (960 + 340 * sin(M_PI_2 - yaw)), (int) (540 + 340 * cos(M_PI_2 - yaw)),
                  50, 8, kGreen, kDelete);
     }
-*/
 
     if (cap_update_flag_) {
       power_float = power_manager_data_.parameters[3] * 100;

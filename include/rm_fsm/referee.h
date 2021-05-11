@@ -77,13 +77,12 @@ class Referee {
   double getActualBulletSpeed(int shoot_speed) const;
   double getUltimateBulletSpeed(int shoot_speed) const;
 
-  ros::Time last_press_time_g_ = ros::Time::now();
-  ros::Time last_press_time_r_ = ros::Time::now();
-  ros::Time last_press_time_f_ = ros::Time::now();
-  ros::Time last_press_time_q_ = ros::Time::now();
-  ros::Time last_press_time_c_ = ros::Time::now();
+  void dbusDataCallback(const rm_msgs::DbusData::ConstPtr &data) {
+    dbus_data_ = *data;
+  }
 
-  ros::Time last_update_cap_ = ros::Time::now();
+  int robot_id_ = 0;
+  int client_id_ = 0;
 
   bool gyro_flag_ = false;
   bool twist_flag_ = false;
@@ -94,8 +93,6 @@ class Referee {
   bool is_gimbal_passive_ = true;
   bool is_shooter_passive_ = true;
   bool is_open_ = false;
-  int robot_id_ = 0;
-  int client_id_ = 0;
 
   bool chassis_update_flag_ = true;
   bool gimbal_update_flag_ = true;
@@ -104,27 +101,34 @@ class Referee {
   bool cap_update_flag_ = true;
 
   ros::NodeHandle nh_;
-  rm_msgs::DbusData dbus_data_;
-  RefereeData referee_data_{};
-  PowerManagerData power_manager_data_;
+
   ros::Subscriber dbus_sub_;
 
   ros::Publisher referee_pub_;
   ros::Publisher power_manager_pub_;
 
-  ros::Time last_hurt_id0_ = ros::Time::now();
-  ros::Time last_hurt_id1_ = ros::Time::now();
-  ros::Time last_hurt_id2_ = ros::Time::now();
-  ros::Time last_hurt_id3_ = ros::Time::now();
-
   tf2_ros::Buffer tf_;
   tf2_ros::TransformListener *tf_listener_;
 
+  rm_msgs::DbusData dbus_data_;
   rm_msgs::Referee referee_pub_data_;
   rm_msgs::PowerManagerData power_manager_pub_data_;
-  void dbusDataCallback(const rm_msgs::DbusData::ConstPtr &data) {
-    dbus_data_ = *data;
-  }
+  RefereeData referee_data_{};
+  PowerManagerData power_manager_data_;
+
+  ros::Time last_press_time_g_ = ros::Time::now();
+  ros::Time last_press_time_r_ = ros::Time::now();
+  ros::Time last_press_time_f_ = ros::Time::now();
+  ros::Time last_press_time_q_ = ros::Time::now();
+  ros::Time last_press_time_c_ = ros::Time::now();
+
+  ros::Time last_update_cap_ = ros::Time::now();
+
+  ros::Time last_hurt_armor0_ = ros::Time::now();
+  ros::Time last_hurt_armor1_ = ros::Time::now();
+  ros::Time last_hurt_armor2_ = ros::Time::now();
+  ros::Time last_hurt_armor3_ = ros::Time::now();
+
  private:
   void getId();
   void unpack(const std::vector<uint8_t> &rx_buffer);
