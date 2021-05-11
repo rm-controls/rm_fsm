@@ -83,6 +83,8 @@ class Referee {
   ros::Time last_press_time_q_ = ros::Time::now();
   ros::Time last_press_time_c_ = ros::Time::now();
 
+  ros::Time last_update_cap_ = ros::Time::now();
+
   bool gyro_flag_ = false;
   bool twist_flag_ = false;
   bool burst_flag_ = false;
@@ -99,6 +101,7 @@ class Referee {
   bool gimbal_update_flag_ = true;
   bool shooter_update_flag_ = true;
   bool attack_mode_update_flag_ = true;
+  bool cap_update_flag_ = true;
 
   ros::NodeHandle nh_;
   rm_msgs::DbusData dbus_data_;
@@ -108,8 +111,6 @@ class Referee {
 
   ros::Publisher referee_pub_;
   ros::Publisher power_manager_pub_;
-
-  ros::Time last_send_ = ros::Time::now();
 
   ros::Time last_hurt_id0_ = ros::Time::now();
   ros::Time last_hurt_id1_ = ros::Time::now();

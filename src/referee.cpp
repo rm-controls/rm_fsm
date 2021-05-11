@@ -63,6 +63,10 @@ void Referee::run() {
       if (now - last_press_time_c_ < ros::Duration(0.5)) dbus_data_.key_c = false;
       else last_press_time_c_ = now;
     }
+    if (now - last_update_cap_ > ros::Duration(0.5)) {
+      cap_update_flag_ = true;
+      last_update_cap_ = now;
+    }
 
     if (dbus_data_.key_ctrl && dbus_data_.key_q) {
       is_chassis_passive_ = true;
@@ -98,6 +102,7 @@ void Referee::run() {
       attack_mode_update_flag_ = true;
     }
     if (dbus_data_.key_x) {
+      ROS_INFO("Update UI");
       graph_operate_type = kAdd;
       chassis_update_flag_ = true;
       gimbal_update_flag_ = true;
@@ -179,14 +184,17 @@ void Referee::run() {
     }
 */
 
-    power_float = power_manager_data_.parameters[3] * 100;
-    sprintf(power_string, "Cap: %1.0f%%", power_float);
-    if (power_float >= 60)
-      drawString(910, 100, 4, kGreen, graph_operate_type, power_string);
-    else if (power_float < 60 && power_float >= 30)
-      drawString(910, 100, 4, kYellow, graph_operate_type, power_string);
-    else if (power_float < 30)
-      drawString(910, 100, 4, kOrange, graph_operate_type, power_string);
+    if (cap_update_flag_) {
+      power_float = power_manager_data_.parameters[3] * 100;
+      sprintf(power_string, "Cap: %1.0f%%", power_float);
+      if (power_float >= 60)
+        drawString(910, 100, 4, kGreen, graph_operate_type, power_string);
+      else if (power_float < 60 && power_float >= 30)
+        drawString(910, 100, 4, kYellow, graph_operate_type, power_string);
+      else if (power_float < 30)
+        drawString(910, 100, 4, kOrange, graph_operate_type, power_string);
+      cap_update_flag_ = false;
+    }
 
     if (chassis_update_flag_) {
       if (!is_chassis_passive_) {
