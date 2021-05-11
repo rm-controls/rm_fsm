@@ -255,7 +255,11 @@ void StateFollow<T>::run() {
       }
       this->data_->shooter_heat_limit_->input(this->data_->referee_, this->expect_shoot_hz_, this->safe_shoot_hz_);
       shoot_hz = this->data_->shooter_heat_limit_->output();
-      shoot_mode = rm_msgs::ShootCmd::PUSH;
+      if (std::abs(this->data_->gimbal_des_error_.error) >= this->gimbal_error_limit_) { // check  error
+        shoot_mode = rm_msgs::ShootCmd::READY;
+      } else {
+        shoot_mode = rm_msgs::ShootCmd::PUSH;
+      }
     } else if (this->data_->dbus_data_.s_l == rm_msgs::DbusData::MID) {
       if (target_id == 0) {
         if (last_target_id_ != 0)
