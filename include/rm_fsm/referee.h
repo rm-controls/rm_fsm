@@ -100,6 +100,11 @@ class Referee {
   bool attack_mode_update_flag_ = true;
   bool cap_update_flag_ = true;
 
+  bool armor0_update_flag_ = false;
+  bool armor1_update_flag_ = false;
+  bool armor2_update_flag_ = false;
+  bool armor3_update_flag_ = false;
+
   ros::NodeHandle nh_;
 
   ros::Subscriber dbus_sub_;

@@ -130,6 +130,7 @@ void Referee::run() {
         drawCircle((int) (960 + 340 * sin(0 - yaw)), (int) (540 + 340 * cos(0 - yaw)), 50, 5, kYellow, kAdd);
       }
       last_hurt_armor0_ = now;
+      armor0_update_flag_ = true;
       referee_data_.robot_hurt_.hurt_type = 0x9;
       referee_data_.robot_hurt_.armor_id = 9;
     }
@@ -142,6 +143,7 @@ void Referee::run() {
                    50, 6, kYellow, kAdd);
       }
       last_hurt_armor1_ = now;
+      armor1_update_flag_ = true;
       referee_data_.robot_hurt_.hurt_type = 0x9;
       referee_data_.robot_hurt_.armor_id = 9;
     }
@@ -152,6 +154,7 @@ void Referee::run() {
         drawCircle((int) (960 + 340 * sin(M_PI - yaw)), (int) (540 + 340 * cos(M_PI - yaw)), 50, 7, kYellow, kAdd);
       }
       last_hurt_armor2_ = now;
+      armor2_update_flag_ = true;
       referee_data_.robot_hurt_.hurt_type = 0x9;
       referee_data_.robot_hurt_.armor_id = 9;
     }
@@ -162,25 +165,30 @@ void Referee::run() {
         drawCircle((int) (960 + 340 * sin(M_PI_2 - yaw)), (int) (540 + 340 * cos(M_PI_2 - yaw)), 50, 8, kYellow, kAdd);
       }
       last_hurt_armor3_ = now;
+      armor3_update_flag_ = true;
       referee_data_.robot_hurt_.hurt_type = 0x9;
       referee_data_.robot_hurt_.armor_id = 9;
     }
 
-    if (now - last_hurt_armor0_ > ros::Duration(0.5)) {
+    if (now - last_hurt_armor0_ > ros::Duration(0.5) && armor0_update_flag_) {
       drawCircle((int) (960 + 340 * sin(0 - yaw)), (int) (540 + 340 * cos(0 - yaw)),
                  50, 5, kGreen, kDelete);
+      armor0_update_flag_ = false;
     }
-    if (now - last_hurt_armor1_ > ros::Duration(0.5)) {
+    if (now - last_hurt_armor1_ > ros::Duration(0.5) && armor1_update_flag_) {
       drawCircle((int) (960 + 340 * sin(3 * M_PI_2 - yaw)), (int) (540 + 340 * cos(3 * M_PI_2 - yaw)),
                  50, 6, kGreen, kDelete);
+      armor1_update_flag_ = false;
     }
-    if (now - last_hurt_armor2_ > ros::Duration(0.5)) {
+    if (now - last_hurt_armor2_ > ros::Duration(0.5) && armor2_update_flag_) {
       drawCircle((int) (960 + 340 * sin(M_PI - yaw)), (int) (540 + 340 * cos(M_PI - yaw)),
                  50, 7, kGreen, kDelete);
+      armor2_update_flag_ = false;
     }
-    if (now - last_hurt_armor3_ > ros::Duration(0.5)) {
+    if (now - last_hurt_armor3_ > ros::Duration(0.5) && armor3_update_flag_) {
       drawCircle((int) (960 + 340 * sin(M_PI_2 - yaw)), (int) (540 + 340 * cos(M_PI_2 - yaw)),
                  50, 8, kGreen, kDelete);
+      armor3_update_flag_ = false;
     }
 
     if (cap_update_flag_) {
