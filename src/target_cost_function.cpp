@@ -34,7 +34,6 @@ void TargetCostFunction::decideId(rm_msgs::TrackDataArray track_data_array,
   if ((ros::Time::now() - last_clean_time_).toSec() > cost_clean_time_) {
     this->cleanCost(track_data_array);
     last_clean_time_ = ros::Time::now();
-    ROS_INFO("clean");
   }
 
   if (!track_number) id_ = 0;
