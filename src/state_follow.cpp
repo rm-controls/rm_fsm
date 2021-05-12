@@ -177,16 +177,6 @@ void StateFollow<T>::run() {
 
     // Send cmd to shooter
     this->ultimate_shoot_speed_ = this->data_->referee_->getUltimateBulletSpeed(this->ultimate_shoot_speed_);
-    // Switch friction mode
-    if (this->data_->dbus_data_.key_f) {
-      if (is_friction_ready_) {
-        is_friction_ready_ = false;
-      }
-      shoot_mode = rm_msgs::ShootCmd::STOP;
-      this->last_shoot_mode_ = shoot_mode;
-    } else {
-      shoot_mode = this->last_shoot_mode_;
-    }
 
     // Switch shooter heat limit mode
     if (this->data_->dbus_data_.key_q) {
@@ -213,12 +203,25 @@ void StateFollow<T>::run() {
           shoot_mode = rm_msgs::ShootCmd::READY;
           ROS_WARN("Gimbal track error is too big, stop shooting");
         } else {
-          shoot_mode = rm_msgs::ShootCmd::PUSH;
+          this->last_shoot_mode_ = rm_msgs::ShootCmd::PUSH;
         }
       } else {
-        shoot_mode = rm_msgs::ShootCmd::PUSH;
+        this->last_shoot_mode_ = rm_msgs::ShootCmd::PUSH;
       }
     }
+
+    // Switch friction mode
+    if (this->data_->dbus_data_.key_f) {
+      if (is_friction_ready_) {
+        is_friction_ready_ = false;
+      }
+      shoot_mode = rm_msgs::ShootCmd::STOP;
+      this->last_shoot_mode_ = shoot_mode;
+      is_burst_ = false;
+    } else {
+      shoot_mode = this->last_shoot_mode_;
+    }
+
     this->setShoot(shoot_mode, this->ultimate_shoot_speed_, shoot_hz, now);
 
   } else { // rc control
