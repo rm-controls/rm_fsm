@@ -200,7 +200,7 @@ void StateFollow<T>::run() {
           ROS_WARN("The time stamp of gimbal track error is too old");
         }
         if (std::abs(this->data_->gimbal_des_error_.error) >= this->gimbal_error_limit_) { // check  error
-          shoot_mode = rm_msgs::ShootCmd::READY;
+          this->last_shoot_mode_ = rm_msgs::ShootCmd::READY;
           ROS_WARN("Gimbal track error is too big, stop shooting");
         } else {
           this->last_shoot_mode_ = rm_msgs::ShootCmd::PUSH;
