@@ -37,7 +37,6 @@ void StateAutomatic<T>::onEnter() {
 
 template<typename T>
 void StateAutomatic<T>::run() {
-
   geometry_msgs::TransformStamped gimbal_transformStamped;
   geometry_msgs::TransformStamped chassis_transformStamped;
   double now_effort = 0;
@@ -51,6 +50,11 @@ void StateAutomatic<T>::run() {
     ROS_ERROR("Some fsm params doesn't load, stop running fsm");
     return;
   };
+
+  if (!loadAutomaticParam()) {
+    ROS_ERROR("Some auto move params doesn't load, stop running automatic");
+    return;
+  }
 
   this->actual_shoot_speed_ = this->safe_shoot_speed_;
   this->ultimate_shoot_speed_ = this->safe_shoot_speed_;
@@ -186,23 +190,20 @@ void StateAutomatic<T>::onExit() {
 template<typename T>
 bool StateAutomatic<T>::loadAutomaticParam() {
   if (!this->fsm_nh_.getParam("auto_move/chassis_speed", auto_move_chassis_speed_) ||
-      !this->fsm_nh_.getParam("auto_move/chassis_speed", auto_move_chassis_speed_) ||
-      !this->fsm_nh_.getParam("auto_move/chassis_speed", auto_move_chassis_speed_) ||
-      !this->fsm_nh_.getParam("auto_move/chassis_speed", auto_move_chassis_speed_) ||
-      !this->fsm_nh_.getParam("auto_move/chassis_speed", auto_move_chassis_speed_) ||
-      !this->fsm_nh_.getParam("auto_move/chassis_speed", auto_move_chassis_speed_) ||
-      !this->fsm_nh_.getParam("auto_move/chassis_speed", auto_move_chassis_speed_) ||
-      )
-    auto_move_chassis_speed_ = getParam(fsm_nh, "auto_move/chassis_speed", 1.0);
-  auto_move_accel_x_ = getParam(fsm_nh, "control_param/accel_x", 2.0);
-  auto_move_pitch_speed_ = getParam(fsm_nh, "auto_move/pitch_speed", 0.5);
-  auto_move_yaw_speed_ = getParam(fsm_nh, "auto_move/yaw_speed", 3.14);
-  collision_distance_ = getParam(fsm_nh, "auto_move/collision_distance", 0.3);
-  start_ = getParam(fsm_nh, "auto_move/start", 0.3);
-  end_ = getParam(fsm_nh, "auto_move/end", 2.5);
+      !this->fsm_nh_.getParam("auto_move/accel_x", auto_move_accel_x_) ||
+      !this->fsm_nh_.getParam("auto_move/pitch_speed", auto_move_pitch_speed_) ||
+      !this->fsm_nh_.getParam("auto_move/yaw_speed", auto_move_yaw_speed_) ||
+      !this->fsm_nh_.getParam("auto_move/collision_distance", collision_distance_) ||
+      !this->fsm_nh_.getParam("auto_move/start", start_) ||
+      !this->fsm_nh_.getParam("auto_move/end", end_) ||
+      !this->fsm_nh_.getParam("auto_move/calibration_speed", calibration_speed_) ||
+      !this->fsm_nh_.getParam("auto_move/column", column_)) {
+    ROS_ERROR("Some auto move params doesn't given (namespace: %s)", this->fsm_nh_.getNamespace().c_str());
+    return false;
+  }
   end_ = end_ - 0.275 - 0.275;
-  calibration_speed_ = getParam(fsm_nh, "auto_move/calibration_speed", 0.15);
-  column_ = getParam(fsm_nh, "auto_move/column", 1);
+
+  return true;
 }
 
 template
