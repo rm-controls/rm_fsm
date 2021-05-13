@@ -4,10 +4,10 @@
 
 #ifndef SRC_RM_FSM_INCLUDE_RM_FSM_STATE_AUTOMATIC_H_
 #define SRC_RM_FSM_INCLUDE_RM_FSM_STATE_AUTOMATIC_H_
+#include "rm_fsm/fsm_common.h"
 #include <tf2_ros/static_transform_broadcaster.h>
 #include <tf2_ros/transform_broadcaster.h>
 #include <sensor_msgs/JointState.h>
-#include "rm_fsm/fsm_common.h"
 
 template<typename T>
 class StateAutomatic : public State<T> {
@@ -23,13 +23,16 @@ class StateAutomatic : public State<T> {
   double auto_move_chassis_speed_;
   double auto_move_pitch_speed_;
   double auto_move_yaw_speed_;
+  double auto_move_accel_x_;
   double start_;
   double end_;
   double calibration_speed_;
   int calibration_;
   int attack_id_;
+  int column_;
   double speed_;
   double current_position_;
+  double collision_distance_;
   ros::Time last_time_ = ros::Time::now();
   ros::Time calibration_time_ = ros::Time::now();
 

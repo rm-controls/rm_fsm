@@ -2,7 +2,6 @@
 // Created by peter on 2020/12/3.
 //
 
-#include <utility>
 #include "rm_fsm/fsm_common.h"
 
 template<typename T>
@@ -17,10 +16,13 @@ void State<T>::loadParam() {
   accel_y_ = getParam(nh_, "control_param/accel_y", 5.0);
   accel_angular_ = getParam(nh_, "control_param/accel_angular", 5.0);
   brake_multiple_ = getParam(nh_, "control_param/brake_multiple", 2);
-  shoot_hz_ = getParam(nh_, "control_param/shoot_hz", 5.0);
-  shoot_speed_ = getParam(nh_, "control_param/shoot_speed", 10);
+  expect_shoot_hz_ = getParam(nh_, "control_param/expect_shoot_hz", 5.0);
+  safe_shoot_hz_ = getParam(nh_, "control_param/safe_shoot_hz", 2.0);
+  safe_shoot_speed_ = getParam(nh_, "control_param/safe_shoot_speed", 10.0);
   gimbal_error_limit_ = getParam(nh_, "control_param/gimbal_error_limit", 0.5);
-  lowest_effort_ = getParam(nh_, "control_param/power_limit/lowest_effort", 10);
+  safety_power_ = getParam(nh_, "power_limit/safety_power", 50);
+  have_power_manager_ = getParam(nh_, "power_limit/have_power_manager", false);
+
   if (control_mode_ == "pc") { // pc mode
     coefficient_x_ = getParam(nh_, "control_param/pc_param/coefficient_x", 3.5);
     coefficient_y_ = getParam(nh_, "control_param/pc_param/coefficient_y", 3.5);
@@ -66,22 +68,17 @@ void State<T>::setChassis(uint8_t chassis_mode, double linear_x, double linear_y
 
   if (angular_z == 0.0)
     accel_angular = accel_angular_ * brake_multiple_;
-
   data_->chassis_cmd_.accel.linear.x = accel_x;
   data_->chassis_cmd_.accel.linear.y = accel_y;
   data_->chassis_cmd_.accel.angular.z = accel_angular;
-
-  if (data_->referee_->is_open_) {
-    if (data_->referee_->referee_data_.power_heat_data_.chassis_volt == 0) {
-      data_->chassis_cmd_.effort_limit = lowest_effort_;
-    } else {
-      data_->power_limit_->input(data_->referee_->referee_data_,
-                                 data_->referee_->power_manager_data_,
-                                 data_->dbus_data_.key_shift);
-      data_->chassis_cmd_.effort_limit = data_->power_limit_->output();
-    }
-  } else {
-    data_->chassis_cmd_.effort_limit = lowest_effort_;
+  //power limit
+  if (have_power_manager_) {//have power manger
+    data_->chassis_cmd_.power_limit = data_->referee_->power_manager_data_.parameters[1];
+  } else if (!(have_power_manager_) && data_->referee_->is_open_) {//do not have power manger and use referee data
+    data_->chassis_cmd_.power_limit = data_->referee_->referee_data_.game_robot_status_.chassis_power_limit;
+    if (data_->chassis_cmd_.power_limit > 120) data_->chassis_cmd_.power_limit = 120;
+  } else {//use safety power
+    data_->chassis_cmd_.power_limit = safety_power_;
   }
 
   data_->cmd_vel_.linear.x = linear_x * coefficient_x_;
@@ -156,7 +153,6 @@ void Fsm<T>::run() {
 
   // run referee system
   data_.referee_->read();
-
   // Run the robot control code if operating mode is not unsafe
   if (operating_mode_ != FsmOperatingMode::kEStop) {
     // Run normal controls if no transition is detected
@@ -199,11 +195,14 @@ void Fsm<T>::run() {
       // Check the robot state for safe operation
       // TODO: Safety post check.
     }
-
   } else { // if ESTOP
     current_state_ = string2state["passive"];
     ROS_INFO("Current state is passive.");
     next_state_name_ = current_state_->state_name_;
+  }
+  // draw UI
+  if (data_.referee_->is_open_) {
+    data_.referee_->run();
   }
 }
 
