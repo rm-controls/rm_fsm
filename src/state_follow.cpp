@@ -246,6 +246,7 @@ void StateFollow<T>::run() {
                                               this->data_->referee_->referee_data_.game_robot_hp_,
                                               only_attack_base_);
     target_id = this->data_->target_cost_function_->output();
+    this->actual_shoot_speed_ = this->data_->referee_->getActualBulletSpeed(this->actual_shoot_speed_);
     if (this->data_->dbus_data_.s_l == rm_msgs::DbusData::UP) {
       if (target_id == 0) {
         if (last_target_id_ != 0)
