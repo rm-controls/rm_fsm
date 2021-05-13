@@ -434,6 +434,7 @@ void Referee::publishData() {
   referee_pub_data_.hurt_armor_id = referee_data_.robot_hurt_.armor_id;
   referee_pub_data_.hurt_type = referee_data_.robot_hurt_.hurt_type;
   referee_pub_data_.stamp = ros::Time::now();
+  referee_pub_data_.bullet_speed = referee_data_.shoot_data_.bullet_speed;
 
   power_manager_pub_data_.capacity = power_manager_data_.parameters[3] * 100;
   power_manager_pub_data_.chassis_power_buffer = power_manager_data_.parameters[2];
