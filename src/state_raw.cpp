@@ -7,7 +7,7 @@
 template<typename T>
 StateRaw<T>::StateRaw(FsmData<T> *fsm_data,
                       const std::string &state_string,
-                      ros::NodeHandle &nh): State<T>(nh, fsm_data, state_string) {
+                      ros::NodeHandle &fsm_nh): State<T>(fsm_nh, fsm_data, state_string) {
 }
 
 template<typename T>
@@ -23,7 +23,11 @@ void StateRaw<T>::run() {
   double shoot_hz;
   ros::Time now = ros::Time::now();
 
-  this->loadParam();
+  if (!this->loadParam()) {
+    ROS_ERROR("Some fsm params doesn't load, stop running fsm");
+    return;
+  };
+
   this->actual_shoot_speed_ = this->safe_shoot_speed_;
   this->ultimate_shoot_speed_ = this->safe_shoot_speed_;
 

@@ -7,13 +7,15 @@
 template<typename T>
 StateFollow<T>::StateFollow(FsmData<T> *fsm_data,
                             const std::string &state_string,
-                            ros::NodeHandle &nh): State<T>(nh, fsm_data, state_string) {
-  normal_critical_speed_ = getParam(nh, "control_param/pc_param/normal_critical_speed", 1);
-  burst_critical_speed_ = getParam(nh, "control_param/pc_param/burst_critical_speed", 2);
-  normal_angular_ = getParam(nh, "control_param/pc_param/normal_angular", 1);
-  burst_angular_ = getParam(nh, "control_param/pc_param/burst_angular", 2);
-  spin_sin_amplitude_ = getParam(nh, "control_param/pc_param/spin_sin_amplitude", 1.0);
-  spin_sin_frequency_ = getParam(nh, "control_param/pc_param/spin_sin_frequency", 6.28);
+                            ros::NodeHandle &fsm_nh): State<T>(fsm_nh, fsm_data, state_string) {
+  if (!fsm_nh.getParam("control_param/pc_param/normal_critical_speed", normal_critical_speed_) ||
+      !fsm_nh.getParam("control_param/pc_param/burst_critical_speed", burst_critical_speed_) ||
+      !fsm_nh.getParam("control_param/pc_param/normal_angular", normal_angular_) ||
+      !fsm_nh.getParam("control_param/pc_param/burst_angular", burst_angular_) ||
+      !fsm_nh.getParam("control_param/pc_param/spin_sin_amplitude", spin_sin_amplitude_) ||
+      !fsm_nh.getParam("control_param/pc_param/spin_sin_frequency", spin_sin_frequency_)) {
+    ROS_ERROR("Some follow state params doesn't given (namespace: %s)", fsm_nh.getNamespace().c_str());
+  }
 }
 
 template<typename T>
@@ -34,7 +36,11 @@ void StateFollow<T>::run() {
   ros::Time now = ros::Time::now();
   double normal_critical_speed, burst_critical_speed, normal_angular, burst_angular;
 
-  this->loadParam();
+  if (!this->loadParam()) {
+    ROS_ERROR("Some fsm params doesn't load, stop running fsm");
+    return;
+  };
+
   this->actual_shoot_speed_ = this->safe_shoot_speed_;
   this->ultimate_shoot_speed_ = this->safe_shoot_speed_;
 

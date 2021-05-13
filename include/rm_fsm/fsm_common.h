@@ -22,9 +22,9 @@ template<typename T>
 class State {
  public:
   // Generic constructor fo all states
-  State(ros::NodeHandle &nh, FsmData<T> *fsm_data, std::string state_string);
+  State(ros::NodeHandle &fsm_nh, FsmData<T> *fsm_data, std::string state_string);
 
-  ros::NodeHandle nh_;
+  ros::NodeHandle fsm_nh_;
 
   // Behavior to be carried out when entering a state
   virtual void onEnter() = 0;
@@ -36,7 +36,7 @@ class State {
   virtual void onExit() = 0;
 
   // Load params from yaml file
-  void loadParam();
+  bool loadParam();
 
   uint8_t getShootSpeedCmd(int shoot_speed);
 
@@ -87,8 +87,6 @@ class State {
   uint8_t last_chassis_mode_;
   uint8_t last_shoot_mode_;
   double last_angular_z_;
-
-  bool use_power_manager_;
 };
 
 /**
@@ -106,7 +104,7 @@ class Fsm {
  public:
   explicit Fsm(ros::NodeHandle &nh);
 
-  ros::NodeHandle nh_;
+  ros::NodeHandle fsm_nh_;
 
   //Pointer list of each state.
   std::map<std::string, State<T> *> string2state;

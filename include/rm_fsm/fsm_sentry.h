@@ -12,7 +12,7 @@
 template<typename T>
 class FsmSentry : public Fsm<T> {
  public:
-  explicit FsmSentry(ros::NodeHandle &node_handle);
+  explicit FsmSentry(ros::NodeHandle &fsm_nh);
   std::string getDesiredState();
   StatePassive<T> *state_passive_;
   StateRaw<T> *state_raw_;

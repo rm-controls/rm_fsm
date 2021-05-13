@@ -53,18 +53,18 @@ class FsmData {
 
   Referee *referee_{};
 
-  void init(ros::NodeHandle nh) {
+  void init(ros::NodeHandle fsm_nh) {
     shooter_heat_limit_ = new ShooterHeatLimit();
-    target_cost_function_ = new TargetCostFunction(nh);
+    target_cost_function_ = new TargetCostFunction(fsm_nh);
     referee_ = new Referee();
     // sub
-    dbus_sub_ = nh.subscribe<rm_msgs::DbusData>(
+    dbus_sub_ = fsm_nh.subscribe<rm_msgs::DbusData>(
         "/dbus_data", 10, &FsmData::dbusDataCallback, this);
-    track_sub_ = nh.subscribe<rm_msgs::TrackDataArray>(
+    track_sub_ = fsm_nh.subscribe<rm_msgs::TrackDataArray>(
         "/track", 10, &FsmData::trackCallback, this);
-    gimbal_des_error_sub_ = nh.subscribe<rm_msgs::GimbalDesError>(
+    gimbal_des_error_sub_ = fsm_nh.subscribe<rm_msgs::GimbalDesError>(
         "/error_des", 10, &FsmData::gimbalDesErrorCallback, this);
-    odom_sub_ = nh.subscribe<nav_msgs::Odometry>(
+    odom_sub_ = fsm_nh.subscribe<nav_msgs::Odometry>(
         "/odom", 10, &FsmData::odomCallback, this);
     // pub
     ros::NodeHandle root_nh;
@@ -74,7 +74,7 @@ class FsmData {
     shooter_cmd_pub_ = root_nh.advertise<rm_msgs::ShootCmd>("/cmd_shoot", 1);
     referee_->referee_pub_ = root_nh.advertise<rm_msgs::Referee>("/referee", 1);
     referee_->power_manager_pub_ = root_nh.advertise<rm_msgs::PowerManagerData>("/power_manager_data", 1);
-    referee_->init(nh);
+    referee_->init(fsm_nh);
   }
 
   void dbusDataCallback(const rm_msgs::DbusData::ConstPtr &data) {
