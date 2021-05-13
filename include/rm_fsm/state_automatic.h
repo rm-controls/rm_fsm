@@ -14,10 +14,13 @@ class StateAutomatic : public State<T> {
  public:
   StateAutomatic(FsmData<T> *fsm_data,
                  const std::string &state_string,
-                 ros::NodeHandle &nh);
+                 ros::NodeHandle &fsm_nh);
   void onEnter() override;
   void run() override;
   void onExit() override;
+
+  bool loadAutomaticParam();
+
   int point_side_;
   int gimbal_position_;
   double auto_move_chassis_speed_;

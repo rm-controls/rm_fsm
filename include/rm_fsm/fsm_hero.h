@@ -11,7 +11,7 @@
 template<typename T>
 class FsmHero : public Fsm<T> {
  public:
-  explicit FsmHero(ros::NodeHandle &node_handle);
+  explicit FsmHero(ros::NodeHandle &fsm_nh);
   std::string getDesiredState();
   StatePassive<T> *state_passive_;
   StateFollow<T> *state_follow_;

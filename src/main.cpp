@@ -10,17 +10,17 @@
 int main(int argc, char **argv) {
   std::string robot;
   ros::init(argc, argv, "rm_fsm");
-  ros::NodeHandle nh("~");
-  robot = getParam(nh, "robot_type", (std::string) "error");
+  ros::NodeHandle fsm_nh("~");
+  robot = getParam(fsm_nh, "robot_type", (std::string) "error");
   Fsm<float> *control_fsm;
   if (robot == "standard") {
-    control_fsm = new FsmStandard<float>(nh);
+    control_fsm = new FsmStandard<float>(fsm_nh);
     ROS_INFO("Running standard robot.");
   } else if (robot == "sentry") {
-    control_fsm = new FsmSentry<float>(nh);
+    control_fsm = new FsmSentry<float>(fsm_nh);
     ROS_INFO("Running sentry robot.");
   } else if (robot == "hero") {
-    control_fsm = new FsmHero<float>(nh);
+    control_fsm = new FsmHero<float>(fsm_nh);
     ROS_INFO("Running hero robot.");
   } else {
     ROS_ERROR("No robot type load");

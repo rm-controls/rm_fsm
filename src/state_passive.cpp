@@ -5,10 +5,8 @@
 #include "rm_fsm/state_passive.h"
 
 template<typename T>
-StatePassive<T>::StatePassive(FsmData<T> *fsm_data,
-                              const std::string &state_string,
-                              ros::NodeHandle &nh):
-    State<T>(nh, fsm_data, state_string) {
+StatePassive<T>::StatePassive(FsmData<T> *fsm_data, const std::string &state_string, ros::NodeHandle &fsm_nh):
+    State<T>(fsm_nh, fsm_data, state_string) {
 }
 
 template<typename T>

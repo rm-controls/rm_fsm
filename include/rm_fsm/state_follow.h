@@ -11,7 +11,7 @@ class StateFollow : public State<T> {
  public:
   StateFollow(FsmData<T> *fsm_data,
               const std::string &state_string,
-              ros::NodeHandle &nh);
+              ros::NodeHandle &fsm_nh);
   void onEnter() override;
   void run() override;
   void onExit() override;
