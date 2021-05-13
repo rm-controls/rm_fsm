@@ -65,7 +65,11 @@ uint8_t State<T>::getShootSpeedCmd(int shoot_speed) {
 }
 
 template<typename T>
-void State<T>::setChassis(uint8_t chassis_mode, double linear_x, double linear_y, double angular_z) {
+void State<T>::setChassis(uint8_t chassis_mode,
+                          double linear_x,
+                          double linear_y,
+                          double angular_z,
+                          const ros::Time &now) {
   double accel_x = accel_x_;
   double accel_y = accel_y_;
   double accel_angular = accel_angular_;
@@ -92,6 +96,7 @@ void State<T>::setChassis(uint8_t chassis_mode, double linear_x, double linear_y
   } else {//use safety power
     data_->chassis_cmd_.power_limit = safety_power_;
   }
+  data_->chassis_cmd_.stamp = now;
 
   data_->cmd_vel_.linear.x = linear_x * coefficient_x_;
   data_->cmd_vel_.linear.y = linear_y * coefficient_y_;
@@ -103,11 +108,12 @@ void State<T>::setChassis(uint8_t chassis_mode, double linear_x, double linear_y
 
 template<typename T>
 void State<T>::setGimbal(uint8_t gimbal_mode, double rate_yaw, double rate_pitch,
-                         uint8_t target_id, double bullet_speed) {
+                         uint8_t target_id, double bullet_speed, const ros::Time &now) {
   data_->gimbal_cmd_.mode = gimbal_mode;
 
   data_->gimbal_cmd_.rate_yaw = rate_yaw * coefficient_yaw_;
   data_->gimbal_cmd_.rate_pitch = rate_pitch * coefficient_pitch_;
+  data_->gimbal_cmd_.stamp = now;
 
   data_->gimbal_cmd_.target_id = target_id;
   data_->gimbal_cmd_.bullet_speed = bullet_speed;
@@ -115,7 +121,7 @@ void State<T>::setGimbal(uint8_t gimbal_mode, double rate_yaw, double rate_pitch
 }
 
 template<typename T>
-void State<T>::setShoot(uint8_t shoot_mode, int shoot_speed, double shoot_hz, ros::Time now) {
+void State<T>::setShoot(uint8_t shoot_mode, int shoot_speed, double shoot_hz, const ros::Time &now) {
   data_->shoot_cmd_.mode = shoot_mode;
 
   data_->shoot_cmd_.speed = getShootSpeedCmd(shoot_speed);

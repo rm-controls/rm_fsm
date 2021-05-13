@@ -108,15 +108,15 @@ void StateAutomatic<T>::run() {
       else if ((current_position_ <= start_ + collision_distance_) && (point_side_ == 3))
         point_side_ = 4;
       if (point_side_ == 1) {
-        this->setChassis(rm_msgs::ChassisCmd::RAW, auto_move_chassis_speed_, 0.0, 0.0);
+        this->setChassis(rm_msgs::ChassisCmd::RAW, auto_move_chassis_speed_, 0.0, 0.0, now);
       } else if (point_side_ == 2) {
-        this->setChassis(rm_msgs::ChassisCmd::PASSIVE, 0.0, 0.0, 0.0);
+        this->setChassis(rm_msgs::ChassisCmd::PASSIVE, 0.0, 0.0, 0.0, now);
         if (speed_ <= 0)
           point_side_ = 3;
       } else if (point_side_ == 3) {
-        this->setChassis(rm_msgs::ChassisCmd::RAW, -auto_move_chassis_speed_, 0.0, 0.0);
+        this->setChassis(rm_msgs::ChassisCmd::RAW, -auto_move_chassis_speed_, 0.0, 0.0, now);
       } else if (point_side_ == 4) {
-        this->setChassis(rm_msgs::ChassisCmd::PASSIVE, 0.0, 0.0, 0.0);
+        this->setChassis(rm_msgs::ChassisCmd::PASSIVE, 0.0, 0.0, 0.0, now);
         if (speed_ >= 0)
           point_side_ = 1;
       }
@@ -126,16 +126,16 @@ void StateAutomatic<T>::run() {
       else if (current_position_ <= start_ + stop_distance)
         point_side_ = 1;
       if (point_side_ == 1) {
-        this->setChassis(rm_msgs::ChassisCmd::RAW, auto_move_chassis_speed_, 0.0, 0.0);
+        this->setChassis(rm_msgs::ChassisCmd::RAW, auto_move_chassis_speed_, 0.0, 0.0, now);
       } else {
-        this->setChassis(rm_msgs::ChassisCmd::RAW, -auto_move_chassis_speed_, 0.0, 0.0);
+        this->setChassis(rm_msgs::ChassisCmd::RAW, -auto_move_chassis_speed_, 0.0, 0.0, now);
       }
     }
 
 
     //gimbal control
     if (attack_id_ == 1 || attack_id_ == 3 || attack_id_ == 4) {
-      this->setGimbal(rm_msgs::GimbalCmd::TRACK, 0, 0, attack_id_, 30);
+      this->setGimbal(rm_msgs::GimbalCmd::TRACK, 0, 0, attack_id_, 30, now);
       last_time_ = now;
     } else {
       if (now - last_time_ > ros::Duration(0.5)) {
@@ -144,16 +144,16 @@ void StateAutomatic<T>::run() {
         else if (pitch < (0.459))
           gimbal_position_ = 2;
         if (gimbal_position_ == 1) {
-          this->setGimbal(rm_msgs::GimbalCmd::RATE, auto_move_yaw_speed_, -auto_move_pitch_speed_, 0, 0);
+          this->setGimbal(rm_msgs::GimbalCmd::RATE, auto_move_yaw_speed_, -auto_move_pitch_speed_, 0, 0, now);
         } else if (gimbal_position_ == 2) {
-          this->setGimbal(rm_msgs::GimbalCmd::RATE, auto_move_yaw_speed_, auto_move_pitch_speed_, 0, 0);
+          this->setGimbal(rm_msgs::GimbalCmd::RATE, auto_move_yaw_speed_, auto_move_pitch_speed_, 0, 0, now);
         }
       }
     }
 
   } else {
-    this->setChassis(rm_msgs::ChassisCmd::RAW, -calibration_speed_, 0, 0);
-    this->setGimbal(rm_msgs::GimbalCmd::PASSIVE, 0, 0, 0, 0);
+    this->setChassis(rm_msgs::ChassisCmd::RAW, -calibration_speed_, 0, 0, now);
+    this->setGimbal(rm_msgs::GimbalCmd::PASSIVE, 0, 0, 0, 0, now);
     if (now - calibration_time_ > ros::Duration(0.4)) {
       if (now_effort < -1.1) {
         std::cout << "calibration finish !" << std::endl;

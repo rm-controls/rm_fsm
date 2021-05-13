@@ -41,9 +41,10 @@ class State {
   uint8_t getShootSpeedCmd(int shoot_speed);
 
   // Base controllers.
-  void setChassis(uint8_t chassis_mode, double linear_x, double linear_y, double angular_z);
-  void setGimbal(uint8_t gimbal_mode, double rate_yaw, double rate_pitch, uint8_t target_id, double bullet_speed);
-  void setShoot(uint8_t shoot_mode, int shoot_speed, double shoot_hz, ros::Time now);
+  void setChassis(uint8_t chassis_mode, double linear_x, double linear_y, double angular_z, const ros::Time &now);
+  void setGimbal(uint8_t gimbal_mode, double rate_yaw, double rate_pitch,
+                 uint8_t target_id, double bullet_speed, const ros::Time &now);
+  void setShoot(uint8_t shoot_mode, int shoot_speed, double shoot_hz, const ros::Time &now);
 
   void setControlMode(const std::string &control_mode);
 
