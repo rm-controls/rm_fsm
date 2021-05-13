@@ -4,10 +4,10 @@
 
 #include "rm_fsm/fsm_sentry.h"
 template<typename T>
-FsmSentry<T>::FsmSentry(ros::NodeHandle &node_handle) : Fsm<T>(node_handle) {
-  state_passive_ = new StatePassive<T>(&this->data_, "passive", node_handle);
-  state_raw_ = new StateRaw<T>(&this->data_, "raw", node_handle);
-  state_automatic_ = new StateAutomatic<T>(&this->data_, "automatic", node_handle);
+FsmSentry<T>::FsmSentry(ros::NodeHandle &fsm_nh) : Fsm<T>(fsm_nh) {
+  state_passive_ = new StatePassive<T>(&this->data_, "passive", fsm_nh);
+  state_raw_ = new StateRaw<T>(&this->data_, "raw", fsm_nh);
+  state_automatic_ = new StateAutomatic<T>(&this->data_, "automatic", fsm_nh);
 
   this->string2state.insert(std::pair<std::string, State<T> *>("passive", state_passive_));
   this->string2state.insert(std::pair<std::string, State<T> *>("raw", state_raw_));

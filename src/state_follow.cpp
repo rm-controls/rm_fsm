@@ -7,13 +7,15 @@
 template<typename T>
 StateFollow<T>::StateFollow(FsmData<T> *fsm_data,
                             const std::string &state_string,
-                            ros::NodeHandle &nh): State<T>(nh, fsm_data, state_string) {
-  normal_critical_speed_ = getParam(nh, "control_param/pc_param/normal_critical_speed", 1);
-  burst_critical_speed_ = getParam(nh, "control_param/pc_param/burst_critical_speed", 2);
-  normal_angular_ = getParam(nh, "control_param/pc_param/normal_angular", 1);
-  burst_angular_ = getParam(nh, "control_param/pc_param/burst_angular", 2);
-  spin_sin_amplitude_ = getParam(nh, "control_param/pc_param/spin_sin_amplitude", 1.0);
-  spin_sin_frequency_ = getParam(nh, "control_param/pc_param/spin_sin_frequency", 6.28);
+                            ros::NodeHandle &fsm_nh): State<T>(fsm_nh, fsm_data, state_string) {
+  if (!fsm_nh.getParam("control_param/pc_param/normal_critical_speed", normal_critical_speed_) ||
+      !fsm_nh.getParam("control_param/pc_param/burst_critical_speed", burst_critical_speed_) ||
+      !fsm_nh.getParam("control_param/pc_param/normal_angular", normal_angular_) ||
+      !fsm_nh.getParam("control_param/pc_param/burst_angular", burst_angular_) ||
+      !fsm_nh.getParam("control_param/pc_param/spin_sin_amplitude", spin_sin_amplitude_) ||
+      !fsm_nh.getParam("control_param/pc_param/spin_sin_frequency", spin_sin_frequency_)) {
+    ROS_ERROR("Some follow state params doesn't given (namespace: %s)", fsm_nh.getNamespace().c_str());
+  }
 }
 
 template<typename T>
@@ -34,7 +36,11 @@ void StateFollow<T>::run() {
   ros::Time now = ros::Time::now();
   double normal_critical_speed, burst_critical_speed, normal_angular, burst_angular;
 
-  this->loadParam();
+  if (!this->loadParam()) {
+    ROS_ERROR("Some fsm params doesn't load, stop running fsm");
+    return;
+  };
+
   this->actual_shoot_speed_ = this->safe_shoot_speed_;
   this->ultimate_shoot_speed_ = this->safe_shoot_speed_;
 
@@ -153,7 +159,7 @@ void StateFollow<T>::run() {
       chassis_mode = this->last_chassis_mode_;
       angular_z = this->last_angular_z_;
     }
-    this->setChassis(chassis_mode, linear_x, linear_y, angular_z);
+    this->setChassis(chassis_mode, linear_x, linear_y, angular_z, now);
 
     // Send cmd to gimbal
     rate_yaw = -this->data_->dbus_data_.m_x;
@@ -173,7 +179,7 @@ void StateFollow<T>::run() {
     } else {
       gimbal_mode = rm_msgs::GimbalCmd::RATE;
     }
-    this->setGimbal(gimbal_mode, rate_yaw, rate_pitch, target_id, this->actual_shoot_speed_);
+    this->setGimbal(gimbal_mode, rate_yaw, rate_pitch, target_id, this->actual_shoot_speed_, now);
 
     // Send cmd to shooter
     this->ultimate_shoot_speed_ = this->data_->referee_->getUltimateBulletSpeed(this->ultimate_shoot_speed_);
@@ -234,7 +240,7 @@ void StateFollow<T>::run() {
     } else { // enter follow
       chassis_mode = rm_msgs::ChassisCmd::FOLLOW;
     }
-    this->setChassis(chassis_mode, linear_x, linear_y, angular_z);
+    this->setChassis(chassis_mode, linear_x, linear_y, angular_z, now);
 
     // Send command to gimbal
     rate_yaw = -this->data_->dbus_data_.ch_l_x;
@@ -250,12 +256,17 @@ void StateFollow<T>::run() {
     if (this->data_->dbus_data_.s_l == rm_msgs::DbusData::UP) {
       if (target_id == 0) {
         if (last_target_id_ != 0)
-          this->setGimbal(rm_msgs::GimbalCmd::TRACK, rate_yaw, rate_pitch, last_target_id_, this->actual_shoot_speed_);
+          this->setGimbal(rm_msgs::GimbalCmd::TRACK,
+                          rate_yaw,
+                          rate_pitch,
+                          last_target_id_,
+                          this->actual_shoot_speed_,
+                          now);
         else
-          this->setGimbal(rm_msgs::GimbalCmd::RATE, rate_yaw, rate_pitch, 0, 0.0);
+          this->setGimbal(rm_msgs::GimbalCmd::RATE, rate_yaw, rate_pitch, 0, 0.0, now);
       } else {
         last_target_id_ = target_id;
-        this->setGimbal(rm_msgs::GimbalCmd::TRACK, rate_yaw, rate_pitch, target_id, this->actual_shoot_speed_);
+        this->setGimbal(rm_msgs::GimbalCmd::TRACK, rate_yaw, rate_pitch, target_id, this->actual_shoot_speed_, now);
       }
       this->data_->shooter_heat_limit_->input(this->data_->referee_, this->expect_shoot_hz_, this->safe_shoot_hz_);
       shoot_hz = this->data_->shooter_heat_limit_->output();
@@ -267,17 +278,22 @@ void StateFollow<T>::run() {
     } else if (this->data_->dbus_data_.s_l == rm_msgs::DbusData::MID) {
       if (target_id == 0) {
         if (last_target_id_ != 0)
-          this->setGimbal(rm_msgs::GimbalCmd::TRACK, rate_yaw, rate_pitch, last_target_id_, this->actual_shoot_speed_);
+          this->setGimbal(rm_msgs::GimbalCmd::TRACK,
+                          rate_yaw,
+                          rate_pitch,
+                          last_target_id_,
+                          this->actual_shoot_speed_,
+                          now);
         else
-          this->setGimbal(rm_msgs::GimbalCmd::RATE, rate_yaw, rate_pitch, 0, 0.0);
+          this->setGimbal(rm_msgs::GimbalCmd::RATE, rate_yaw, rate_pitch, 0, 0.0, now);
       } else {
         last_target_id_ = target_id;
-        this->setGimbal(rm_msgs::GimbalCmd::TRACK, rate_yaw, rate_pitch, target_id, this->actual_shoot_speed_);
+        this->setGimbal(rm_msgs::GimbalCmd::TRACK, rate_yaw, rate_pitch, target_id, this->actual_shoot_speed_, now);
       }
       shoot_mode = rm_msgs::ShootCmd::READY;
     } else {
       shoot_mode = rm_msgs::ShootCmd::STOP;
-      this->setGimbal(rm_msgs::GimbalCmd::RATE, rate_yaw, rate_pitch, 0, 0.0);
+      this->setGimbal(rm_msgs::GimbalCmd::RATE, rate_yaw, rate_pitch, 0, 0.0, now);
     }
 
     this->setShoot(shoot_mode, this->ultimate_shoot_speed_, shoot_hz, now);

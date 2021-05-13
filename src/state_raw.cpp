@@ -7,7 +7,7 @@
 template<typename T>
 StateRaw<T>::StateRaw(FsmData<T> *fsm_data,
                       const std::string &state_string,
-                      ros::NodeHandle &nh): State<T>(nh, fsm_data, state_string) {
+                      ros::NodeHandle &fsm_nh): State<T>(fsm_nh, fsm_data, state_string) {
 }
 
 template<typename T>
@@ -23,7 +23,11 @@ void StateRaw<T>::run() {
   double shoot_hz;
   ros::Time now = ros::Time::now();
 
-  this->loadParam();
+  if (!this->loadParam()) {
+    ROS_ERROR("Some fsm params doesn't load, stop running fsm");
+    return;
+  };
+
   this->actual_shoot_speed_ = this->safe_shoot_speed_;
   this->ultimate_shoot_speed_ = this->safe_shoot_speed_;
 
@@ -32,12 +36,12 @@ void StateRaw<T>::run() {
   linear_x = this->data_->dbus_data_.ch_r_y;
   linear_y = -this->data_->dbus_data_.ch_r_x;
   angular_z = this->data_->dbus_data_.wheel;
-  this->setChassis(rm_msgs::ChassisCmd::RAW, linear_x, linear_y, angular_z);
+  this->setChassis(rm_msgs::ChassisCmd::RAW, linear_x, linear_y, angular_z, now);
 
   // Send command to gimbal
   rate_yaw = -this->data_->dbus_data_.ch_l_x;
   rate_pitch = -this->data_->dbus_data_.ch_l_y;
-  this->setGimbal(rm_msgs::GimbalCmd::RATE, rate_yaw, rate_pitch, 0, 0.0);
+  this->setGimbal(rm_msgs::GimbalCmd::RATE, rate_yaw, rate_pitch, 0, 0.0, now);
 
   // Send command to shooter
   this->ultimate_shoot_speed_ = this->data_->referee_->getUltimateBulletSpeed(this->ultimate_shoot_speed_);

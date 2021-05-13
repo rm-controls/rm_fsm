@@ -6,13 +6,16 @@
 
 TargetCostFunction::TargetCostFunction(ros::NodeHandle &nh) {
   ros::NodeHandle cost_nh = ros::NodeHandle(nh, "target_cost_function");
-  cost_nh.param("k_f", k_f_, 0.0);
-  cost_nh.param("k_hp", k_hp_, 0.0);
-  cost_nh.param("track_msg_timeout", track_msg_timeout_, 1.0);
-  cost_nh.param("enemy_color", enemy_color_, std::string("error"));
-  cost_nh.param("time_interval", time_interval_, 0.1);
-  cost_nh.param("cost_clean_time", cost_clean_time_, 1.0);
+
+  if (!cost_nh.getParam("k_f", k_f_) ||
+      !cost_nh.getParam("k_hp", k_hp_) ||
+      !cost_nh.getParam("enemy_color", enemy_color_) ||
+      !cost_nh.getParam("cost_clean_time", cost_clean_time_) ||
+      !cost_nh.getParam("track_msg_timeout", track_msg_timeout_))
+    ROS_ERROR("Some target cost function params doesn't given (namespace: %s)", cost_nh.getNamespace().c_str());
+
   id_ = 0;
+  time_interval_ = 0.1;
 }
 
 void TargetCostFunction::input(rm_msgs::TrackDataArray track_data_array, GameRobotHp robot_hp, bool only_attack_base) {

@@ -5,9 +5,9 @@
 #include "rm_fsm/fsm_hero.h"
 
 template<typename T>
-FsmHero<T>::FsmHero(ros::NodeHandle &node_handle) : Fsm<T>(node_handle) {
-  state_passive_ = new StatePassive<T>(&this->data_, "passive", node_handle);
-  state_follow_ = new StateFollow<T>(&this->data_, "follow", node_handle);
+FsmHero<T>::FsmHero(ros::NodeHandle &fsm_nh) : Fsm<T>(fsm_nh) {
+  state_passive_ = new StatePassive<T>(&this->data_, "passive", fsm_nh);
+  state_follow_ = new StateFollow<T>(&this->data_, "follow", fsm_nh);
 
   this->string2state.insert(std::pair<std::string, State<T> *>("passive", state_passive_));
   this->string2state.insert(std::pair<std::string, State<T> *>("follow", state_follow_));

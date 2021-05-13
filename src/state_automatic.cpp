@@ -6,23 +6,14 @@
 template<typename T>
 StateAutomatic<T>::StateAutomatic(FsmData<T> *fsm_data,
                                   const std::string &state_string,
-                                  ros::NodeHandle &nh):State<T>(nh, fsm_data, state_string) {
+                                  ros::NodeHandle &fsm_nh):State<T>(fsm_nh, fsm_data, state_string) {
   this->tf_listener_ = new tf2_ros::TransformListener(this->tf_);
   point_side_ = 1;
   gimbal_position_ = 1;
   calibration_ = 0;
   speed_ = 0;
   current_position_ = 0;
-  auto_move_chassis_speed_ = getParam(nh, "auto_move/chassis_speed", 1.0);
-  auto_move_accel_x_ = getParam(nh, "control_param/accel_x", 2.0);
-  auto_move_pitch_speed_ = getParam(nh, "auto_move/pitch_speed", 0.5);
-  auto_move_yaw_speed_ = getParam(nh, "auto_move/yaw_speed", 3.14);
-  collision_distance_ = getParam(nh, "auto_move/collision_distance", 0.3);
-  start_ = getParam(nh, "auto_move/start", 0.3);
-  end_ = getParam(nh, "auto_move/end", 2.5);
-  end_ = end_ - 0.275 - 0.275;
-  calibration_speed_ = getParam(nh, "auto_move/calibration_speed", 0.15);
-  column_ = getParam(nh, "auto_move/column", 1);
+
   if (column_)
     std::cout << "use column_" << std::endl;
   else
@@ -35,7 +26,7 @@ StateAutomatic<T>::StateAutomatic(FsmData<T> *fsm_data,
   map2odom_.transform.translation.z = 0;
   map2odom_.transform.rotation.w = 1;
   tf_broadcaster_.sendTransform(map2odom_);
-  effort_sub_ = nh.subscribe<sensor_msgs::JointState>(
+  effort_sub_ = fsm_nh.subscribe<sensor_msgs::JointState>(
       "/joint_states", 10, &StateAutomatic::effortDataCallback, this);
 }
 
@@ -46,7 +37,6 @@ void StateAutomatic<T>::onEnter() {
 
 template<typename T>
 void StateAutomatic<T>::run() {
-
   geometry_msgs::TransformStamped gimbal_transformStamped;
   geometry_msgs::TransformStamped chassis_transformStamped;
   double now_effort = 0;
@@ -55,7 +45,17 @@ void StateAutomatic<T>::run() {
   double roll{}, pitch{}, yaw{};
   ros::Time now = ros::Time::now();
   double stop_distance = 0.5 * auto_move_chassis_speed_ * auto_move_chassis_speed_ / auto_move_accel_x_;
-  this->loadParam();
+
+  if (!this->loadParam()) {
+    ROS_ERROR("Some fsm params doesn't load, stop running fsm");
+    return;
+  };
+
+  if (!loadAutomaticParam()) {
+    ROS_ERROR("Some auto move params doesn't load, stop running automatic");
+    return;
+  }
+
   this->actual_shoot_speed_ = this->safe_shoot_speed_;
   this->ultimate_shoot_speed_ = this->safe_shoot_speed_;
 
@@ -108,15 +108,15 @@ void StateAutomatic<T>::run() {
       else if ((current_position_ <= start_ + collision_distance_) && (point_side_ == 3))
         point_side_ = 4;
       if (point_side_ == 1) {
-        this->setChassis(rm_msgs::ChassisCmd::RAW, auto_move_chassis_speed_, 0.0, 0.0);
+        this->setChassis(rm_msgs::ChassisCmd::RAW, auto_move_chassis_speed_, 0.0, 0.0, now);
       } else if (point_side_ == 2) {
-        this->setChassis(rm_msgs::ChassisCmd::PASSIVE, 0.0, 0.0, 0.0);
+        this->setChassis(rm_msgs::ChassisCmd::PASSIVE, 0.0, 0.0, 0.0, now);
         if (speed_ <= 0)
           point_side_ = 3;
       } else if (point_side_ == 3) {
-        this->setChassis(rm_msgs::ChassisCmd::RAW, -auto_move_chassis_speed_, 0.0, 0.0);
+        this->setChassis(rm_msgs::ChassisCmd::RAW, -auto_move_chassis_speed_, 0.0, 0.0, now);
       } else if (point_side_ == 4) {
-        this->setChassis(rm_msgs::ChassisCmd::PASSIVE, 0.0, 0.0, 0.0);
+        this->setChassis(rm_msgs::ChassisCmd::PASSIVE, 0.0, 0.0, 0.0, now);
         if (speed_ >= 0)
           point_side_ = 1;
       }
@@ -126,16 +126,16 @@ void StateAutomatic<T>::run() {
       else if (current_position_ <= start_ + stop_distance)
         point_side_ = 1;
       if (point_side_ == 1) {
-        this->setChassis(rm_msgs::ChassisCmd::RAW, auto_move_chassis_speed_, 0.0, 0.0);
+        this->setChassis(rm_msgs::ChassisCmd::RAW, auto_move_chassis_speed_, 0.0, 0.0, now);
       } else {
-        this->setChassis(rm_msgs::ChassisCmd::RAW, -auto_move_chassis_speed_, 0.0, 0.0);
+        this->setChassis(rm_msgs::ChassisCmd::RAW, -auto_move_chassis_speed_, 0.0, 0.0, now);
       }
     }
 
 
     //gimbal control
     if (attack_id_ == 1 || attack_id_ == 3 || attack_id_ == 4) {
-      this->setGimbal(rm_msgs::GimbalCmd::TRACK, 0, 0, attack_id_, 30);
+      this->setGimbal(rm_msgs::GimbalCmd::TRACK, 0, 0, attack_id_, 30, now);
       last_time_ = now;
     } else {
       if (now - last_time_ > ros::Duration(0.5)) {
@@ -144,16 +144,16 @@ void StateAutomatic<T>::run() {
         else if (pitch < (0.459))
           gimbal_position_ = 2;
         if (gimbal_position_ == 1) {
-          this->setGimbal(rm_msgs::GimbalCmd::RATE, auto_move_yaw_speed_, -auto_move_pitch_speed_, 0, 0);
+          this->setGimbal(rm_msgs::GimbalCmd::RATE, auto_move_yaw_speed_, -auto_move_pitch_speed_, 0, 0, now);
         } else if (gimbal_position_ == 2) {
-          this->setGimbal(rm_msgs::GimbalCmd::RATE, auto_move_yaw_speed_, auto_move_pitch_speed_, 0, 0);
+          this->setGimbal(rm_msgs::GimbalCmd::RATE, auto_move_yaw_speed_, auto_move_pitch_speed_, 0, 0, now);
         }
       }
     }
 
   } else {
-    this->setChassis(rm_msgs::ChassisCmd::RAW, -calibration_speed_, 0, 0);
-    this->setGimbal(rm_msgs::GimbalCmd::PASSIVE, 0, 0, 0, 0);
+    this->setChassis(rm_msgs::ChassisCmd::RAW, -calibration_speed_, 0, 0, now);
+    this->setGimbal(rm_msgs::GimbalCmd::PASSIVE, 0, 0, 0, 0, now);
     if (now - calibration_time_ > ros::Duration(0.4)) {
       if (now_effort < -1.1) {
         std::cout << "calibration finish !" << std::endl;
@@ -185,6 +185,25 @@ void StateAutomatic<T>::onExit() {
   // Nothing to clean up when exiting
   ROS_INFO("Exit automatic mode");
   calibration_ = 0;
+}
+
+template<typename T>
+bool StateAutomatic<T>::loadAutomaticParam() {
+  if (!this->fsm_nh_.getParam("auto_move/chassis_speed", auto_move_chassis_speed_) ||
+      !this->fsm_nh_.getParam("auto_move/accel_x", auto_move_accel_x_) ||
+      !this->fsm_nh_.getParam("auto_move/pitch_speed", auto_move_pitch_speed_) ||
+      !this->fsm_nh_.getParam("auto_move/yaw_speed", auto_move_yaw_speed_) ||
+      !this->fsm_nh_.getParam("auto_move/collision_distance", collision_distance_) ||
+      !this->fsm_nh_.getParam("auto_move/start", start_) ||
+      !this->fsm_nh_.getParam("auto_move/end", end_) ||
+      !this->fsm_nh_.getParam("auto_move/calibration_speed", calibration_speed_) ||
+      !this->fsm_nh_.getParam("auto_move/column", column_)) {
+    ROS_ERROR("Some auto move params doesn't given (namespace: %s)", this->fsm_nh_.getNamespace().c_str());
+    return false;
+  }
+  end_ = end_ - 0.275 - 0.275;
+
+  return true;
 }
 
 template

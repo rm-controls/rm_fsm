@@ -5,39 +5,51 @@
 #include "rm_fsm/fsm_common.h"
 
 template<typename T>
-State<T>::State(ros::NodeHandle &nh, FsmData<T> *fsm_data, std::string state_name)
-    : nh_(nh), data_(fsm_data), state_name_(std::move(state_name)) {
+State<T>::State(ros::NodeHandle &fsm_nh, FsmData<T> *fsm_data, std::string state_name)
+    : fsm_nh_(fsm_nh), data_(fsm_data), state_name_(std::move(state_name)) {
 
 }
 
 template<typename T>
-void State<T>::loadParam() {
-  accel_x_ = getParam(nh_, "control_param/accel_x", 5.0);
-  accel_y_ = getParam(nh_, "control_param/accel_y", 5.0);
-  accel_angular_ = getParam(nh_, "control_param/accel_angular", 5.0);
-  brake_multiple_ = getParam(nh_, "control_param/brake_multiple", 2);
-  expect_shoot_hz_ = getParam(nh_, "control_param/expect_shoot_hz", 5.0);
-  safe_shoot_hz_ = getParam(nh_, "control_param/safe_shoot_hz", 2.0);
-  safe_shoot_speed_ = getParam(nh_, "control_param/safe_shoot_speed", 10.0);
-  gimbal_error_limit_ = getParam(nh_, "control_param/gimbal_error_limit", 0.5);
-  safety_power_ = getParam(nh_, "power_limit/safety_power", 50);
-  have_power_manager_ = getParam(nh_, "power_limit/have_power_manager", false);
+bool State<T>::loadParam() {
+  if (!fsm_nh_.getParam("control_param/accel_x", accel_x_) ||
+      !fsm_nh_.getParam("control_param/accel_y", accel_y_) ||
+      !fsm_nh_.getParam("control_param/accel_angular", accel_angular_) ||
+      !fsm_nh_.getParam("control_param/brake_multiple", brake_multiple_) ||
+      !fsm_nh_.getParam("control_param/expect_shoot_hz", expect_shoot_hz_) ||
+      !fsm_nh_.getParam("control_param/safe_shoot_hz", safe_shoot_hz_) ||
+      !fsm_nh_.getParam("control_param/safe_shoot_speed", safe_shoot_speed_) ||
+      !fsm_nh_.getParam("control_param/gimbal_error_limit", gimbal_error_limit_) ||
+      !fsm_nh_.getParam("control_param/safety_power", safety_power_) ||
+      !fsm_nh_.getParam("control_param/have_power_manager", have_power_manager_)) {
+    ROS_ERROR("Some fsm params doesn't given (namespace: %s)", fsm_nh_.getNamespace().c_str());
+    return false;
+  }
 
   if (control_mode_ == "pc") { // pc mode
-    coefficient_x_ = getParam(nh_, "control_param/pc_param/coefficient_x", 3.5);
-    coefficient_y_ = getParam(nh_, "control_param/pc_param/coefficient_y", 3.5);
-    coefficient_angular_ = getParam(nh_, "control_param/pc_param/coefficient_angular", 6.0);
-    coefficient_yaw_ = getParam(nh_, "control_param/pc_param/coefficient_yaw", 125.6);
-    coefficient_pitch_ = getParam(nh_, "control_param/pc_param/coefficient_pitch", 125.6);
+    if (!fsm_nh_.getParam("control_param/pc_param/coefficient_x", coefficient_x_) ||
+        !fsm_nh_.getParam("control_param/pc_param/coefficient_y", coefficient_y_) ||
+        !fsm_nh_.getParam("control_param/pc_param/coefficient_angular", coefficient_angular_) ||
+        !fsm_nh_.getParam("control_param/pc_param/coefficient_yaw", coefficient_yaw_) ||
+        !fsm_nh_.getParam("control_param/pc_param/coefficient_pitch", coefficient_pitch_)) {
+      ROS_ERROR("Some fsm params doesn't given (namespace: %s)", fsm_nh_.getNamespace().c_str());
+      return false;
+    }
   } else if (control_mode_ == "rc") { // rc mode
-    coefficient_x_ = getParam(nh_, "control_param/rc_param/coefficient_x", 3.5);
-    coefficient_y_ = getParam(nh_, "control_param/rc_param/coefficient_y", 3.5);
-    coefficient_angular_ = getParam(nh_, "control_param/rc_param/coefficient_angular", 6.0);
-    coefficient_yaw_ = getParam(nh_, "control_param/rc_param/coefficient_yaw", 12.56);
-    coefficient_pitch_ = getParam(nh_, "control_param/rc_param/coefficient_pitch", 12.56);
+    if (!fsm_nh_.getParam("control_param/rc_param/coefficient_x", coefficient_x_) ||
+        !fsm_nh_.getParam("control_param/rc_param/coefficient_y", coefficient_y_) ||
+        !fsm_nh_.getParam("control_param/rc_param/coefficient_angular", coefficient_angular_) ||
+        !fsm_nh_.getParam("control_param/rc_param/coefficient_yaw", coefficient_yaw_) ||
+        !fsm_nh_.getParam("control_param/rc_param/coefficient_pitch", coefficient_pitch_)) {
+      ROS_ERROR("Some fsm params doesn't given (namespace: %s)", fsm_nh_.getNamespace().c_str());
+      return false;
+    }
   } else {
-    ROS_ERROR("Cannot load control params.");
+    ROS_ERROR("Cannot find responding control mode (pc & rc)");
+    return false;
   }
+
+  return true;
 }
 
 template<typename T>
@@ -53,7 +65,11 @@ uint8_t State<T>::getShootSpeedCmd(int shoot_speed) {
 }
 
 template<typename T>
-void State<T>::setChassis(uint8_t chassis_mode, double linear_x, double linear_y, double angular_z) {
+void State<T>::setChassis(uint8_t chassis_mode,
+                          double linear_x,
+                          double linear_y,
+                          double angular_z,
+                          const ros::Time &now) {
   double accel_x = accel_x_;
   double accel_y = accel_y_;
   double accel_angular = accel_angular_;
@@ -80,6 +96,7 @@ void State<T>::setChassis(uint8_t chassis_mode, double linear_x, double linear_y
   } else {//use safety power
     data_->chassis_cmd_.power_limit = safety_power_;
   }
+  data_->chassis_cmd_.stamp = now;
 
   data_->cmd_vel_.linear.x = linear_x * coefficient_x_;
   data_->cmd_vel_.linear.y = linear_y * coefficient_y_;
@@ -91,11 +108,12 @@ void State<T>::setChassis(uint8_t chassis_mode, double linear_x, double linear_y
 
 template<typename T>
 void State<T>::setGimbal(uint8_t gimbal_mode, double rate_yaw, double rate_pitch,
-                         uint8_t target_id, double bullet_speed) {
+                         uint8_t target_id, double bullet_speed, const ros::Time &now) {
   data_->gimbal_cmd_.mode = gimbal_mode;
 
   data_->gimbal_cmd_.rate_yaw = rate_yaw * coefficient_yaw_;
   data_->gimbal_cmd_.rate_pitch = rate_pitch * coefficient_pitch_;
+  data_->gimbal_cmd_.stamp = now;
 
   data_->gimbal_cmd_.target_id = target_id;
   data_->gimbal_cmd_.bullet_speed = bullet_speed;
@@ -103,7 +121,7 @@ void State<T>::setGimbal(uint8_t gimbal_mode, double rate_yaw, double rate_pitch
 }
 
 template<typename T>
-void State<T>::setShoot(uint8_t shoot_mode, int shoot_speed, double shoot_hz, ros::Time now) {
+void State<T>::setShoot(uint8_t shoot_mode, int shoot_speed, double shoot_hz, const ros::Time &now) {
   data_->shoot_cmd_.mode = shoot_mode;
 
   data_->shoot_cmd_.speed = getShootSpeedCmd(shoot_speed);
@@ -126,10 +144,10 @@ void State<T>::setControlMode(const std::string &control_mode) {
  * @param nh
  */
 template<typename T>
-Fsm<T>::Fsm(ros::NodeHandle &node_handle):nh_(node_handle) {
+Fsm<T>::Fsm(ros::NodeHandle &node_handle):fsm_nh_(node_handle) {
   tf_listener_ = new tf2_ros::TransformListener(tf_);
 
-  data_.init(nh_);
+  data_.init(fsm_nh_);
 
   string2state.insert(std::make_pair("invalid", nullptr));
   // Initialize a new FSM State with the control data

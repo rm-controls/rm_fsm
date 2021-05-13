@@ -12,7 +12,7 @@
 template<typename T>
 class FsmStandard : public Fsm<T> {
  public:
-  explicit FsmStandard(ros::NodeHandle &node_handle);
+  explicit FsmStandard(ros::NodeHandle &fsm_nh);
   std::string getDesiredState();
   StatePassive<T> *state_passive_;
   StateFollow<T> *state_follow_;

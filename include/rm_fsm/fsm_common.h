@@ -22,9 +22,9 @@ template<typename T>
 class State {
  public:
   // Generic constructor fo all states
-  State(ros::NodeHandle &nh, FsmData<T> *fsm_data, std::string state_string);
+  State(ros::NodeHandle &fsm_nh, FsmData<T> *fsm_data, std::string state_string);
 
-  ros::NodeHandle nh_;
+  ros::NodeHandle fsm_nh_;
 
   // Behavior to be carried out when entering a state
   virtual void onEnter() = 0;
@@ -36,14 +36,15 @@ class State {
   virtual void onExit() = 0;
 
   // Load params from yaml file
-  void loadParam();
+  bool loadParam();
 
   uint8_t getShootSpeedCmd(int shoot_speed);
 
   // Base controllers.
-  void setChassis(uint8_t chassis_mode, double linear_x, double linear_y, double angular_z);
-  void setGimbal(uint8_t gimbal_mode, double rate_yaw, double rate_pitch, uint8_t target_id, double bullet_speed);
-  void setShoot(uint8_t shoot_mode, int shoot_speed, double shoot_hz, ros::Time now);
+  void setChassis(uint8_t chassis_mode, double linear_x, double linear_y, double angular_z, const ros::Time &now);
+  void setGimbal(uint8_t gimbal_mode, double rate_yaw, double rate_pitch,
+                 uint8_t target_id, double bullet_speed, const ros::Time &now);
+  void setShoot(uint8_t shoot_mode, int shoot_speed, double shoot_hz, const ros::Time &now);
 
   void setControlMode(const std::string &control_mode);
 
@@ -87,8 +88,6 @@ class State {
   uint8_t last_chassis_mode_;
   uint8_t last_shoot_mode_;
   double last_angular_z_;
-
-  bool use_power_manager_;
 };
 
 /**
@@ -106,7 +105,7 @@ class Fsm {
  public:
   explicit Fsm(ros::NodeHandle &nh);
 
-  ros::NodeHandle nh_;
+  ros::NodeHandle fsm_nh_;
 
   //Pointer list of each state.
   std::map<std::string, State<T> *> string2state;
