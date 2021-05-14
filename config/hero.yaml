@@ -9,6 +9,8 @@ rm_fsm:
     safe_shoot_hz: 1
     safe_shoot_speed: 10
     gimbal_error_limit: 0.17
+    safety_power: 50
+    have_power_manager: false
     rc_param:
       coefficient_x: 4
       coefficient_y: 4
