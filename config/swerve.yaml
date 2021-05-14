@@ -31,7 +31,7 @@ rm_fsm:
       spin_sin_frequency: 6.28
     power_limit:
       safety_power: 50
-      have_power_manager: true
+      have_power_manager: false
   target_cost_function:
     k_f: 0.18
     k_hp: 0.0
