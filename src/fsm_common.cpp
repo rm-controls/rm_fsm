@@ -20,8 +20,8 @@ bool State<T>::loadParam() {
       !fsm_nh_.getParam("control_param/safe_shoot_hz", safe_shoot_hz_) ||
       !fsm_nh_.getParam("control_param/safe_shoot_speed", safe_shoot_speed_) ||
       !fsm_nh_.getParam("control_param/gimbal_error_limit", gimbal_error_limit_) ||
-      !fsm_nh_.getParam("control_param/safety_power", safety_power_) ||
-      !fsm_nh_.getParam("control_param/have_power_manager", have_power_manager_)) {
+      !fsm_nh_.getParam("control_param/power_limit/safety_power", safety_power_) ||
+      !fsm_nh_.getParam("control_param/power_limit/have_power_manager", have_power_manager_)) {
     ROS_ERROR("Some fsm params doesn't given (namespace: %s)", fsm_nh_.getNamespace().c_str());
     return false;
   }
