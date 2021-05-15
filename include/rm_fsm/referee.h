@@ -50,6 +50,7 @@ class PowerManagerData {
 
   float parameters[4] = {0};
 
+  ros::Time last_get_powermanager_data_ = ros::Time::now();
  private:
   void DTP_Received_CallBack(unsigned char Receive_Byte);
   void Receive_CallBack(unsigned char PID, unsigned char Data[8]);
@@ -120,6 +121,8 @@ class Referee {
   ros::Subscriber dbus_sub_;
   rm_msgs::DbusData dbus_data_;
 
+  ros::Time last_get_referee_data_ = ros::Time::now();
+
   ros::Time last_press_g_ = ros::Time::now();
   ros::Time last_press_r_ = ros::Time::now();
   ros::Time last_press_q_ = ros::Time::now();
@@ -132,16 +135,16 @@ class Referee {
   ros::Time last_hurt_armor2_ = ros::Time::now();
   ros::Time last_hurt_armor3_ = ros::Time::now();
 
+  std::string chassis_mode_ = "passive";
+  std::string gimbal_mode_ = "passive";
+  std::string shooter_mode_ = "passive";
+
   bool gyro_flag_ = false;
   bool twist_flag_ = false;
   bool burst_flag_ = false;
   bool only_attack_base_flag_ = false;
 
   bool last_key_f_ = false;
-
-  std::string chassis_mode_ = "passive";
-  std::string gimbal_mode_ = "passive";
-  std::string shooter_mode_ = "passive";
 
   bool chassis_update_flag_ = true;
   bool gimbal_update_flag_ = true;

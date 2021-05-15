@@ -262,6 +262,7 @@ void Referee::unpack(const std::vector<uint8_t> &rx_buffer) {
           if (verifyCRC16CheckSum(referee_unpack_obj.protocol_packet,
                                   kProtocolHeaderLength + kProtocolTailLength + kProtocolCmdIdLength
                                       + referee_unpack_obj.data_len)) {
+            last_get_referee_data_ = ros::Time::now();
             getData(referee_unpack_obj.protocol_packet);
             memset(referee_unpack_obj.protocol_packet, 0, sizeof(referee_unpack_obj.protocol_packet));
           }
@@ -433,14 +434,14 @@ void Referee::publishData() {
   referee_pub_data_.robot_hp = referee_data_.game_robot_status_.remain_HP;
   referee_pub_data_.hurt_armor_id = referee_data_.robot_hurt_.armor_id;
   referee_pub_data_.hurt_type = referee_data_.robot_hurt_.hurt_type;
-  referee_pub_data_.stamp = ros::Time::now();
   referee_pub_data_.bullet_speed = referee_data_.shoot_data_.bullet_speed;
+  referee_pub_data_.stamp = last_get_referee_data_;
 
   power_manager_pub_data_.capacity = power_manager_data_.parameters[3] * 100;
   power_manager_pub_data_.chassis_power_buffer = power_manager_data_.parameters[2];
   power_manager_pub_data_.limit_power = power_manager_data_.parameters[1];
   power_manager_pub_data_.chassis_power = power_manager_data_.parameters[0];
-  power_manager_pub_data_.stamp = ros::Time::now();
+  power_manager_pub_data_.stamp = power_manager_data_.last_get_powermanager_data_;
 
   referee_pub_.publish(referee_pub_data_);
   power_manager_pub_.publish(power_manager_pub_data_);
@@ -897,6 +898,7 @@ void PowerManagerData::read(const std::vector<uint8_t> &rx_buffer) {
 }
 
 void PowerManagerData::Receive_CallBack(unsigned char PID, unsigned char Data[8]) {
+  last_get_powermanager_data_ = ros::Time::now();
   if (PID == 0) {
     parameters[0] = Int16ToFloat((Data[0] << 8) | Data[1]);
     parameters[1] = Int16ToFloat((Data[2] << 8) | Data[3]);
