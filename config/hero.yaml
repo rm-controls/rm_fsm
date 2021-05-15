@@ -29,9 +29,9 @@ rm_fsm:
       burst_angular: 5.0
       spin_sin_amplitude: 3.0
       spin_sin_frequency: 6.28
-  power_limit:
-    safety_power: 50
-    have_power_manager: false
+    power_limit:
+      safety_power: 50
+      have_power_manager: false
   target_cost_function:
     k_f: 0.18
     k_hp: 0.0
