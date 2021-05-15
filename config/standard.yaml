@@ -3,7 +3,7 @@ rm_fsm:
   control_param:
     accel_x: 8.0
     accel_y: 8.0
-    accel_angular: 10
+    accel_angular: 20
     brake_multiple: 1.5
     expect_shoot_hz: 2
     safe_shoot_hz: 3
@@ -31,7 +31,7 @@ rm_fsm:
       spin_sin_frequency: 6.28
     power_limit:
       safety_power: 50
-      have_power_manager: true
+      have_power_manager: false
   target_cost_function:
     k_f: 0.18
     k_hp: 0.0
