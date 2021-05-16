@@ -12,7 +12,8 @@ void Referee::init(ros::NodeHandle nh) {
     serial_.setBaudrate(115200);
     serial_.setTimeout(timeout);
   } catch (std::exception &e) {
-    ROS_ERROR("Cannot set serial port of referee system, check whether the serial library is installed.");
+    ROS_ERROR(
+        "Cannot set serial port of referee system, check whether the serial library is installed and try to use catkin clean");
     return;
   }
 
@@ -21,7 +22,7 @@ void Referee::init(ros::NodeHandle nh) {
       serial_.open();
       is_open_ = true;
     } catch (serial::IOException &e) {
-      ROS_WARN("Referee system serial cannot open [%s]", e.what());
+      ROS_ERROR("Referee system serial cannot open");
     }
   }
   if (is_open_) {
@@ -898,8 +899,8 @@ void PowerManagerData::read(const std::vector<uint8_t> &rx_buffer) {
 }
 
 void PowerManagerData::Receive_CallBack(unsigned char PID, unsigned char Data[8]) {
-  last_get_powermanager_data_ = ros::Time::now();
   if (PID == 0) {
+    last_get_powermanager_data_ = ros::Time::now();
     parameters[0] = Int16ToFloat((Data[0] << 8) | Data[1]);
     parameters[1] = Int16ToFloat((Data[2] << 8) | Data[3]);
     parameters[2] = Int16ToFloat((Data[4] << 8) | Data[5]);
