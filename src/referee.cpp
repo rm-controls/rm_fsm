@@ -568,11 +568,11 @@ void Referee::displayCapInfo(uint8_t graph_operate_type) {
   power_float = power_manager_data_.parameters[3] * 100;
   sprintf(power_string, "Cap: %1.0f%%", power_float);
   if (power_float >= 60)
-    drawString(910, 100, 4, power_string, kGreen, graph_operate_type);
+    drawString(910, 100, 0, power_string, kGreen, graph_operate_type);
   else if (power_float < 60 && power_float >= 30)
-    drawString(910, 100, 4, power_string, kYellow, graph_operate_type);
+    drawString(910, 100, 0, power_string, kYellow, graph_operate_type);
   else if (power_float < 30)
-    drawString(910, 100, 4, power_string, kOrange, graph_operate_type);
+    drawString(910, 100, 0, power_string, kOrange, graph_operate_type);
 }
 
 void Referee::displayChassisInfo(uint8_t graph_operate_type) {
