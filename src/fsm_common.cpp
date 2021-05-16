@@ -90,7 +90,8 @@ void State<T>::setChassis(uint8_t chassis_mode,
   //power limit
   if (have_power_manager_) {//have power manger
     data_->chassis_cmd_.power_limit = data_->referee_->power_manager_data_.parameters[1];
-  } else if (!(have_power_manager_) && data_->referee_->is_open_) {//do not have power manger and use referee data
+  } else if (!(have_power_manager_)
+      && data_->referee_->referee_data_.game_robot_status_.max_HP != 0) {//do not have power manger and use referee data
     data_->chassis_cmd_.power_limit = data_->referee_->referee_data_.game_robot_status_.chassis_power_limit;
     if (data_->chassis_cmd_.power_limit > 120) data_->chassis_cmd_.power_limit = 120;
   } else {//use safety power
