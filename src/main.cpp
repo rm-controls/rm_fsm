@@ -4,8 +4,6 @@
 
 #include "rm_fsm/fsm_common.h"
 #include "rm_fsm/fsm_sentry.h"
-#include "rm_fsm/fsm_standard.h"
-#include "rm_fsm/fsm_hero.h"
 
 int main(int argc, char **argv) {
   std::string robot;
@@ -13,15 +11,9 @@ int main(int argc, char **argv) {
   ros::NodeHandle fsm_nh("~");
   robot = getParam(fsm_nh, "robot_type", (std::string) "error");
   Fsm<float> *control_fsm;
-  if (robot == "standard") {
-    control_fsm = new FsmStandard<float>(fsm_nh);
-    ROS_INFO("Running standard robot.");
-  } else if (robot == "sentry") {
+  if (robot == "sentry") {
     control_fsm = new FsmSentry<float>(fsm_nh);
     ROS_INFO("Running sentry robot.");
-  } else if (robot == "hero") {
-    control_fsm = new FsmHero<float>(fsm_nh);
-    ROS_INFO("Running hero robot.");
   } else {
     ROS_ERROR("No robot type load");
     return 0;
