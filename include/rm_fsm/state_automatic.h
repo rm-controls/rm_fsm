@@ -2,55 +2,50 @@
 // Created by astro on 2021/1/26.
 //
 
-#ifndef SRC_RM_FSM_INCLUDE_RM_FSM_STATE_AUTOMATIC_H_
-#define SRC_RM_FSM_INCLUDE_RM_FSM_STATE_AUTOMATIC_H_
+#ifndef RM_FSM_STATE_AUTOMATIC_H_
+#define RM_FSM_STATE_AUTOMATIC_H_
 #include "rm_fsm/common/fsm_common.h"
 #include <tf2_ros/static_transform_broadcaster.h>
 #include <tf2_ros/transform_broadcaster.h>
 #include <sensor_msgs/JointState.h>
 
-template<typename T>
-class StateAutomatic : public State<T> {
+namespace rm_fsm {
+class StateAutomatic : public State {
  public:
-  StateAutomatic(FsmData<T> *fsm_data,
-                 const std::string &state_string,
-                 ros::NodeHandle &fsm_nh);
-  void onEnter() override;
+  StateAutomatic(ros::NodeHandle &nh, Data *fsm_data, const std::string &state_string);
+  void onEnter() override {
+    ROS_INFO("Enter automatic mode");
+    point_side_ = 1;
+    gimbal_position_ = 1;
+    calibration_finish_ = false;
+    current_speed_ = 0;
+    current_position_ = 0;
+  };
   void run() override;
-  void onExit() override;
+  void onExit() override {
+    ROS_INFO("Exit automatic mode");
+    calibration_finish_ = false;
+  };
+  void effortDataCallback(const sensor_msgs::JointState::ConstPtr &data) { effort_data_ = *data; }
 
-  bool loadAutomaticParam();
-
-  int point_side_;
-  int gimbal_position_;
-  double auto_move_chassis_speed_;
-  double auto_move_pitch_speed_;
-  double auto_move_yaw_speed_;
-  double auto_move_accel_x_;
-  double start_;
-  double end_;
-  double calibration_speed_;
-  int calibration_;
-  int attack_id_;
-  int column_;
-  double speed_;
-  double current_position_;
-  double collision_distance_;
-  ros::Time last_time_ = ros::Time::now();
-  ros::Time calibration_time_ = ros::Time::now();
-
-  geometry_msgs::TransformStamped
-      map2odom_;
-  geometry_msgs::TransformStamped odom2baselink_;
+  ros::Subscriber effort_sub_;
+  tf2_ros::Buffer tf_;
+  tf2_ros::TransformListener *tf_listener_;
   tf2_ros::StaticTransformBroadcaster tf_broadcaster_;
   tf2_ros::TransformBroadcaster br;
-  // sub
+
+  ros::Time last_time_ = ros::Time::now();
+  ros::Time start_calibration_time_ = ros::Time::now();
+
   sensor_msgs::JointState effort_data_;
-  ros::Subscriber effort_sub_;
-  void effortDataCallback(const sensor_msgs::JointState::ConstPtr &data) {
-    effort_data_ = *data;
-  }
+  geometry_msgs::TransformStamped map2odom_;
+  geometry_msgs::TransformStamped odom2baselink_;
+ protected:
+  int point_side_, gimbal_position_, attack_id_;
+  double auto_move_chassis_speed_, auto_move_pitch_speed_, auto_move_yaw_speed_, auto_move_accel_x_, start_, end_,
+      calibration_speed_, collision_distance_, current_speed_, current_position_;
+  bool column_, calibration_finish_;
 };
+}
 
-
-#endif //SRC_RM_FSM_INCLUDE_RM_FSM_STATE_AUTOMATIC_H_
+#endif //RM_FSM_STATE_AUTOMATIC_H_

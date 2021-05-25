@@ -2,36 +2,38 @@
 // Created by kiana on 2021/3/22.
 //
 
-#ifndef SRC_RM_SOFTWARE_RM_FSM_INCLUDE_RM_FSM_TARGET_COST_FUNCTION_H_
-#define SRC_RM_SOFTWARE_RM_FSM_INCLUDE_RM_FSM_TARGET_COST_FUNCTION_H_
+#ifndef RM_FSM_TARGET_COST_FUNCTION_H_
+#define RM_FSM_TARGET_COST_FUNCTION_H_
 
 #include <ros/ros.h>
 #include <tf2_ros/transform_listener.h>
 #include <rm_msgs/TrackData.h>
 #include <rm_msgs/TrackDataArray.h>
 #include <geometry_msgs/Twist.h>
-#include "rm_fsm/referee/protocol.h"
+#include <map>
+#include "rm_fsm/referee/referee.h"
+
+namespace rm_fsm {
+struct TargetState {
+  int id{};
+  double pos_x{}, pos_y{}, pos_z{};
+  double vel_x{}, vel_y{}, vel_z{};
+  ros::Time last_receive_;
+};
 
 class TargetCostFunction {
  public:
-  explicit TargetCostFunction(ros::NodeHandle &nh);
-  void input(rm_msgs::TrackDataArray track_data_array, GameRobotHp robot_hp, bool only_attack_base = false);
-  void decideId(rm_msgs::TrackDataArray track_data_array, GameRobotHp robot_hp, bool only_attack_base = false);
-  int output() const;
-  double calculateCost(rm_msgs::TrackData track_data, GameRobotHp robot_hp);
-  void cleanCost(rm_msgs::TrackDataArray track_data_array);
+  explicit TargetCostFunction(ros::NodeHandle &nh, const Referee &referee);
+  int costFunction(const rm_msgs::TrackDataArray &track_data_array, bool only_attack_base = false);
+  double costFunction(const TargetState &target_state, bool only_attack_base = false
+  );
 
  private:
-  int id_{};
-  double k_f_{};
-  double k_hp_{};
-  double track_msg_timeout_{};
-  double cost_[7] = {999999, 999999, 999999, 999999, 999999, 999999, 999999};
-  std::string enemy_color_;
-  double time_interval_{};
-  double cost_clean_time_{};
-  ros::Time last_clean_time_;
-
+  double k_pos_{}, k_vel_{}, k_hp_{}, k_freq_{}, timeout_{};
+  const Referee &referee_;
+  int optimal_id_{};
+  std::map<int, TargetState> id2target_states_;
+  ros::Time last_switch_target_;
 };
-
-#endif //SRC_RM_SOFTWARE_RM_FSM_INCLUDE_RM_FSM_TARGET_COST_FUNCTION_H_
+}
+#endif // RM_FSM_TARGET_COST_FUNCTION_H_

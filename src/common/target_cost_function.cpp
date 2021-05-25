@@ -3,135 +3,77 @@
 //
 
 #include "rm_fsm/common/target_cost_function.h"
+namespace rm_fsm {
 
-TargetCostFunction::TargetCostFunction(ros::NodeHandle &nh) {
+TargetCostFunction::TargetCostFunction(ros::NodeHandle &nh, const Referee &referee) :
+    referee_{referee}, optimal_id_(0) {
   ros::NodeHandle cost_nh = ros::NodeHandle(nh, "target_cost_function");
-
-  if (!cost_nh.getParam("k_f", k_f_) ||
-      !cost_nh.getParam("k_hp", k_hp_) ||
-      !cost_nh.getParam("enemy_color", enemy_color_) ||
-      !cost_nh.getParam("cost_clean_time", cost_clean_time_) ||
-      !cost_nh.getParam("track_msg_timeout", track_msg_timeout_))
-    ROS_ERROR("Some target cost function params doesn't given (namespace: %s)", cost_nh.getNamespace().c_str());
-
-  id_ = 0;
-  time_interval_ = 0.1;
+  if (!cost_nh.getParam("k_pos", k_pos_))
+    ROS_ERROR("K position no defined (namespace: %s)", cost_nh.getNamespace().c_str());
+  if (!cost_nh.getParam("k_vel", k_vel_))
+    ROS_ERROR("K velocity  no defined (namespace: %s)", cost_nh.getNamespace().c_str());
+  if (!cost_nh.getParam("k_hp", k_hp_))
+    ROS_ERROR("K velocity no defined (namespace: %s)", cost_nh.getNamespace().c_str());
+  if (!cost_nh.getParam("k_freq", k_freq_))
+    ROS_ERROR("K frequency no defined (namespace: %s)", cost_nh.getNamespace().c_str());
+  if (!cost_nh.getParam("timeout", timeout_))
+    ROS_ERROR("Timeout no defined (namespace: %s)", cost_nh.getNamespace().c_str());
 }
 
-void TargetCostFunction::input(rm_msgs::TrackDataArray track_data_array, GameRobotHp robot_hp, bool only_attack_base) {
-
-  double timeout_judge = (ros::Time::now() - track_data_array.header.stamp).toSec();
-  if (timeout_judge > track_msg_timeout_) {
-    id_ = 0;
+int TargetCostFunction::costFunction(const rm_msgs::TrackDataArray &track_data_array, bool only_attack_base) {
+  double optimal_cost = 1e9;
+  for (const auto &track:track_data_array.tracks) {
+    if (id2target_states_.find(track.id) == id2target_states_.end())
+      id2target_states_.insert(std::make_pair(track.id, TargetState{.id= track.id}));
+    TargetState &target_state = id2target_states_.find(track.id)->second;
+    target_state.pos_x = track.camera2detection.x;
+    target_state.pos_y = track.camera2detection.y;
+    target_state.pos_z = track.camera2detection.z;
+    // TODO Add Vel to msg
+    target_state.vel_x = 0.;
+    target_state.vel_y = 0.;
+    target_state.vel_z = 0.;
+    target_state.last_receive_ = track_data_array.header.stamp;
   }
-  else decideId(track_data_array, robot_hp, only_attack_base);
-
-}
-
-void TargetCostFunction::decideId(rm_msgs::TrackDataArray track_data_array,
-                                  GameRobotHp robot_hp,
-                                  bool only_attack_base) {
-  double track_number = track_data_array.tracks.size();
-
-  //clean cost
-  if ((ros::Time::now() - last_clean_time_).toSec() > cost_clean_time_) {
-    this->cleanCost(track_data_array);
-    last_clean_time_ = ros::Time::now();
-  }
-
-  if (!track_number) id_ = 0;
-  else {
-    //Update targets cost
-    for (int i = 0; i < track_number; i++) {
-      if (track_data_array.tracks[i].id == 1) cost_[0] = calculateCost(track_data_array.tracks[i], robot_hp);
-      else if (track_data_array.tracks[i].id == 2) cost_[1] = calculateCost(track_data_array.tracks[i], robot_hp);
-      else if (track_data_array.tracks[i].id == 3) cost_[2] = calculateCost(track_data_array.tracks[i], robot_hp);
-      else if (track_data_array.tracks[i].id == 4) cost_[3] = calculateCost(track_data_array.tracks[i], robot_hp);
-      else if (track_data_array.tracks[i].id == 5) cost_[4] = calculateCost(track_data_array.tracks[i], robot_hp);
-      else if (track_data_array.tracks[i].id == 7) cost_[6] = calculateCost(track_data_array.tracks[i], robot_hp);
-      else if (only_attack_base && track_data_array.tracks[i].id == 8) id_ = 8;
-      else if ((only_attack_base && track_data_array.tracks[i].id == 9)) id_ = 9;
-      else
-        ROS_INFO("Detect a non-existent id:%d", track_data_array.tracks[i].id);
-    }
-
-    //find min cost
-    int id_temp = 1;
-    double cost_temp = cost_[0];
-    for (int j = 1; j < 7; j++) {
-      cost_temp = (cost_temp < cost_[j]) ? cost_temp : cost_[j];
-      id_temp = (cost_temp < cost_[j]) ? id_temp : j + 1;
-    }
-
-    //decide change id or not
-    if (id_ != 9 && id_ != id_temp) {
-      if (id_ == 0) id_ = id_temp;
-      else {
-        cost_[id_temp - 1] += k_f_ / time_interval_;
-        id_ = (cost_[id_ - 1] < cost_[id_temp - 1]) ? id_ : id_temp;
-        time_interval_ = (cost_[id_ - 1] < cost_[id_temp - 1]) ? (time_interval_ + 0.1) : 0.1;
-      }
+  for (const auto &target_state: id2target_states_) {
+    if ((ros::Time::now() - target_state.second.last_receive_).toSec() > timeout_)
+      continue;
+    double cost = costFunction(target_state.second, only_attack_base);
+    if (cost <= optimal_cost) {
+      optimal_cost = cost;
+      optimal_id_ = target_state.first;
+      last_switch_target_ = ros::Time::now();
     }
   }
-
+  return optimal_cost == 1e9 ? 0 : optimal_id_;
 }
 
-
-double TargetCostFunction::calculateCost(rm_msgs::TrackData track_data, GameRobotHp robot_hp) {
-  /*
-  double delta_x_2 = pow(track_data.pose.position.x + time_interval_ * track_data.speed.linear.x, 2);
-  double delta_y_2 = pow(track_data.pose.position.y + time_interval_ * track_data.speed.linear.y, 2);
-  double delta_z_2 = pow(track_data.pose.position.z + time_interval_ * track_data.speed.linear.z, 2);
-   */
-
-  //not speed
-  double delta_x_2 = pow(track_data.camera2detection.x, 2);
-  double delta_y_2 = pow(track_data.camera2detection.y, 2);
-  double delta_z_2 = pow(track_data.camera2detection.z, 2);
-  double distance = sqrt(delta_x_2 + delta_y_2 + delta_z_2);
-
-  //Hp
-  double hp_cost;
-  if (enemy_color_ == "red") {
-    if (track_data.id == 1) hp_cost = robot_hp.red_1_robot_HP;
-    else if (track_data.id == 2) hp_cost = robot_hp.red_2_robot_HP;
-    else if (track_data.id == 3) hp_cost = robot_hp.red_3_robot_HP;
-    else if (track_data.id == 4) hp_cost = robot_hp.red_4_robot_HP;
-    else if (track_data.id == 5) hp_cost = robot_hp.red_5_robot_HP;
-    else if (track_data.id == 7) hp_cost = robot_hp.red_7_robot_HP;
-    else hp_cost = 0.0;
-  } else if (enemy_color_ == "blue") {
-    if (track_data.id == 1) hp_cost = robot_hp.blue_1_robot_HP;
-    else if (track_data.id == 2) hp_cost = robot_hp.blue_2_robot_HP;
-    else if (track_data.id == 3) hp_cost = robot_hp.blue_3_robot_HP;
-    else if (track_data.id == 4) hp_cost = robot_hp.blue_4_robot_HP;
-    else if (track_data.id == 5) hp_cost = robot_hp.blue_5_robot_HP;
-    else if (track_data.id == 7) hp_cost = robot_hp.blue_7_robot_HP;
-    else hp_cost = 0.0;
-  } else hp_cost = 0.0;
-
-  double cost = distance - k_hp_ * hp_cost;
-
-  return cost;
-}
-
-void TargetCostFunction::cleanCost(rm_msgs::TrackDataArray track_data_array) {
-  int track_id;
-  bool id_flag[7] = {false, false, false, false, false, false, false};
-
-  for (int i = 0; i < int(track_data_array.tracks.size()); i++) {
-    track_id = track_data_array.tracks[i].id;
-    if (track_id < 8 && track_id != 6) {
-      id_flag[track_id - 1] = true;
+double TargetCostFunction::costFunction(const TargetState &target_state, bool only_attack_base) {
+  if (only_attack_base) return 0.;
+  double distance = sqrt(pow(target_state.pos_x, 2) + pow(target_state.pos_y, 2) + pow(target_state.pos_z, 2));
+  // TODO Finish Vel cost
+  double velocity = 0.;
+  double hp_cost = 0.;
+  if (referee_.is_online_) {
+    if (referee_.referee_data_.game_robot_status_.robot_id_ <= RED_RADAR) {  // The enemy color is blue
+      if (target_state.id == 1) hp_cost = referee_.referee_data_.game_robot_hp_.blue_1_robot_hp_;
+      else if (target_state.id == 2) hp_cost = referee_.referee_data_.game_robot_hp_.blue_2_robot_hp_;
+      else if (target_state.id == 3) hp_cost = referee_.referee_data_.game_robot_hp_.blue_3_robot_hp_;
+      else if (target_state.id == 4) hp_cost = referee_.referee_data_.game_robot_hp_.blue_4_robot_hp_;
+      else if (target_state.id == 5) hp_cost = referee_.referee_data_.game_robot_hp_.blue_5_robot_hp_;
+      else if (target_state.id == 7) hp_cost = referee_.referee_data_.game_robot_hp_.blue_7_robot_hp_;
+    } else {    // The enemy color is red
+      if (target_state.id == 1) hp_cost = referee_.referee_data_.game_robot_hp_.red_1_robot_hp_;
+      else if (target_state.id == 2) hp_cost = referee_.referee_data_.game_robot_hp_.red_2_robot_hp_;
+      else if (target_state.id == 3) hp_cost = referee_.referee_data_.game_robot_hp_.red_3_robot_hp_;
+      else if (target_state.id == 4) hp_cost = referee_.referee_data_.game_robot_hp_.red_4_robot_hp_;
+      else if (target_state.id == 5) hp_cost = referee_.referee_data_.game_robot_hp_.red_5_robot_hp_;
+      else if (target_state.id == 7) hp_cost = referee_.referee_data_.game_robot_hp_.red_7_robot_hp_;
     }
   }
-
-  for (int j = 0; j < 7; j++) {
-    cost_[j] = id_flag[j] ? cost_[j] : 999999;
-  }
-
+  double frequency =
+      (target_state.id == optimal_id_ || optimal_id_ == 0) ? 0. : 1. / (ros::Time::now() - last_switch_target_).toSec();
+  return k_pos_ * distance + k_vel_ * velocity + k_hp_ * hp_cost + k_freq_ * frequency; //TODO velocity
 }
 
-int TargetCostFunction::output() const {
-  return id_;
 }
