@@ -4,7 +4,7 @@
 
 #ifndef SRC_RM_FSM_INCLUDE_RM_FSM_STATE_AUTOMATIC_H_
 #define SRC_RM_FSM_INCLUDE_RM_FSM_STATE_AUTOMATIC_H_
-#include "rm_fsm/fsm_common.h"
+#include "rm_fsm/common/fsm_common.h"
 #include <tf2_ros/static_transform_broadcaster.h>
 #include <tf2_ros/transform_broadcaster.h>
 #include <sensor_msgs/JointState.h>

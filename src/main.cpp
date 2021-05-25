@@ -2,7 +2,7 @@
 // Created by luohx on 7/27/20.
 //
 
-#include "rm_fsm/fsm_common.h"
+#include "rm_fsm/common/fsm_common.h"
 #include "rm_fsm/fsm_sentry.h"
 
 int main(int argc, char **argv) {

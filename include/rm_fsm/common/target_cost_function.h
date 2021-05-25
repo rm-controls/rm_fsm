@@ -10,7 +10,7 @@
 #include <rm_msgs/TrackData.h>
 #include <rm_msgs/TrackDataArray.h>
 #include <geometry_msgs/Twist.h>
-#include "rm_fsm/protocol.h"
+#include "rm_fsm/referee/protocol.h"
 
 class TargetCostFunction {
  public:

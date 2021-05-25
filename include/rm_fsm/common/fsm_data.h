@@ -5,9 +5,9 @@
 #ifndef RM_BASE_RM_DECISION_INCLUDE_FSM_CONTROL_FSM_DATA_H_
 #define RM_BASE_RM_DECISION_INCLUDE_FSM_CONTROL_FSM_DATA_H_
 
-#include "rm_fsm/referee.h"
-#include "rm_fsm/shooter_heat_limit.h"
-#include "rm_fsm/target_cost_function.h"
+#include "rm_fsm/referee/referee.h"
+#include "shooter_heat_limit.h"
+#include "target_cost_function.h"
 
 #include <ros/ros.h>
 #include <geometry_msgs/Twist.h>

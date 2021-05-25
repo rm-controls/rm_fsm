@@ -2,7 +2,7 @@
 // Created by peter on 2020/12/3.
 //
 
-#include "rm_fsm/fsm_common.h"
+#include "rm_fsm/common/fsm_common.h"
 
 template<typename T>
 State<T>::State(ros::NodeHandle &fsm_nh, FsmData<T> *fsm_data, std::string state_name)

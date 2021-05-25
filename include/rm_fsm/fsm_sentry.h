@@ -5,10 +5,10 @@
 #ifndef SRC_RM_FSM_INCLUDE_RM_FSM_FSM_SENTRY_H_
 #define SRC_RM_FSM_INCLUDE_RM_FSM_FSM_SENTRY_H_
 
-#include "rm_fsm/fsm_common.h"
-#include "rm_fsm/state_raw.h"
-#include "rm_fsm/state_passive.h"
-#include "rm_fsm/state_automatic.h"
+#include "rm_fsm/common/fsm_common.h"
+#include "state_raw.h"
+#include "state_passive.h"
+#include "state_automatic.h"
 template<typename T>
 class FsmSentry : public Fsm<T> {
  public:

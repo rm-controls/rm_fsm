@@ -4,7 +4,7 @@
 
 #ifndef SRC_FSM_STATE_RAW_H
 #define SRC_FSM_STATE_RAW_H
-#include "rm_fsm/fsm_common.h"
+#include "rm_fsm/common/fsm_common.h"
 
 template<typename T>
 class StateRaw : public State<T> {

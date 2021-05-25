@@ -12,7 +12,7 @@
 #include <control_toolbox/pid.h>
 #include <rm_common/ros_utilities.h>
 #include "rm_common/ori_tool.h"
-#include "rm_fsm/fsm_data.h"
+#include "fsm_data.h"
 
 /**
  * A base fsm state class for all robots.
