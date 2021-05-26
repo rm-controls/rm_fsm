@@ -147,7 +147,7 @@ class ShooterCommandSender : public TimeStampCommandSenderBase<rm_msgs::ShootCmd
       ROS_ERROR("Gimbal error limit no defined (namespace: %s)", nh.getNamespace().c_str());
   }
   ~ShooterCommandSender() { delete heat_limit_; }
-  void setMagazine(bool is_open) { msg_.magazine = is_open; }
+  void setMagazine(bool is_open) { msg_.cover = is_open; }
   void setBurst(bool burst_flag) { heat_limit_->burst_flag_ = burst_flag; }
   void checkGimbalError(int track_error) {
     if (track_error > gimbal_error_limit_) setMode(rm_msgs::ShootCmd::READY);
