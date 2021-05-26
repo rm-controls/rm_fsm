@@ -13,19 +13,7 @@ namespace rm_fsm {
 class StateAutomatic : public State {
  public:
   StateAutomatic(ros::NodeHandle &nh, Data *fsm_data, const std::string &state_string);
-  void onEnter() override {
-    ROS_INFO("Enter automatic mode");
-    point_side_ = 1;
-    gimbal_position_ = 1;
-    calibration_finish_ = false;
-    current_speed_ = 0;
-    current_position_ = 0;
-  };
   void run() override;
-  void onExit() override {
-    ROS_INFO("Exit automatic mode");
-    calibration_finish_ = false;
-  };
   void effortDataCallback(const sensor_msgs::JointState::ConstPtr &data) { effort_data_ = *data; }
 
   ros::Subscriber effort_sub_;
@@ -41,7 +29,7 @@ class StateAutomatic : public State {
   geometry_msgs::TransformStamped map2odom_;
   geometry_msgs::TransformStamped odom2baselink_;
  protected:
-  int point_side_, gimbal_position_, attack_id_;
+  int point_side_, gimbal_position_;
   double auto_move_chassis_speed_, auto_move_pitch_speed_, auto_move_yaw_speed_, auto_move_accel_x_, start_, end_,
       calibration_speed_, collision_distance_, current_speed_, current_position_;
   bool column_, calibration_finish_;

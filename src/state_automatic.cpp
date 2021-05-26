@@ -8,7 +8,11 @@ namespace rm_fsm {
 StateAutomatic::StateAutomatic(ros::NodeHandle &fsm_nh, Data *fsm_data, const std::string &state_string)
     : State(fsm_nh, fsm_data, state_string) {
   tf_listener_ = new tf2_ros::TransformListener(tf_);
-
+  point_side_ = 1;
+  gimbal_position_ = 1;
+  calibration_finish_ = false;
+  current_speed_ = 0;
+  current_position_ = 0;
   map2odom_.header.stamp = ros::Time::now();
   map2odom_.header.frame_id = "map";
   map2odom_.child_frame_id = "odom";
@@ -56,13 +60,13 @@ void StateAutomatic::run() {
       else if ((current_position_ <= start_ + collision_distance_) && (point_side_ == 3)) point_side_ = 4;
       if (point_side_ == 1) {
         chassis_cmd_sender_->setMode(rm_msgs::ChassisCmd::RAW);
-        vel_cmd_sender_->setXVel(auto_move_chassis_speed_);
+        vel_cmd_sender_->setLinearXVel(auto_move_chassis_speed_);
       } else if (point_side_ == 2) {
         chassis_cmd_sender_->setMode(rm_msgs::ChassisCmd::PASSIVE);
         if (current_speed_ <= 0) point_side_ = 3;
       } else if (point_side_ == 3) {
         chassis_cmd_sender_->setMode(rm_msgs::ChassisCmd::RAW);
-        vel_cmd_sender_->setXVel(-auto_move_chassis_speed_);
+        vel_cmd_sender_->setLinearXVel(-auto_move_chassis_speed_);
       } else if (point_side_ == 4) {
         chassis_cmd_sender_->setMode(rm_msgs::ChassisCmd::PASSIVE);
         if (current_speed_ >= 0) point_side_ = 1;
@@ -72,10 +76,10 @@ void StateAutomatic::run() {
       else if (current_position_ <= start_ + stop_distance) point_side_ = 1;
       if (point_side_ == 1) {
         chassis_cmd_sender_->setMode(rm_msgs::ChassisCmd::RAW);
-        vel_cmd_sender_->setXVel(auto_move_chassis_speed_);
+        vel_cmd_sender_->setLinearXVel(auto_move_chassis_speed_);
       } else {
         chassis_cmd_sender_->setMode(rm_msgs::ChassisCmd::RAW);
-        vel_cmd_sender_->setXVel(-auto_move_chassis_speed_);
+        vel_cmd_sender_->setLinearXVel(-auto_move_chassis_speed_);
       }
     }
     gimbal_cmd_sender_->setMode(rm_msgs::GimbalCmd::TRACK);
@@ -84,7 +88,7 @@ void StateAutomatic::run() {
     shooter_cmd_sender_->checkGimbalError(data_->gimbal_des_error_.error);
   } else {
     chassis_cmd_sender_->setMode(rm_msgs::ChassisCmd::RAW);
-    vel_cmd_sender_->setXVel(-calibration_speed_);
+    vel_cmd_sender_->setLinearXVel(-calibration_speed_);
     gimbal_cmd_sender_->setMode(rm_msgs::GimbalCmd::PASSIVE);
     if (now - start_calibration_time_ > ros::Duration(0.4)) {
       if (now_effort < -1.1) {

@@ -5,6 +5,10 @@
 #ifndef RM_FSM_COMMON_FSM_COMMON_H_
 #define RM_FSM_COMMON_FSM_COMMON_H_
 
+#include "rm_fsm/common/data.h"
+#include "rm_fsm/common/command_sender.h"
+#include "rm_fsm/common/controller_manager.h"
+
 #include <iostream>
 #include <queue>
 #include <utility>
@@ -12,29 +16,30 @@
 #include <control_toolbox/pid.h>
 #include <rm_common/ros_utilities.h>
 #include <rm_common/ori_tool.h>
-#include "rm_fsm/common/data.h"
-#include "rm_fsm/common/command_sender.h"
 
 namespace rm_fsm {
 class State {
  public:
   State(ros::NodeHandle &nh, Data *fsm_data, std::string state_name);
+  virtual void run() = 0;
+  void onEnter() { ROS_INFO("Enter %s state", state_name_.c_str()); }
+  void onExit() { ROS_INFO("Exit %s state", state_name_.c_str()); }
+  std::string getStateName() { return state_name_; }
+
+ protected:
   void sendCommand(const ros::Time &time) {
     chassis_cmd_sender_->sendCommand(time);
     vel_cmd_sender_->sendCommand(time);
     gimbal_cmd_sender_->sendCommand(time);
     shooter_cmd_sender_->sendCommand(time);
   };
-  virtual void onEnter() = 0;
-  virtual void run() = 0;
-  virtual void onExit() = 0;
 
   ros::NodeHandle nh_;
   Data *data_;
-  std::string state_name_;     // enumerated name of the current state
+  std::string state_name_;
 
   ChassisCommandSender *chassis_cmd_sender_;
-  VelCommandSender *vel_cmd_sender_;
+  Vel2DCommandSender *vel_cmd_sender_;
   GimbalCommandSender *gimbal_cmd_sender_;
   ShooterCommandSender *shooter_cmd_sender_;
 };
@@ -42,18 +47,23 @@ class State {
 class Fsm {
  public:
   explicit Fsm(ros::NodeHandle &nh);
+  ~Fsm() { delete controller_manager_; }
   enum { NORMAL, TRANSITIONING };
   void run();
+ protected:
   virtual std::string getDesiredState() = 0;
+  void checkSwitch(const ros::Time &time);
+  void remoteControlTurnOff() { controller_manager_->stopMovementControllers(); }
+  void remoteControlTurnOn() { controller_manager_->startMovementControllers(); }
 
   ros::NodeHandle nh_;
   Data data_;
- protected:
-  State *current_state_;    // current FSM state
-  State *next_state_;       // next FSM state
+  ControllerManager *controller_manager_;
+  State *current_state_, *next_state_;
   std::map<std::string, State *> string2state;
-  std::string next_state_name_;  // next FSM state name
+  std::string next_state_name_;
   int operating_mode_ = NORMAL;
+  bool remote_is_open_{};
 };
 }
 #endif // RM_FSM_COMMON_FSM_COMMON_H_
