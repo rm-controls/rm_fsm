@@ -11,12 +11,6 @@ class StatePassive : public State {
  public:
   StatePassive(ros::NodeHandle &nh, Data *fsm_data, const std::string &state_string) :
       State(nh, fsm_data, state_string) {}
-  void run() override {
-    chassis_cmd_sender_->setMode(rm_msgs::ChassisCmd::PASSIVE);
-    gimbal_cmd_sender_->setMode(rm_msgs::GimbalCmd::PASSIVE);
-    shooter_cmd_sender_->setMode(rm_msgs::ShootCmd::PASSIVE);
-    sendCommand(ros::Time::now());
-  };
 };
 }
 

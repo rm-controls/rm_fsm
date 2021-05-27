@@ -21,15 +21,22 @@ namespace rm_fsm {
 class State {
  public:
   State(ros::NodeHandle &nh, Data *fsm_data, std::string state_name);
-  virtual void run() = 0;
+  virtual void run() {
+    setChassis();
+    setGimbal();
+    setShooter();
+    sendCommand(ros::Time::now());
+  };
   void onEnter() { ROS_INFO("Enter %s state", state_name_.c_str()); }
   void onExit() { ROS_INFO("Exit %s state", state_name_.c_str()); }
   std::string getStateName() { return state_name_; }
-
  protected:
+  virtual void setChassis() { chassis_cmd_sender_->setMode(rm_msgs::ChassisCmd::PASSIVE); }
+  virtual void setGimbal() { gimbal_cmd_sender_->setMode(rm_msgs::GimbalCmd::PASSIVE); }
+  virtual void setShooter() { shooter_cmd_sender_->setMode(rm_msgs::ShootCmd::PASSIVE); }
   void sendCommand(const ros::Time &time) {
     chassis_cmd_sender_->sendCommand(time);
-    vel_cmd_sender_->sendCommand(time);
+    vel_2d_cmd_sender_->sendCommand(time);
     gimbal_cmd_sender_->sendCommand(time);
     shooter_cmd_sender_->sendCommand(time);
   };
@@ -37,9 +44,8 @@ class State {
   ros::NodeHandle nh_;
   Data *data_;
   std::string state_name_;
-
   ChassisCommandSender *chassis_cmd_sender_;
-  Vel2DCommandSender *vel_cmd_sender_;
+  Vel2DCommandSender *vel_2d_cmd_sender_;
   GimbalCommandSender *gimbal_cmd_sender_;
   ShooterCommandSender *shooter_cmd_sender_;
 };
