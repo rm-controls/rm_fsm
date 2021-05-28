@@ -41,7 +41,6 @@ void Referee::read() {
     }
   } catch (serial::IOException &e) {
     ROS_ERROR("Referee system disconnect, cannot read referee data");
-    is_online_ = false;
     return;
   }
 
@@ -219,7 +218,6 @@ void Referee::drawCircle(int center_x, int center_y, int radius, int picture_id,
     serial_.write(tx_buffer, tx_len);
   } catch (serial::PortNotOpenedException &e) {
     ROS_ERROR("Cannot open referee port, fail to draw UI");
-    is_online_ = false;
     return;
   }
 }
@@ -258,7 +256,6 @@ void Referee::drawString(int x, int y, int picture_id, std::string data,
     serial_.write(tx_buffer, tx_len);
   } catch (serial::PortNotOpenedException &e) {
     ROS_ERROR("Cannot open referee port, fail to draw UI");
-    is_online_ = false;
     return;
   }
 }

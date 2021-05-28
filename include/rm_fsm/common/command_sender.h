@@ -144,7 +144,7 @@ class ShooterCommandSender : public TimeStampCommandSenderBase<rm_msgs::ShootCmd
   void setMagazine(bool is_open) { msg_.cover = is_open; }
   void setBurst(bool burst_flag) { heat_limit_->burst_flag_ = burst_flag; }
   void checkGimbalError(int track_error) {
-    if (track_error > gimbal_error_limit_) setMode(rm_msgs::ShootCmd::READY);
+    if (msg_.mode == rm_msgs::ShootCmd::PUSH && track_error > gimbal_error_limit_) setMode(rm_msgs::ShootCmd::READY);
   }
   void sendCommand(const ros::Time &time) override {
     msg_.speed = heat_limit_->getSpeedLimit();
