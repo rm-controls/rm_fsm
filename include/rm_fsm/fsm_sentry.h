@@ -10,16 +10,14 @@
 #include <sensor_msgs/JointState.h>
 #include "rm_fsm/common/fsm_common.h"
 #include "rm_fsm/state_raw.h"
-#include "rm_fsm/state_passive.h"
 #include "rm_fsm/state_calibrate.h"
-#include "rm_fsm/state_standby.h"
 #include "rm_fsm/state_attack.h"
 
 namespace rm_fsm {
 class FsmSentry : public Fsm {
  public:
   FsmSentry(ros::NodeHandle &nh) : Fsm(nh) {
-    tf_listener_ = new tf2_ros::TransformListener(tf_);
+    tf_listener_ = new tf2_ros::TransformListener(tf_buffer_);
     ros::NodeHandle auto_nh = ros::NodeHandle(nh, "auto");
     if (!auto_nh.getParam("move_distance", move_distance_)) {
       ROS_ERROR("Move distance no defined (namespace: %s)", nh.getNamespace().c_str());
@@ -30,12 +28,10 @@ class FsmSentry : public Fsm {
     if (!auto_nh.getParam("collision", collision_)) {
       ROS_ERROR("Collision no defined (namespace: %s)", nh.getNamespace().c_str());
     }
-    string2state.insert(std::pair<std::string, State *>("passive", &state_passive_));
     string2state.insert(std::pair<std::string, State *>("raw", &state_raw_));
     string2state.insert(std::pair<std::string, State *>("calibrate", &state_calibrate_));
-    string2state.insert(std::pair<std::string, State *>("standby", &state_standby_));
     string2state.insert(std::pair<std::string, State *>("attack", &state_attack_));
-    current_state_ = this->string2state["passive"];
+    current_state_ = string2state["raw"];
     odom2baselink_.header.frame_id = "odom";
     odom2baselink_.child_frame_id = "base_link";
     map2odom_.header.stamp = ros::Time::now();
@@ -46,31 +42,23 @@ class FsmSentry : public Fsm {
     map2odom_.transform.translation.z = 0;
     map2odom_.transform.rotation.w = 1;
     static_tf_broadcaster_.sendTransform(map2odom_);
-  };
-  std::string getDesiredState() {
+  }
+  std::string getDesiredState() override {
     if (data_.dbus_data_.s_r == rm_msgs::DbusData::UP) {
-      ros::Time time = ros::Time::now();
-      if ((time - last_update_time_).toSec() > 0.1) {
-        last_update_time_ = time;
-        getEffort();
-      }
-      getPosition();
-      if (finish_calibrate_) return "standby";
+      updateEffort();
+      if (finish_calibrate_) return "attack";
       else if (current_effort_ < -1.1) {
-        ROS_INFO("Calibrate finish");
         finish_calibrate_ = true;
         updateTf();
-        return "standby";
+        return "attack";
       } else return "calibrate";
-    } else if (data_.dbus_data_.s_r == rm_msgs::DbusData::MID) return "raw";
-    else return "passive";
-  };
-
+    } else return "raw";
+  }
  protected:
   void getPosition() {
     geometry_msgs::TransformStamped odom2baselink;
     int stop_distance = 0;
-    try { odom2baselink = tf_.lookupTransform("odom", "base_link", ros::Time(0)); }
+    try { odom2baselink = tf_buffer_.lookupTransform("odom", "base_link", ros::Time(0)); }
     catch (tf2::TransformException &ex) { ROS_WARN("%s", ex.what()); }
     if (collision_) {
       current_speed_ = joint_state_.velocity[0];
@@ -85,12 +73,16 @@ class FsmSentry : public Fsm {
       else if (current_position_ <= stop_distance) current_position_ = 1;
     }
   }
-  void getEffort() {
-    sum_effort_ += joint_state_.effort[0];
-    current_effort_ = sum_effort_ / 10;
-    if (++sum_count_ >= 10) {
-      sum_count_ = 0;
-      sum_effort_ = 0;
+  void updateEffort() {
+    ros::Time time = ros::Time::now();
+    if ((time - last_update_time_).toSec() > 0.1) {
+      last_update_time_ = time;
+      sum_effort_ += joint_state_.effort[0];
+      current_effort_ = sum_effort_ / 10;
+      if (++sum_count_ >= 10) {
+        sum_count_ = 0;
+        sum_effort_ = 0;
+      }
     }
   }
   void updateTf() {
@@ -109,7 +101,7 @@ class FsmSentry : public Fsm {
   }
   void effortDataCallback(const sensor_msgs::JointState::ConstPtr &data) { joint_state_ = *data; }
 
-  tf2_ros::Buffer tf_;
+  tf2_ros::Buffer tf_buffer_;
   tf2_ros::TransformListener *tf_listener_;
   tf2_ros::StaticTransformBroadcaster static_tf_broadcaster_;
   tf2_ros::TransformBroadcaster tf_broadcaster_;
@@ -126,10 +118,8 @@ class FsmSentry : public Fsm {
   double sum_effort_ = 0, sum_count_ = 0, current_effort_;
   bool collision_, finish_calibrate_ = false;
  private:
-  StatePassive state_passive_ = StatePassive(nh_, &this->data_, "passive");
   StateRaw state_raw_ = StateRaw(nh_, &this->data_, "raw");
   StateCalibrate state_calibrate_ = StateCalibrate(nh_, &this->data_, "calibrate");
-  StateStandby state_standby_ = StateStandby(nh_, &this->data_, "standby");
   StateAttack state_attack_ = StateAttack(nh_, &this->data_, "automatic");
 };
 }

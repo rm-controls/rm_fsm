@@ -55,7 +55,7 @@ class Fsm {
   explicit Fsm(ros::NodeHandle &nh);
   ~Fsm() { delete controller_manager_; }
   enum { NORMAL, TRANSITIONING };
-  void run();
+  virtual void run();
  protected:
   virtual std::string getDesiredState() = 0;
   void checkSwitch(const ros::Time &time);
