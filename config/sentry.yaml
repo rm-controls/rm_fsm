@@ -31,12 +31,13 @@ rm_fsm:
       type: "ID1_17MM"
   auto:
     move_distance: 1.45
+    stop_distance: 0.2
     collision_distance: 0.3
-    collision: false
+    collision_flag: true
     calibrate:
       scale_x: 0.2
     move:
-      scale_x: 1.6
+      scale_x: 0.2
       scale_pitch: 0.8
       scale_yaw: 2.5
   controller_manager:

@@ -10,11 +10,7 @@ class StateAttack : public State {
  public:
   StateAttack(ros::NodeHandle &nh, Data *fsm_data, const std::string &state_string)
       : State(nh, fsm_data, state_string) {
-    ros::NodeHandle auto_nh = ros::NodeHandle(nh, "auto");
-    if (!auto_nh.getParam("collision", collision_)) {
-      ROS_ERROR("Collision no defined (namespace: %s)", nh.getNamespace().c_str());
-    }
-    ros::NodeHandle move_nh = ros::NodeHandle(auto_nh, "move");
+    ros::NodeHandle move_nh = ros::NodeHandle(nh, "auto/move");
     if (!move_nh.getParam("scale_x", scale_x_)) {
       ROS_ERROR("Scale x no defined (namespace: %s)", nh.getNamespace().c_str());
     }
@@ -26,16 +22,14 @@ class StateAttack : public State {
     }
   }
  protected:
-  void updatePosition(int position) { position_ = position; }
   void setChassis() override {
-    if (position_ == 1) vel_2d_cmd_sender_->setLinearXVel(scale_x_);
-    else if (position_ == 3) vel_2d_cmd_sender_->setLinearXVel(-scale_x_);
-
-    if (position_ == 1 || position_ == 3) chassis_cmd_sender_->setMode(rm_msgs::ChassisCmd::RAW);
-    else if (position_ == 2 || position_ == 4) {
-      if (collision_) chassis_cmd_sender_->setMode(rm_msgs::ChassisCmd::PASSIVE);
-      else chassis_cmd_sender_->setMode(rm_msgs::ChassisCmd::RAW);
+    if (move_status_ == LEAVE_START || move_status_ == LEAVE_END)
+      chassis_cmd_sender_->setMode(rm_msgs::ChassisCmd::RAW);
+    else if (move_status_ == APPROACH_START || move_status_ == APPROACH_END) {
+      chassis_cmd_sender_->setMode(rm_msgs::ChassisCmd::PASSIVE);
     }
+    if (move_status_ == LEAVE_START) vel_2d_cmd_sender_->setLinearXVel(scale_x_);
+    else if (move_status_ == LEAVE_END) vel_2d_cmd_sender_->setLinearXVel(-scale_x_);
   }
   void setGimbal() override {
     gimbal_cmd_sender_->setRate(scale_yaw_, scale_pitch_);
@@ -43,12 +37,10 @@ class StateAttack : public State {
     gimbal_cmd_sender_->updateCost(data_->track_data_array_, false);
   }
   void setShooter() override {
-    shooter_cmd_sender_->setMode(rm_msgs::ShootCmd::PUSH);
+    shooter_cmd_sender_->setMode(rm_msgs::ShootCmd::PASSIVE);
     shooter_cmd_sender_->checkGimbalError(data_->gimbal_des_error_.error);
   }
   double scale_yaw_, scale_pitch_, scale_x_;
-  int position_;
-  bool collision_;
 };
 }
 

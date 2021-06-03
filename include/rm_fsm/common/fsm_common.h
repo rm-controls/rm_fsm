@@ -18,6 +18,7 @@
 #include <rm_common/ori_tool.h>
 
 namespace rm_fsm {
+enum MoveStatus { APPROACH_START, LEAVE_START, APPROACH_END, LEAVE_END };
 class State {
  public:
   State(ros::NodeHandle &nh, Data *fsm_data, std::string state_name);
@@ -29,7 +30,8 @@ class State {
   };
   void onEnter() { ROS_INFO("Enter %s state", state_name_.c_str()); }
   void onExit() { ROS_INFO("Exit %s state", state_name_.c_str()); }
-  std::string getStateName() { return state_name_; }
+  void updatePosStatus(MoveStatus move_status) { move_status_ = move_status; }
+  std::string getName() { return state_name_; }
  protected:
   virtual void setChassis() { chassis_cmd_sender_->setMode(rm_msgs::ChassisCmd::PASSIVE); }
   virtual void setGimbal() { gimbal_cmd_sender_->setMode(rm_msgs::GimbalCmd::PASSIVE); }
@@ -40,7 +42,6 @@ class State {
     gimbal_cmd_sender_->sendCommand(time);
     shooter_cmd_sender_->sendCommand(time);
   };
-
   ros::NodeHandle nh_;
   Data *data_;
   std::string state_name_;
@@ -48,6 +49,7 @@ class State {
   Vel2DCommandSender *vel_2d_cmd_sender_;
   GimbalCommandSender *gimbal_cmd_sender_;
   ShooterCommandSender *shooter_cmd_sender_;
+  MoveStatus move_status_;
 };
 
 class Fsm {

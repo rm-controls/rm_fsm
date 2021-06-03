@@ -30,12 +30,11 @@ Fsm::Fsm(ros::NodeHandle &nh) : nh_(nh) {
 }
 
 void Fsm::run() {
-  ros::Time time = ros::Time::now();
-  checkSwitch(time);
+  checkSwitch(ros::Time::now());
   data_.referee_->read();
   if (operating_mode_ == NORMAL) {
     next_state_name_ = getDesiredState();
-    if (next_state_name_ != current_state_->getStateName()) {
+    if (next_state_name_ != current_state_->getName()) {
       operating_mode_ = TRANSITIONING;
       next_state_ = string2state[next_state_name_];
     } else current_state_->run();
