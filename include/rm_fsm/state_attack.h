@@ -6,10 +6,10 @@
 #define RM_FSM_STATE_ATTACK_H_
 
 namespace rm_fsm {
-class StateAttack : public State {
+class StateAttack : public StateBase {
  public:
-  StateAttack(ros::NodeHandle &nh, Data *fsm_data, const std::string &state_string)
-      : State(nh, fsm_data, state_string) {
+  StateAttack(ros::NodeHandle &nh, Data *data, const std::string &state_string)
+      : StateBase(nh, data, state_string) {
     ros::NodeHandle move_nh = ros::NodeHandle(nh, "auto/move");
     if (!move_nh.getParam("scale_x", scale_x_)) {
       ROS_ERROR("Scale x no defined (namespace: %s)", nh.getNamespace().c_str());

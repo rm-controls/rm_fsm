@@ -10,7 +10,7 @@ int main(int argc, char **argv) {
   ros::init(argc, argv, "rm_fsm");
   ros::NodeHandle fsm_nh("~");
   robot = getParam(fsm_nh, "robot_type", (std::string) "error");
-  rm_fsm::Fsm *control_fsm;
+  rm_fsm::FsmBase *control_fsm;
   if (robot == "sentry") {
     control_fsm = new rm_fsm::FsmSentry(fsm_nh);
     ROS_INFO("Running sentry robot.");

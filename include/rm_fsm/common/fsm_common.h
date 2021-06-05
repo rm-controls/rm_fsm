@@ -15,9 +15,19 @@
 
 namespace rm_fsm {
 enum MoveStatus { APPROACH_START, LEAVE_START, APPROACH_END, LEAVE_END };
-class State {
+class StateBase {
  public:
-  State(ros::NodeHandle &nh, Data *fsm_data, std::string state_name);
+  StateBase(ros::NodeHandle &nh, Data *data, std::string state_name)
+      : nh_(nh), data_(data), state_name_(std::move(state_name)) {
+    ros::NodeHandle chassis_nh(nh, "chassis");
+    chassis_cmd_sender_ = new ChassisCommandSender(chassis_nh, data_->referee_);
+    ros::NodeHandle vel_nh(nh, "vel");
+    vel_2d_cmd_sender_ = new Vel2DCommandSender(vel_nh);
+    ros::NodeHandle gimbal_nh(nh, "gimbal");
+    gimbal_cmd_sender_ = new GimbalCommandSender(gimbal_nh, data_->referee_);
+    ros::NodeHandle shooter_nh(nh, "shooter");
+    shooter_cmd_sender_ = new ShooterCommandSender(shooter_nh, data_->referee_);
+  }
   virtual void run() {
     setChassis();
     setGimbal();
@@ -40,18 +50,18 @@ class State {
   };
   ros::NodeHandle nh_;
   Data *data_;
+  MoveStatus move_status_;
   std::string state_name_;
   ChassisCommandSender *chassis_cmd_sender_;
   Vel2DCommandSender *vel_2d_cmd_sender_;
   GimbalCommandSender *gimbal_cmd_sender_;
   ShooterCommandSender *shooter_cmd_sender_;
-  MoveStatus move_status_;
 };
 
-class Fsm {
+class FsmBase {
  public:
-  explicit Fsm(ros::NodeHandle &nh);
-  ~Fsm() {
+  explicit FsmBase(ros::NodeHandle &nh);
+  ~FsmBase() {
     delete controller_loader_;
     delete calibration_manager_;
   }
@@ -75,8 +85,8 @@ class Fsm {
   CalibrationManager *calibration_manager_;
   SwitchControllersService *switch_state_ctrl_srv_, *switch_base_ctrl_srv_{};
 
-  State *current_state_, *next_state_;
-  std::map<std::string, State *> string2state;
+  StateBase *current_state_, *next_state_;
+  std::map<std::string, StateBase *> string2state;
   std::string next_state_name_;
   int operating_mode_ = NORMAL;
   bool remote_is_open_{};

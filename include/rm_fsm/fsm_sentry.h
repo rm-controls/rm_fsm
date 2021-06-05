@@ -7,17 +7,15 @@
 
 #include <tf2_ros/static_transform_broadcaster.h>
 #include <tf2_ros/transform_broadcaster.h>
-#include <sensor_msgs/JointState.h>
 #include "rm_fsm/common/fsm_common.h"
 #include "rm_fsm/state_raw.h"
 #include "rm_fsm/state_calibrate.h"
 #include "rm_fsm/state_attack.h"
 
 namespace rm_fsm {
-class FsmSentry : public Fsm {
+class FsmSentry : public FsmBase {
  public:
-  FsmSentry(ros::NodeHandle &nh) : Fsm(nh) {
-    tf_listener_ = new tf2_ros::TransformListener(tf_buffer_);
+  FsmSentry(ros::NodeHandle &nh) : FsmBase(nh) {
     ros::NodeHandle auto_nh = ros::NodeHandle(nh, "auto");
     if (!auto_nh.getParam("move_distance", move_distance_)) {
       ROS_ERROR("Move distance no defined (namespace: %s)", nh.getNamespace().c_str());
@@ -31,9 +29,9 @@ class FsmSentry : public Fsm {
     if (!auto_nh.getParam("collision_flag", collision_flag_)) {
       ROS_ERROR("Collision flag no defined (namespace: %s)", nh.getNamespace().c_str());
     }
-    string2state.insert(std::pair<std::string, State *>("raw", &state_raw_));
-    string2state.insert(std::pair<std::string, State *>("calibrate", &state_calibrate_));
-    string2state.insert(std::pair<std::string, State *>("attack", &state_attack_));
+    string2state.insert(std::pair<std::string, StateBase *>("raw", &state_raw_));
+    string2state.insert(std::pair<std::string, StateBase *>("calibrate", &state_calibrate_));
+    string2state.insert(std::pair<std::string, StateBase *>("attack", &state_attack_));
     current_state_ = string2state["raw"];
     odom2baselink_.header.frame_id = "odom";
     odom2baselink_.child_frame_id = "base_link";
@@ -47,7 +45,7 @@ class FsmSentry : public Fsm {
     static_tf_broadcaster_.sendTransform(map2odom_);
   }
   void run() override {
-    Fsm::run();
+    FsmBase::run();
     updatePosition();
     updateMoveStatus();
     if (current_state_->getName() == "attack") current_state_->updatePosStatus(move_status_);
@@ -67,13 +65,12 @@ class FsmSentry : public Fsm {
  protected:
   void updatePosition() {
     geometry_msgs::TransformStamped odom2baselink;
-    try { odom2baselink = tf_buffer_.lookupTransform("odom", "base_link", ros::Time(0)); }
+    try { odom2baselink = data_.tf_buffer_.lookupTransform("odom", "base_link", ros::Time(0)); }
     catch (tf2::TransformException &ex) { ROS_WARN("%s", ex.what()); }
     current_pos_x_ = odom2baselink.transform.translation.x;
   }
   void updateMoveStatus() {
     if (collision_flag_) {
-      current_speed_ = joint_state_.velocity[1];
       if (move_status_ == LEAVE_START && current_pos_x_ >= move_distance_ - collision_distance_)
         move_status_ = APPROACH_END;
       else if (move_status_ == LEAVE_END && current_pos_x_ <= collision_distance_) move_status_ = APPROACH_START;
@@ -85,7 +82,7 @@ class FsmSentry : public Fsm {
     }
   }
   void updateEffort() {
-    sum_effort_ += joint_state_.effort[1];
+    sum_effort_ += data_.actuator_state_.effort[1];
     if (sum_count_++ >= 10) {
       current_effort_ = sum_effort_ / 10;
       sum_count_ = 1;
@@ -106,20 +103,13 @@ class FsmSentry : public Fsm {
     odom2baselink_.transform.rotation.w = 1.;
     tf_broadcaster_.sendTransform(odom2baselink_);
   }
-  void effortDataCallback(const sensor_msgs::JointState::ConstPtr &data) { joint_state_ = *data; }
 
-  tf2_ros::Buffer tf_buffer_;
-  tf2_ros::TransformListener *tf_listener_;
   tf2_ros::StaticTransformBroadcaster static_tf_broadcaster_;
   tf2_ros::TransformBroadcaster tf_broadcaster_;
 
-  sensor_msgs::JointState joint_state_;
+  MoveStatus move_status_;
   geometry_msgs::TransformStamped map2odom_;
   geometry_msgs::TransformStamped odom2baselink_;
-  ros::Subscriber effort_sub_ =
-      nh_.subscribe<sensor_msgs::JointState>("/joint_states", 10, &FsmSentry::effortDataCallback, this);
-
-  MoveStatus move_status_;
   double move_distance_, stop_distance_, collision_distance_, current_speed_, current_pos_x_;
   double sum_effort_ = 0, current_effort_;
   int sum_count_ = 1;
