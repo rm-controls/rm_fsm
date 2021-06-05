@@ -18,10 +18,15 @@ State::State(ros::NodeHandle &nh, Data *fsm_data, std::string state_name)
 };
 
 Fsm::Fsm(ros::NodeHandle &nh) : nh_(nh) {
-  ros::NodeHandle ctrl_handle(nh, "controller_manager");
-  controller_manager_ = new ControllerManager(ctrl_handle);
-  controller_manager_->loadAllControllers();
-  controller_manager_->startInformationControllers();
+  controller_loader_ = new ControllerLoader(nh);
+  controller_loader_->loadControllers();
+  calibration_manager_ = new CalibrationManager(nh);
+  ros::NodeHandle state_ctrl_nh(nh, "state_controllers_switch");
+  switch_state_ctrl_srv_ = new SwitchControllersService(state_ctrl_nh);
+  switch_state_ctrl_srv_->startControllersOnly();
+  switch_state_ctrl_srv_->callService();
+  ros::NodeHandle base_ctrl_nh(nh, "base_controllers_switch");
+  switch_base_ctrl_srv_ = new SwitchControllersService(base_ctrl_nh);
   data_.init(nh);
   string2state.insert(std::make_pair("invalid", nullptr));
   current_state_ = string2state["invalid"];
@@ -30,7 +35,9 @@ Fsm::Fsm(ros::NodeHandle &nh) : nh_(nh) {
 }
 
 void Fsm::run() {
-  checkSwitch(ros::Time::now());
+  ros::Time time = ros::Time::now();
+  checkSwitch(time);
+  calibration_manager_->checkCalibrate(time);
   data_.referee_->read();
   if (operating_mode_ == NORMAL) {
     next_state_name_ = getDesiredState();
@@ -49,14 +56,14 @@ void Fsm::run() {
 
 void Fsm::checkSwitch(const ros::Time &time) {
   if (remote_is_open_ && (time - data_.dbus_data_.stamp).toSec() > 0.1) {
+    ROS_INFO("Remote off");
     remoteControlTurnOff();
     remote_is_open_ = false;
-    ROS_INFO("Remote off");
   }
   if (!remote_is_open_ && (time - data_.dbus_data_.stamp).toSec() < 0.1) {
+    ROS_INFO("Remote on");
     remoteControlTurnOn();
     remote_is_open_ = true;
-    ROS_INFO("Remote on");
   }
 }
 }

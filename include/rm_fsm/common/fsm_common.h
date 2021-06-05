@@ -7,13 +7,9 @@
 
 #include "rm_fsm/common/data.h"
 #include "rm_fsm/common/command_sender.h"
-#include "rm_fsm/common/controller_manager.h"
+#include "rm_fsm/common/controller_loader.h"
+#include "rm_fsm/common/calibration_manager.h"
 
-#include <iostream>
-#include <queue>
-#include <utility>
-#include <tf/transform_listener.h>
-#include <control_toolbox/pid.h>
 #include <rm_common/ros_utilities.h>
 #include <rm_common/ori_tool.h>
 
@@ -27,7 +23,7 @@ class State {
     setGimbal();
     setShooter();
     sendCommand(ros::Time::now());
-  };
+  }
   void onEnter() { ROS_INFO("Enter %s state", state_name_.c_str()); }
   void onExit() { ROS_INFO("Exit %s state", state_name_.c_str()); }
   void updatePosStatus(MoveStatus move_status) { move_status_ = move_status; }
@@ -55,18 +51,30 @@ class State {
 class Fsm {
  public:
   explicit Fsm(ros::NodeHandle &nh);
-  ~Fsm() { delete controller_manager_; }
+  ~Fsm() {
+    delete controller_loader_;
+    delete calibration_manager_;
+  }
   enum { NORMAL, TRANSITIONING };
   virtual void run();
  protected:
   virtual std::string getDesiredState() = 0;
   void checkSwitch(const ros::Time &time);
-  void remoteControlTurnOff() { controller_manager_->stopMovementControllers(); }
-  void remoteControlTurnOn() { controller_manager_->startMovementControllers(); }
+  void remoteControlTurnOff() {
+    switch_base_ctrl_srv_->flipControllers();
+    switch_base_ctrl_srv_->callService();
+  }
+  void remoteControlTurnOn() {
+    switch_base_ctrl_srv_->switchControllers();
+    switch_base_ctrl_srv_->callService();
+  }
 
   ros::NodeHandle nh_;
   Data data_;
-  ControllerManager *controller_manager_;
+  ControllerLoader *controller_loader_;
+  CalibrationManager *calibration_manager_;
+  SwitchControllersService *switch_state_ctrl_srv_, *switch_base_ctrl_srv_{};
+
   State *current_state_, *next_state_;
   std::map<std::string, State *> string2state;
   std::string next_state_name_;

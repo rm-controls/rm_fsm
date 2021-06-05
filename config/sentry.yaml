@@ -40,11 +40,30 @@ rm_fsm:
       scale_x: 0.2
       scale_pitch: 0.8
       scale_yaw: 2.5
-  controller_manager:
-    information_controllers:
+  controllers_list:
+    - controllers/robot_state_controller
+    - controllers/joint_state_controller
+    - controllers/chassis_controller
+    - controllers/gimbal_controller
+    - controllers/shooter_controller
+    - controllers/trigger_calibration_controller
+  state_controllers_switch:
+    start_controllers:
       - controllers/robot_state_controller
       - controllers/joint_state_controller
-    movement_controllers:
+  base_controllers_switch:
+    start_controllers:
       - controllers/chassis_controller
       - controllers/gimbal_controller
       - controllers/shooter_controller
+    stop_controllers:
+      - controllers/trigger_calibration_controller
+  calibration_manager:
+    trigger:
+      switch:
+        start_controllers:
+          - controllers/trigger_calibration_controller
+        stop_controllers:
+          - controllers/shooter_controller
+      query:
+        service_name: /controllers/trigger_calibration_controller/is_calibrated
