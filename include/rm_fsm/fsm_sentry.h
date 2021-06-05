@@ -32,6 +32,7 @@ class FsmSentry : public FsmBase {
     string2state.insert(std::pair<std::string, StateBase *>("raw", &state_raw_));
     string2state.insert(std::pair<std::string, StateBase *>("calibrate", &state_calibrate_));
     string2state.insert(std::pair<std::string, StateBase *>("attack", &state_attack_));
+    string2state.insert(std::pair<std::string, StateBase *>("passive", &state_passive_));
     current_state_ = string2state["raw"];
     odom2baselink_.header.frame_id = "odom";
     odom2baselink_.child_frame_id = "base_link";
@@ -48,11 +49,12 @@ class FsmSentry : public FsmBase {
     FsmBase::run();
     updatePosition();
     updateMoveStatus();
-    if (current_state_->getName() == "attack") current_state_->updatePosStatus(move_status_);
+    if (current_state_->getName() == "attack") current_state_->setMoveStatus(move_status_);
   }
-  std::string getDesiredState() override {
+  std::string getNextState() override {
+    updateEffort();
     if (data_.dbus_data_.s_r == rm_msgs::DbusData::UP) {
-      updateEffort();
+      ROS_INFO("%.2f", current_effort_);
       if (finish_calibrate_) return "attack";
       else if (current_effort_ < -1.1) {
         finish_calibrate_ = true;
@@ -60,7 +62,8 @@ class FsmSentry : public FsmBase {
         updateTf();
         return "attack";
       } else return "calibrate";
-    } else return "raw";
+    } else if (data_.dbus_data_.s_r == rm_msgs::DbusData::MID) return "raw";
+    else return "passive";
   }
  protected:
   void updatePosition() {
@@ -82,7 +85,7 @@ class FsmSentry : public FsmBase {
     }
   }
   void updateEffort() {
-    sum_effort_ += data_.actuator_state_.effort[1];
+    sum_effort_ += data_.actuator_state_.effort[2];
     if (sum_count_++ >= 10) {
       current_effort_ = sum_effort_ / 10;
       sum_count_ = 1;
@@ -115,6 +118,7 @@ class FsmSentry : public FsmBase {
   int sum_count_ = 1;
   bool collision_flag_, finish_calibrate_ = false;
  private:
+  StateBase state_passive_ = StateBase(nh_, &data_, "passive");
   StateRaw state_raw_ = StateRaw(nh_, &data_, "raw");
   StateCalibrate state_calibrate_ = StateCalibrate(nh_, &data_, "calibrate");
   StateAttack state_attack_ = StateAttack(nh_, &data_, "attack");

@@ -36,7 +36,7 @@ class StateBase {
   }
   void onEnter() { ROS_INFO("Enter %s state", state_name_.c_str()); }
   void onExit() { ROS_INFO("Exit %s state", state_name_.c_str()); }
-  void updatePosStatus(MoveStatus move_status) { move_status_ = move_status; }
+  void setMoveStatus(MoveStatus move_status) { move_status_ = move_status; }
   std::string getName() { return state_name_; }
  protected:
   virtual void setChassis() { chassis_cmd_sender_->setMode(rm_msgs::ChassisCmd::PASSIVE); }
@@ -68,7 +68,7 @@ class FsmBase {
   enum { NORMAL, TRANSITIONING };
   virtual void run();
  protected:
-  virtual std::string getDesiredState() = 0;
+  virtual std::string getNextState() = 0;
   void checkSwitch(const ros::Time &time);
   void remoteControlTurnOff() {
     switch_base_ctrl_srv_->flipControllers();

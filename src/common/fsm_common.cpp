@@ -27,7 +27,7 @@ void FsmBase::run() {
   calibration_manager_->checkCalibrate(time);
   data_.referee_.read();
   if (operating_mode_ == NORMAL) {
-    next_state_name_ = getDesiredState();
+    next_state_name_ = getNextState();
     if (next_state_name_ != current_state_->getName()) {
       operating_mode_ = TRANSITIONING;
       next_state_ = string2state[next_state_name_];
