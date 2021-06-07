@@ -33,6 +33,7 @@ rm_fsm:
     move_distance: 1.45
     stop_distance: 0.2
     collision_distance: 0.3
+    collision_effort: 0.062
     collision_flag: true
     calibrate:
       scale_x: 0.2

@@ -24,7 +24,7 @@ class Data {
     gimbal_des_error_sub_ =
         nh.subscribe<rm_msgs::GimbalDesError>("/error_des", 10, &Data::gimbalDesErrorCallback, this);
     actuator_state_sub_ =
-        nh.subscribe<rm_msgs::ActuatorState>("/actuator_states", 10, &Data::actuatorStateCallback, this);
+        nh.subscribe<rm_msgs::ActuatorState>("/actuator_states", 100, &Data::actuatorStateCallback, this);
     ros::NodeHandle root_nh;
     referee_.referee_pub_ = root_nh.advertise<rm_msgs::Referee>("/referee", 1);
     referee_.super_capacitor_pub_ = root_nh.advertise<rm_msgs::SuperCapacitor>("/super_capacitor", 1);

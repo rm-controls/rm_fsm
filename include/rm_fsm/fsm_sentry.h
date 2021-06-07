@@ -29,6 +29,9 @@ class FsmSentry : public FsmBase {
     if (!auto_nh.getParam("collision_flag", collision_flag_)) {
       ROS_ERROR("Collision flag no defined (namespace: %s)", nh.getNamespace().c_str());
     }
+    if (!auto_nh.getParam("collision_effort", collision_effort_)) {
+      ROS_ERROR("Collision effort no defined (namespace: %s)", nh.getNamespace().c_str());
+    }
     string2state.insert(std::pair<std::string, StateBase *>("raw", &state_raw_));
     string2state.insert(std::pair<std::string, StateBase *>("calibrate", &state_calibrate_));
     string2state.insert(std::pair<std::string, StateBase *>("attack", &state_attack_));
@@ -52,11 +55,10 @@ class FsmSentry : public FsmBase {
     if (current_state_->getName() == "attack") current_state_->setMoveStatus(move_status_);
   }
   std::string getNextState() override {
-    updateEffort();
     if (data_.dbus_data_.s_r == rm_msgs::DbusData::UP) {
-      ROS_INFO("%.2f", current_effort_);
+      updateEffort();
       if (finish_calibrate_) return "attack";
-      else if (current_effort_ < -1.1) {
+      else if (current_effort_ <= -collision_effort_) {
         finish_calibrate_ = true;
         move_status_ = LEAVE_START;
         updateTf();
@@ -114,7 +116,7 @@ class FsmSentry : public FsmBase {
   geometry_msgs::TransformStamped map2odom_;
   geometry_msgs::TransformStamped odom2baselink_;
   double move_distance_, stop_distance_, collision_distance_, current_speed_, current_pos_x_;
-  double sum_effort_ = 0, current_effort_;
+  double sum_effort_ = 0, current_effort_, collision_effort_;
   int sum_count_ = 1;
   bool collision_flag_, finish_calibrate_ = false;
  private:
