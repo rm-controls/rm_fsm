@@ -34,11 +34,12 @@ class StateAttack : public StateBase {
   void setGimbal() override {
     gimbal_cmd_sender_->setRate(scale_yaw_, 0);
     gimbal_cmd_sender_->setMode(rm_msgs::GimbalCmd::TRACK);
+    gimbal_cmd_sender_->setBulletSpeed(shooter_cmd_sender_->getSpeed());
     gimbal_cmd_sender_->updateCost(data_->track_data_array_, false);
   }
   void setShooter() override {
     shooter_cmd_sender_->setMode(rm_msgs::ShootCmd::PASSIVE);
-    shooter_cmd_sender_->checkGimbalError(data_->gimbal_des_error_.error);
+    shooter_cmd_sender_->checkError(data_->gimbal_des_error_.error);
   }
   double scale_yaw_, scale_pitch_, scale_x_;
 };

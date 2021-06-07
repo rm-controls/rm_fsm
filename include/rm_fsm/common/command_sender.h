@@ -26,9 +26,9 @@ class CommandSenderBase {
     queue_size_ = getParam(nh, "queue_size", 1);
     pub_ = nh.advertise<MsgType>(topic_, queue_size_);
   }
-
   void setMode(int mode) { if (!std::is_same<MsgType, geometry_msgs::Twist>::value) msg_.mode = mode; }
   virtual void sendCommand(const ros::Time &time) { pub_.publish(msg_); }
+  virtual void setZero() = 0;
   MsgType *getMsg() { return &msg_; }
  protected:
   std::string topic_;
@@ -69,6 +69,11 @@ class Vel2DCommandSender : public CommandSenderBase<geometry_msgs::Twist> {
     setLinearYVel(scale_y);
     setAngularZVel(scale_z);
   }
+  void setZero() override {
+    msg_.linear.x = 0.;
+    msg_.linear.y = 0.;
+    msg_.angular.z = 0.;
+  }
  protected:
   double max_linear_x_{}, max_linear_y_{}, max_angular_z_{};
 };
@@ -99,6 +104,7 @@ class ChassisCommandSender : public TimeStampCommandSenderBase<rm_msgs::ChassisC
       msg_.power_limit = safety_power_;
     TimeStampCommandSenderBase<rm_msgs::ChassisCmd>::sendCommand(time);
   }
+  void setZero() override {};
  private:
   double safety_power_{};
 };
@@ -118,13 +124,17 @@ class GimbalCommandSender : public TimeStampCommandSenderBase<rm_msgs::GimbalCmd
     msg_.rate_yaw = scale_yaw * max_yaw_rate_;
     msg_.rate_pitch = scale_pitch * max_pitch_vel_;
   }
-  void setBulletSpeed(int bullet_speed) {
+  void setBulletSpeed(double bullet_speed) {
     msg_.bullet_speed = bullet_speed;
   }
   void updateCost(const rm_msgs::TrackDataArray &track_data_array, bool base_only = false) {
     msg_.target_id = cost_function_->costFunction(track_data_array, base_only);
     if (msg_.target_id == 0)
       setMode(rm_msgs::GimbalCmd::RATE);
+  }
+  void setZero() override {
+    msg_.rate_yaw = 0.;
+    msg_.rate_pitch = 0.;
   }
  private:
   TargetCostFunction *cost_function_;
@@ -138,12 +148,11 @@ class ShooterCommandSender : public TimeStampCommandSenderBase<rm_msgs::ShootCmd
     ros::NodeHandle limit_nh(nh, "heat_limit");
     heat_limit_ = new HeatLimit(limit_nh, referee_);
     if (!nh.getParam("gimbal_error_limit", gimbal_error_limit_))
-      ROS_ERROR("Gimbal error limit no defined (namespace: %s)", nh.getNamespace().c_str());
+      ROS_ERROR("gimbal error limit no defined (namespace: %s)", nh.getNamespace().c_str());
   }
   ~ShooterCommandSender() { delete heat_limit_; }
-  void setMagazine(bool is_open) { msg_.cover = is_open; }
-  void setBurst(bool burst_flag) { heat_limit_->burst_flag_ = burst_flag; }
-  void checkGimbalError(int track_error) {
+  void setCover(bool is_open) { msg_.cover = is_open; }
+  void checkError(int track_error) {
     if (msg_.mode == rm_msgs::ShootCmd::PUSH && track_error > gimbal_error_limit_) setMode(rm_msgs::ShootCmd::READY);
   }
   void sendCommand(const ros::Time &time) override {
@@ -151,11 +160,52 @@ class ShooterCommandSender : public TimeStampCommandSenderBase<rm_msgs::ShootCmd
     msg_.hz = heat_limit_->getHz();
     TimeStampCommandSenderBase<rm_msgs::ShootCmd>::sendCommand(time);
   }
+  double getSpeed() {
+    switch (msg_.speed) {
+      case rm_msgs::ShootCmd::SPEED_10M_PER_SECOND: return 10.;
+      case rm_msgs::ShootCmd::SPEED_15M_PER_SECOND: return 15.;
+      case rm_msgs::ShootCmd::SPEED_16M_PER_SECOND: return 16.;
+      case rm_msgs::ShootCmd::SPEED_18M_PER_SECOND: return 18.;
+      case rm_msgs::ShootCmd::SPEED_30M_PER_SECOND: return 30.;
+    }
+    return 0.;
+  }
+  void setBurstMode(bool burst_flag) { heat_limit_->setMode(burst_flag); }
+  bool getBurstMode() { return heat_limit_->getMode(); }
+  void setZero() override {};
  private:
   double gimbal_error_limit_{};
   HeatLimit *heat_limit_{};
 };
 
+class Vel3DCommandSender : public Vel2DCommandSender {
+ public:
+  explicit Vel3DCommandSender(ros::NodeHandle &nh) : Vel2DCommandSender(nh) {
+    if (!nh.getParam("max_linear_z", max_linear_z_))
+      ROS_ERROR("Max Z linear velocity no defined (namespace: %s)", nh.getNamespace().c_str());
+    if (!nh.getParam("max_angular_x", max_angular_x_))
+      ROS_ERROR("Max X linear velocity no defined (namespace: %s)", nh.getNamespace().c_str());
+    if (!nh.getParam("max_angular_y", max_angular_y_))
+      ROS_ERROR("Max Y angular velocity no defined (namespace: %s)", nh.getNamespace().c_str());
+  }
+  void setLinearVel(double scale_x, double scale_y, double scale_z) {
+    msg_.linear.x = max_linear_x_ * scale_x;
+    msg_.linear.y = max_linear_y_ * scale_y;
+    msg_.linear.z = max_linear_z_ * scale_z;
+  }
+  void setAngularVel(double scale_x, double scale_y, double scale_z) {
+    msg_.angular.x = max_angular_x_ * scale_x;
+    msg_.angular.y = max_angular_y_ * scale_y;
+    msg_.angular.z = max_angular_z_ * scale_z;
+  }
+  void setZero() override {
+    Vel2DCommandSender::setZero();
+    msg_.linear.z = 0.;
+    msg_.angular.x = 0.;
+    msg_.angular.y = 0.;
+  }
+ private:
+  double max_linear_z_{}, max_angular_x_{}, max_angular_y_{};
+};
 }
-
 #endif // RM_FSM_COMMON_COMMAND_SENDER_H_
