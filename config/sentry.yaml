@@ -40,7 +40,7 @@ rm_fsm:
     move:
       scale_x: 0.2
       scale_pitch: 0.8
-      scale_yaw: 2.5
+      scale_yaw: 1.0
   controllers_list:
     - controllers/robot_state_controller
     - controllers/joint_state_controller

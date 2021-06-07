@@ -32,8 +32,8 @@ class StateAttack : public StateBase {
     else if (move_status_ == LEAVE_END) vel_2d_cmd_sender_->setLinearXVel(-scale_x_);
   }
   void setGimbal() override {
-    gimbal_cmd_sender_->setRate(scale_yaw_, scale_pitch_);
-    gimbal_cmd_sender_->setMode(rm_msgs::GimbalCmd::PASSIVE);
+    gimbal_cmd_sender_->setRate(scale_yaw_, 0);
+    gimbal_cmd_sender_->setMode(rm_msgs::GimbalCmd::TRACK);
     gimbal_cmd_sender_->updateCost(data_->track_data_array_, false);
   }
   void setShooter() override {
