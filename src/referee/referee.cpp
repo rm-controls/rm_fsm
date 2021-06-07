@@ -6,7 +6,7 @@
 namespace rm_fsm {
 void Referee::init() {
   serial::Timeout timeout = serial::Timeout::simpleTimeout(50);
-  rx_data_.insert(rx_data_.begin(), k_unpack_buffer_length_, 0);
+  unpack_buffer_.insert(unpack_buffer_.begin(), k_unpack_buffer_length_, 0);
   try {
     serial_.setPort(serial_port_);
     serial_.setBaudrate(115200);
@@ -33,6 +33,7 @@ void Referee::read() {
   int rx_len = 0, frame_len;
 
   if (ros::Time::now() - last_get_referee_data_ > ros::Duration(0.1)) is_online_ = false;
+
   try {
     if (serial_.waitReadable()) {
       rx_len = serial_.available();
@@ -40,19 +41,21 @@ void Referee::read() {
     }
   } catch (serial::IOException &e) {
     ROS_ERROR("Referee system disconnect, cannot read referee data");
+    is_online_ = false;
     return;
   }
+
   for (int kI = k_unpack_buffer_length_; kI > rx_len; --kI) {
-    temp_buffer.insert(temp_buffer.begin(), rx_data_[kI - 1]);
+    temp_buffer.insert(temp_buffer.begin(), unpack_buffer_[kI - 1]);
   }
   temp_buffer.insert(temp_buffer.end(), rx_buffer.begin(), rx_buffer.end());
-  rx_data_.clear();
-  rx_data_.insert(rx_data_.begin(), temp_buffer.begin(), temp_buffer.end());
+  unpack_buffer_.clear();
+  unpack_buffer_.insert(unpack_buffer_.begin(), temp_buffer.begin(), temp_buffer.end());
 
   for (int kI = 0; kI < k_unpack_buffer_length_; ++kI) {
-    if (rx_data_[kI] == 0xA5) {
-      frame_len = unpack(&rx_data_[kI]);
-      if (frame_len != -1 && kI + frame_len < k_unpack_buffer_length_) kI += frame_len;
+    if (unpack_buffer_[kI] == 0xA5 && kI + k_frame_length_ < k_unpack_buffer_length_) {
+      frame_len = unpack(&unpack_buffer_[kI]);
+      if (frame_len != -1) kI += frame_len;
     }
   }
   super_capacitor_.read(rx_buffer);
