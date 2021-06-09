@@ -38,7 +38,7 @@ class StateAttack : public StateBase {
     gimbal_cmd_sender_->updateCost(data_->track_data_array_, false);
   }
   void setShooter() override {
-    shooter_cmd_sender_->setMode(rm_msgs::ShootCmd::PASSIVE);
+    shooter_cmd_sender_->setMode(rm_msgs::ShootCmd::PUSH);
     shooter_cmd_sender_->checkError(data_->gimbal_des_error_.error);
   }
   double scale_yaw_, scale_pitch_, scale_x_;
