@@ -19,6 +19,7 @@ find_package(catkin REQUIRED
         roslint
         rm_msgs
         rm_common
+        nav_msgs
         tf
         serial
         control_toolbox
@@ -47,6 +48,7 @@ catkin_package(
         roslint
         rm_msgs
         rm_common
+        nav_msgs
         tf
         control_toolbox
         dynamic_reconfigure

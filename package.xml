@@ -16,6 +16,7 @@
   <depend>roslint</depend>
   <depend>rm_msgs</depend>
   <depend>rm_common</depend>
+  <depend>nav_msgs</depend>
   <depend>tf</depend>
   <depend>control_toolbox</depend>
   <depend>dynamic_reconfigure</depend>
