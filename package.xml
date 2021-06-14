@@ -15,9 +15,11 @@
   <depend>sensor_msgs</depend>
   <depend>roslint</depend>
   <depend>rm_msgs</depend>
-  <depend>rm_common</depend>
+  <depend>std_msgs</depend>
   <depend>nav_msgs</depend>
+  <depend>rm_common</depend>
   <depend>tf</depend>
-  <depend>control_toolbox</depend>
   <depend>dynamic_reconfigure</depend>
+  <depend>control_msgs</depend>
+  <depend>controller_manager_msgs</depend>
 </package>

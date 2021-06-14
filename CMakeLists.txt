@@ -18,11 +18,13 @@ find_package(catkin REQUIRED
         sensor_msgs
         roslint
         rm_msgs
-        rm_common
+        std_msgs
         nav_msgs
+        rm_common
         tf
         serial
-        control_toolbox
+        control_msgs
+        controller_manager_msgs
         dynamic_reconfigure
         )
 
@@ -47,10 +49,12 @@ catkin_package(
         sensor_msgs
         roslint
         rm_msgs
-        rm_common
+        std_msgs
         nav_msgs
+        rm_common
         tf
-        control_toolbox
+        control_msgs
+        controller_manager_msgs
         dynamic_reconfigure
         DEPENDS
 )
