@@ -13,8 +13,8 @@ rm_fsm:
     max_angular_z: 5.0
   gimbal:
     topic: "/cmd_gimbal"
-    max_yaw_vel: 2.0
-    max_pitch_vel: 2.0
+    max_yaw_vel: 4.0
+    max_pitch_vel: 4.0
     track_timeout: 0.5
     target_cost_function:
       k_pos: 1.0
