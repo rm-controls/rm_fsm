@@ -39,7 +39,7 @@ class StateAttack : public StateBase {
   }
   void setShooter() override {
     shooter_cmd_sender_->setMode(rm_msgs::ShootCmd::PUSH);
-    shooter_cmd_sender_->checkError(data_->gimbal_des_error_.error);
+    shooter_cmd_sender_->checkError(data_->gimbal_des_error_, ros::Time::now());
   }
   double scale_yaw_, scale_pitch_, scale_x_;
 };
