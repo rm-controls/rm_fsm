@@ -24,9 +24,9 @@ rm_fsm:
       timeout: 0.05
   shooter:
     topic: "/cmd_shoot"
-    gimbal_error_limit: 0.2
+    gimbal_error_limit: 0.05
     heat_limit:
-      expect_shoot_frequency: 10
+      expect_shoot_frequency: 30
       safe_shoot_frequency: 10
       heat_coeff: 1.5
       type: "ID1_17MM"

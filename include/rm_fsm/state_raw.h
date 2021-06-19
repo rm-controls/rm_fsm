@@ -28,7 +28,7 @@ class StateRaw : public StateBase {
   void setShooter() override {
     if (data_->dbus_data_.s_l == rm_msgs::DbusData::UP) {
       shooter_cmd_sender_->setMode(rm_msgs::ShootCmd::PUSH);
-      shooter_cmd_sender_->checkError(data_->gimbal_des_error_.error);
+      shooter_cmd_sender_->checkError(data_->gimbal_des_error_, ros::Time::now());
     } else if (data_->dbus_data_.s_l == rm_msgs::DbusData::MID) shooter_cmd_sender_->setMode(rm_msgs::ShootCmd::READY);
     else shooter_cmd_sender_->setMode(rm_msgs::ShootCmd::STOP);
   }
