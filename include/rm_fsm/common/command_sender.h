@@ -157,7 +157,7 @@ class ShooterCommandSender : public TimeStampCommandSenderBase<rm_msgs::ShootCmd
   ~ShooterCommandSender() { delete heat_limit_; }
   void setCover(bool is_open) { msg_.cover = is_open; }
   void checkError(const rm_msgs::GimbalDesError &gimbal_des_error, const ros::Time &time) {
-    if (gimbal_des_error.error > gimbal_error_limit_ || time - gimbal_des_error.stamp > ros::Duration(0.1))
+    if (gimbal_des_error.error > gimbal_error_limit_ && time - gimbal_des_error.stamp < ros::Duration(0.1))
       if (msg_.mode == rm_msgs::ShootCmd::PUSH) setMode(rm_msgs::ShootCmd::READY);
   }
   void sendCommand(const ros::Time &time) override {
