@@ -15,6 +15,12 @@ struct CalibrationService {
 class CalibrationManager {
  public:
   explicit CalibrationManager(ros::NodeHandle &nh) {
+    // Don't calibration if using simulation
+    ros::NodeHandle nh_global;
+    bool use_sim_time;
+    nh_global.param("use_sim_time", use_sim_time, false);
+    if (use_sim_time)
+      return;
     ros::NodeHandle cali_nh(nh, "calibration_manager");
     XmlRpc::XmlRpcValue rpc_value;
     if (!nh.getParam("calibration_manager", rpc_value) || rpc_value.getType() != XmlRpc::XmlRpcValue::TypeStruct) {
@@ -30,7 +36,8 @@ class CalibrationManager {
           .query_services_ = new QueryCalibrationService(query_nh)});
     }
     last_query_ = ros::Time::now();
-    reset();
+    // Start with calibrated, you should use reset() to start calibration.
+    calibration_itr_ = calibration_services_.end();
   }
   void reset() {
     if (calibration_services_.empty())

@@ -77,6 +77,7 @@ class FsmBase {
   void remoteControlTurnOn() {
     switch_base_ctrl_srv_->switchControllers();
     switch_base_ctrl_srv_->callService();
+    calibration_manager_->reset();
   }
 
   ros::NodeHandle nh_;

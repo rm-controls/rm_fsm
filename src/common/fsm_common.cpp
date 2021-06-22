@@ -23,8 +23,8 @@ FsmBase::FsmBase(ros::NodeHandle &nh) : nh_(nh), data_(nh) {
 
 void FsmBase::run() {
   ros::Time time = ros::Time::now();
-  checkSwitch(time);
   calibration_manager_->checkCalibrate(time);
+  checkSwitch(time);
   data_.referee_.read();
   if (operating_mode_ == NORMAL) {
     next_state_name_ = getNextState();
