@@ -97,7 +97,7 @@ class ChassisCommandSender : public TimeStampCommandSenderBase<rm_msgs::ChassisC
   }
   void sendCommand(const ros::Time &time) override {
     if (referee_.super_capacitor_.is_online_)
-      msg_.power_limit = referee_.super_capacitor_.parameters[1];
+      msg_.power_limit = referee_.super_capacitor_.getLimitPower();
     else if (referee_.is_online_)
       msg_.power_limit = referee_.referee_data_.game_robot_status_.chassis_power_limit_;
     else
