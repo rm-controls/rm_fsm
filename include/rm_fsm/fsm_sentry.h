@@ -17,18 +17,6 @@ class FsmSentry : public FsmBase {
  public:
   FsmSentry(ros::NodeHandle &nh) : FsmBase(nh) {
     ros::NodeHandle auto_nh = ros::NodeHandle(nh, "auto");
-    if (!auto_nh.getParam("move_distance", move_distance_)) {
-      ROS_ERROR("Move distance no defined (namespace: %s)", nh.getNamespace().c_str());
-    }
-    if (!auto_nh.getParam("stop_distance", stop_distance_)) {
-      ROS_ERROR("Stop distance no defined (namespace: %s)", nh.getNamespace().c_str());
-    }
-    if (!auto_nh.getParam("collision_distance", collision_distance_)) {
-      ROS_ERROR("Collision distance no defined (namespace: %s)", nh.getNamespace().c_str());
-    }
-    if (!auto_nh.getParam("collision_flag", collision_flag_)) {
-      ROS_ERROR("Collision flag no defined (namespace: %s)", nh.getNamespace().c_str());
-    }
     if (!auto_nh.getParam("collision_effort", collision_effort_)) {
       ROS_ERROR("Collision effort no defined (namespace: %s)", nh.getNamespace().c_str());
     }
@@ -48,55 +36,21 @@ class FsmSentry : public FsmBase {
     map2odom_.transform.rotation.w = 1.;
     static_tf_broadcaster_.sendTransform(map2odom_);
   }
-  void run() override {
-    FsmBase::run();
-    updatePosition();
-    updateMoveStatus();
-    if (current_state_->getName() == "attack") current_state_->setMoveStatus(move_status_);
-  }
+ protected:
   std::string getNextState() override {
     if (data_.dbus_data_.s_r == rm_msgs::DbusData::UP) {
-      updateEffort();
       if (finish_calibrate_) return "attack";
-      else if (current_effort_ <= -collision_effort_) {
+      if (!finish_calibrate_ && data_.current_effort_ <= -collision_effort_) {
         finish_calibrate_ = true;
-        move_status_ = LEAVE_START;
-        updateTf();
+        broadcastTf();
         return "attack";
       } else return "calibrate";
     } else if (data_.dbus_data_.s_r == rm_msgs::DbusData::MID) return "raw";
     else return "passive";
   }
- protected:
-  void updatePosition() {
-    geometry_msgs::TransformStamped odom2baselink;
-    try { odom2baselink = data_.tf_buffer_.lookupTransform("odom", "base_link", ros::Time(0)); }
-    catch (tf2::TransformException &ex) { ROS_WARN("%s", ex.what()); }
-    current_pos_x_ = odom2baselink.transform.translation.x;
-  }
-  void updateMoveStatus() {
-    if (collision_flag_) {
-      if (move_status_ == LEAVE_START && current_pos_x_ >= move_distance_ - collision_distance_)
-        move_status_ = APPROACH_END;
-      else if (move_status_ == LEAVE_END && current_pos_x_ <= collision_distance_) move_status_ = APPROACH_START;
-      if (move_status_ == APPROACH_END && current_speed_ <= 0.) move_status_ = LEAVE_END;
-      else if (move_status_ == APPROACH_START && current_speed_ >= 0.) move_status_ = LEAVE_START;
-    } else {
-      if (move_status_ == LEAVE_START && current_pos_x_ >= move_distance_ - stop_distance_) move_status_ = LEAVE_END;
-      else if (move_status_ == LEAVE_END && current_pos_x_ <= stop_distance_) move_status_ = LEAVE_START;
-    }
-  }
-  void updateEffort() {
-    sum_effort_ += data_.actuator_state_.effort[2];
-    if (sum_count_++ >= 10) {
-      current_effort_ = sum_effort_ / 10;
-      sum_count_ = 1;
-      sum_effort_ = 0.;
-    }
-  }
-  void updateTf() {
+  void broadcastTf() {
     map2odom_.header.stamp = ros::Time::now();
-    map2odom_.transform.translation.x = current_pos_x_;
+    map2odom_.transform.translation.x = data_.pos_x_;
     map2odom_.transform.translation.y = 0.;
     map2odom_.transform.translation.z = 0.;
     map2odom_.transform.rotation.w = 1.;
@@ -111,14 +65,9 @@ class FsmSentry : public FsmBase {
 
   tf2_ros::StaticTransformBroadcaster static_tf_broadcaster_;
   tf2_ros::TransformBroadcaster tf_broadcaster_;
-
-  MoveStatus move_status_;
-  geometry_msgs::TransformStamped map2odom_;
-  geometry_msgs::TransformStamped odom2baselink_;
-  double move_distance_, stop_distance_, collision_distance_, current_speed_, current_pos_x_;
-  double sum_effort_ = 0, current_effort_, collision_effort_;
-  int sum_count_ = 1;
-  bool collision_flag_, finish_calibrate_ = false;
+  geometry_msgs::TransformStamped map2odom_, odom2baselink_;
+  double collision_effort_;
+  bool finish_calibrate_ = false;
  private:
   StateBase state_passive_ = StateBase(nh_, &data_, "passive");
   StateRaw state_raw_ = StateRaw(nh_, &data_, "raw");

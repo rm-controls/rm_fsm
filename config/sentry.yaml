@@ -38,10 +38,16 @@ rm_fsm:
     collision_flag: true
     calibrate:
       scale_x: 0.2
-    move:
+    attack:
       scale_x: 0.2
-      scale_pitch: 0.8
-      scale_yaw: 1.0
+      pitch:
+        scale: 0.8
+        min: 0.459
+        max: 0.750
+      yaw:
+        scale: 1.0
+        min: 0.459
+        max: 0.750
   controllers_list:
     - controllers/robot_state_controller
     - controllers/joint_state_controller

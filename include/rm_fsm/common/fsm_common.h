@@ -11,10 +11,8 @@
 #include "rm_fsm/common/calibration_manager.h"
 
 #include <rm_common/ros_utilities.h>
-#include <rm_common/ori_tool.h>
 
 namespace rm_fsm {
-enum MoveStatus { APPROACH_START, LEAVE_START, APPROACH_END, LEAVE_END };
 class StateBase {
  public:
   StateBase(ros::NodeHandle &nh, Data *data, std::string state_name)
@@ -36,7 +34,6 @@ class StateBase {
   }
   void onEnter() { ROS_INFO("Enter %s state", state_name_.c_str()); }
   void onExit() { ROS_INFO("Exit %s state", state_name_.c_str()); }
-  void setMoveStatus(MoveStatus move_status) { move_status_ = move_status; }
   std::string getName() { return state_name_; }
  protected:
   virtual void setChassis() { chassis_cmd_sender_->setMode(rm_msgs::ChassisCmd::FOLLOW); }
@@ -50,7 +47,6 @@ class StateBase {
   };
   ros::NodeHandle nh_;
   Data *data_;
-  MoveStatus move_status_;
   std::string state_name_;
   ChassisCommandSender *chassis_cmd_sender_;
   Vel2DCommandSender *vel_2d_cmd_sender_;

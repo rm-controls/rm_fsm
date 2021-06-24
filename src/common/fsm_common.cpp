@@ -25,7 +25,7 @@ void FsmBase::run() {
   ros::Time time = ros::Time::now();
   calibration_manager_->checkCalibrate(time);
   checkSwitch(time);
-  data_.referee_.read();
+  data_.update(time);
   if (operating_mode_ == NORMAL) {
     next_state_name_ = getNextState();
     if (next_state_name_ != current_state_->getName()) {
