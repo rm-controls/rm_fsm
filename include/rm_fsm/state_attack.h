@@ -11,6 +11,15 @@ class StateAttack : public StateBase {
   StateAttack(ros::NodeHandle &nh, Data *data, const std::string &state_string)
       : StateBase(nh, data, state_string) {
     ros::NodeHandle auto_nh = ros::NodeHandle(nh, "auto");
+    if (!auto_nh.getParam("move_distance", move_distance_)) {
+      ROS_ERROR("Move distance no defined (namespace: %s)", nh.getNamespace().c_str());
+    }
+    if (!auto_nh.getParam("stop_distance", stop_distance_)) {
+      ROS_ERROR("Stop distance no defined (namespace: %s)", nh.getNamespace().c_str());
+    }
+    if (!auto_nh.getParam("collision_distance", collision_distance_)) {
+      ROS_ERROR("Collision distance no defined (namespace: %s)", nh.getNamespace().c_str());
+    }
     if (!auto_nh.getParam("collision_flag", collision_flag_)) {
       ROS_ERROR("Collision flag no defined (namespace: %s)", nh.getNamespace().c_str());
     }
@@ -59,18 +68,19 @@ class StateAttack : public StateBase {
     else if (move_status_ == LEAVE_END) vel_2d_cmd_sender_->setLinearXVel(-scale_x_);
   }
   void setGimbal() override {
-    if (data_->pos_yaw_ >= yaw_max_ || data_->pos_yaw_ <= yaw_min_) scale_yaw_ = -scale_yaw_;
-    if (data_->pos_pitch_ >= pitch_max_ || data_->pos_pitch_ <= pitch_min_) scale_pitch_ = -scale_pitch_;
+    if (std::abs(data_->pos_yaw_) > yaw_max_ || std::abs(data_->pos_yaw_) < yaw_min_) scale_yaw_ = -scale_yaw_;
+    if (std::abs(data_->pos_pitch_) > pitch_max_ || std::abs(data_->pos_pitch_) < pitch_min_)
+      scale_pitch_ = -scale_pitch_;
     gimbal_cmd_sender_->setRate(scale_yaw_, scale_pitch_);
     gimbal_cmd_sender_->setMode(rm_msgs::GimbalCmd::TRACK);
     gimbal_cmd_sender_->setBulletSpeed(shooter_cmd_sender_->getSpeed());
-    gimbal_cmd_sender_->updateCost(data_->track_data_array_, false);
+    gimbal_cmd_sender_->updateCost(data_->track_data_array_);
   }
   void setShooter() override {
     shooter_cmd_sender_->setMode(rm_msgs::ShootCmd::PUSH);
     shooter_cmd_sender_->checkError(data_->gimbal_des_error_, ros::Time::now());
   }
-  MoveStatus move_status_;
+  MoveStatus move_status_ = LEAVE_START;
   double scale_yaw_, scale_pitch_, scale_x_;
   double pitch_max_, pitch_min_, yaw_max_, yaw_min_;
   double move_distance_, stop_distance_, collision_distance_;
