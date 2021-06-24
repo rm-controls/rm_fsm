@@ -32,7 +32,7 @@ class Data {
     referee_.init();
   };
   void update(const ros::Time &time) {
-    geometry_msgs::TransformStamped odom2baselink, yaw2pitch;
+    geometry_msgs::TransformStamped odom2baselink, baselink2pitch, baselink2yaw;
     double roll, pitch, yaw;
     referee_.read();
     sum_effort_ += actuator_state_.effort[2];
@@ -44,11 +44,14 @@ class Data {
     try { odom2baselink = tf_buffer_.lookupTransform("odom", "base_link", ros::Time(0)); }
     catch (tf2::TransformException &ex) { ROS_WARN("%s", ex.what()); }
     pos_x_ = odom2baselink.transform.translation.x;
-    try { yaw2pitch = tf_buffer_.lookupTransform("yaw", "pitch", ros::Time(0)); }
+    try { baselink2pitch = tf_buffer_.lookupTransform("base_link", "pitch", ros::Time(0)); }
     catch (tf2::TransformException &ex) { ROS_ERROR("%s", ex.what()); }
-    quatToRPY(yaw2pitch.transform.rotation, roll, pitch, yaw);
+    quatToRPY(baselink2pitch.transform.rotation, roll, pitch, yaw);
     pos_pitch_ = pitch;
-    pos_yaw_ = -yaw;
+    try { baselink2yaw = tf_buffer_.lookupTransform("base_link", "yaw", ros::Time(0)); }
+    catch (tf2::TransformException &ex) { ROS_ERROR("%s", ex.what()); }
+    quatToRPY(baselink2yaw.transform.rotation, roll, pitch, yaw);
+    pos_yaw_ = yaw;
   }
 
   rm_msgs::DbusData dbus_data_;

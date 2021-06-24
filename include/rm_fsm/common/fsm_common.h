@@ -36,7 +36,7 @@ class StateBase {
   void onExit() { ROS_INFO("Exit %s state", state_name_.c_str()); }
   std::string getName() { return state_name_; }
  protected:
-  virtual void setChassis() { chassis_cmd_sender_->setMode(rm_msgs::ChassisCmd::FOLLOW); }
+  virtual void setChassis() { chassis_cmd_sender_->setMode(rm_msgs::ChassisCmd::RAW); }
   virtual void setGimbal() { gimbal_cmd_sender_->setMode(rm_msgs::GimbalCmd::RATE); }
   virtual void setShooter() { shooter_cmd_sender_->setMode(rm_msgs::ShootCmd::STOP); }
   void sendCommand(const ros::Time &time) {

@@ -59,15 +59,9 @@ class StateAttack : public StateBase {
     else if (move_status_ == LEAVE_END) vel_2d_cmd_sender_->setLinearXVel(-scale_x_);
   }
   void setGimbal() override {
-    double scale_yaw, scale_pitch;
-    if (data_->pos_yaw_ >= yaw_max_ || data_->pos_yaw_ <= yaw_min_
-        || data_->pos_pitch_ >= pitch_max_ || data_->pos_pitch_ <= pitch_min_) {
-      if (data_->pos_yaw_ >= yaw_max_) scale_yaw = -scale_yaw_;
-      else if (data_->pos_yaw_ <= yaw_min_) scale_yaw = scale_yaw_;
-      if (data_->pos_pitch_ >= pitch_max_) scale_pitch = -scale_pitch_;
-      else if (data_->pos_pitch_ <= pitch_min_) scale_pitch = scale_pitch_;
-      gimbal_cmd_sender_->setRate(scale_yaw, scale_pitch);
-    }
+    if (data_->pos_yaw_ >= yaw_max_ || data_->pos_yaw_ <= yaw_min_) scale_yaw_ = -scale_yaw_;
+    if (data_->pos_pitch_ >= pitch_max_ || data_->pos_pitch_ <= pitch_min_) scale_pitch_ = -scale_pitch_;
+    gimbal_cmd_sender_->setRate(scale_yaw_, scale_pitch_);
     gimbal_cmd_sender_->setMode(rm_msgs::GimbalCmd::TRACK);
     gimbal_cmd_sender_->setBulletSpeed(shooter_cmd_sender_->getSpeed());
     gimbal_cmd_sender_->updateCost(data_->track_data_array_, false);
