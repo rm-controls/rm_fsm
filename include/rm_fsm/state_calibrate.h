@@ -19,7 +19,7 @@ class StateCalibrate : public StateBase {
   }
  protected:
   void setChassis() override {
-    chassis_cmd_sender_->setMode(rm_msgs::ChassisCmd::RAW);
+    StateBase::setChassis();
     vel_2d_cmd_sender_->setLinearXVel(-scale_x_);
   }
   double scale_x_;

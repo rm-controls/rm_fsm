@@ -23,11 +23,7 @@ class StateAttack : public StateBase {
   }
  protected:
   void setChassis() override {
-    if (move_status_ == LEAVE_START || move_status_ == LEAVE_END)
-      chassis_cmd_sender_->setMode(rm_msgs::ChassisCmd::RAW);
-    else if (move_status_ == APPROACH_START || move_status_ == APPROACH_END) {
-      chassis_cmd_sender_->setMode(rm_msgs::ChassisCmd::PASSIVE);
-    }
+    StateBase::setChassis();
     if (move_status_ == LEAVE_START) vel_2d_cmd_sender_->setLinearXVel(scale_x_);
     else if (move_status_ == LEAVE_END) vel_2d_cmd_sender_->setLinearXVel(-scale_x_);
   }
