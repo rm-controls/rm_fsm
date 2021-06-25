@@ -35,7 +35,7 @@ rm_fsm:
       heat_coeff: 1.5
       type: "ID1_17MM"
   auto:
-    move_distance: 3.0
+    move_distance: 1.45
     stop_distance: 0.2
     collision_distance: 0.2
     collision_effort: 0.062
@@ -45,11 +45,11 @@ rm_fsm:
     attack:
       scale_x: 0.2
       pitch:
-        scale: 0.2
+        scale: 0.3
         min: 0.45
         max: 0.75
       yaw:
-        scale: 0.2
+        scale: 0.3
         min: -2.70
         max: -0.40
   controllers_list:

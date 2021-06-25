@@ -78,7 +78,10 @@ class StateAttack : public StateBase {
     gimbal_cmd_sender_->updateCost(data_->track_data_array_);
   }
   void setShooter() override {
-    shooter_cmd_sender_->setMode(rm_msgs::ShootCmd::PUSH);
+    if (gimbal_cmd_sender_->getMsg()->mode == rm_msgs::GimbalCmd::TRACK)
+      shooter_cmd_sender_->setMode(rm_msgs::ShootCmd::PUSH);
+    else
+      shooter_cmd_sender_->setMode(rm_msgs::ShootCmd::READY);
     shooter_cmd_sender_->checkError(data_->gimbal_des_error_, ros::Time::now());
   }
   MoveStatus move_status_ = LEAVE_START;
