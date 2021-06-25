@@ -14,7 +14,7 @@ rm_fsm:
   gimbal:
     topic: "/cmd_gimbal"
     max_yaw_vel: 4.0
-    max_pitch_vel: 4.0
+    max_pitch_vel: 2.0
     track_timeout: 0.5
     target_cost_function:
       k_pos: 1.0
@@ -41,13 +41,13 @@ rm_fsm:
     attack:
       scale_x: 0.2
       pitch:
-        scale: 0.8
-        min: 0.459
-        max: 0.750
+        scale: 0.2
+        min: 0.45
+        max: 0.75
       yaw:
-        scale: 1.0
-        min: 0.459
-        max: 0.750
+        scale: 0.2
+        min: -2.70
+        max: -0.40
   controllers_list:
     - controllers/robot_state_controller
     - controllers/joint_state_controller

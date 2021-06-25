@@ -39,6 +39,7 @@ class Data {
     sum_count_++;
     if (time - update_effort_ > ros::Duration(0.2)) {
       current_effort_ = sum_effort_ / sum_count_;
+      sum_effort_ = 0.;
       sum_count_ = 0;
     }
     try { odom2baselink = tf_buffer_.lookupTransform("odom", "base_link", ros::Time(0)); }
@@ -62,7 +63,7 @@ class Data {
   tf2_ros::Buffer tf_buffer_;
   tf2_ros::TransformListener tf_listener_;
   double pos_x_, pos_pitch_, pos_yaw_;
-  double current_effort_;
+  double current_effort_ = 0;
  private:
   void dbusDataCallback(const rm_msgs::DbusData::ConstPtr &data) { dbus_data_ = *data; }
   void trackCallback(const rm_msgs::TrackDataArray::ConstPtr &data) { track_data_array_ = *data; }

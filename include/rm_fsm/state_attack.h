@@ -68,10 +68,11 @@ class StateAttack : public StateBase {
     else if (move_status_ == LEAVE_END) vel_2d_cmd_sender_->setLinearXVel(-scale_x_);
   }
   void setGimbal() override {
-    if (std::abs(data_->pos_yaw_) > yaw_max_ || std::abs(data_->pos_yaw_) < yaw_min_) scale_yaw_ = -scale_yaw_;
-    if (std::abs(data_->pos_pitch_) > pitch_max_ || std::abs(data_->pos_pitch_) < pitch_min_)
-      scale_pitch_ = -scale_pitch_;
-    gimbal_cmd_sender_->setRate(scale_yaw_, scale_pitch_);
+    if (data_->pos_yaw_ > yaw_max_) direct_yaw_ = -1;
+    else if (data_->pos_yaw_ < yaw_min_) direct_yaw_ = 1;
+    if (data_->pos_pitch_ > pitch_max_) direct_pitch_ = -1;
+    else if (data_->pos_pitch_ < pitch_min_) direct_pitch_ = 1;
+    gimbal_cmd_sender_->setRate(scale_yaw_ * direct_yaw_, scale_pitch_ * direct_pitch_);
     gimbal_cmd_sender_->setMode(rm_msgs::GimbalCmd::TRACK);
     gimbal_cmd_sender_->setBulletSpeed(shooter_cmd_sender_->getSpeed());
     gimbal_cmd_sender_->updateCost(data_->track_data_array_);
@@ -84,6 +85,7 @@ class StateAttack : public StateBase {
   double scale_yaw_, scale_pitch_, scale_x_;
   double pitch_max_, pitch_min_, yaw_max_, yaw_min_;
   double move_distance_, stop_distance_, collision_distance_;
+  int direct_pitch_ = 1, direct_yaw_ = 1;
   bool collision_flag_;
 };
 }
