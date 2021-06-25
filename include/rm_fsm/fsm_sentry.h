@@ -40,7 +40,8 @@ class FsmSentry : public FsmBase {
   std::string getNextState() override {
     if (data_.dbus_data_.s_r == rm_msgs::DbusData::UP) {
       if (finish_calibrate_) return "attack";
-      if (!finish_calibrate_ && data_.current_effort_ <= -collision_effort_) {
+      if (ros::Time::now() - construct_time > ros::Duration(2.0) && !finish_calibrate_
+          && data_.current_effort_ <= -collision_effort_) {
         finish_calibrate_ = true;
         broadcastTf();
         return "attack";
@@ -66,6 +67,7 @@ class FsmSentry : public FsmBase {
   tf2_ros::StaticTransformBroadcaster static_tf_broadcaster_;
   tf2_ros::TransformBroadcaster tf_broadcaster_;
   geometry_msgs::TransformStamped map2odom_, odom2baselink_;
+  ros::Time construct_time = ros::Time::now();
   double collision_effort_;
   bool finish_calibrate_ = false;
  private:

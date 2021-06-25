@@ -35,9 +35,9 @@ rm_fsm:
       heat_coeff: 1.5
       type: "ID1_17MM"
   auto:
-    move_distance: 1.45
+    move_distance: 3.0
     stop_distance: 0.2
-    collision_distance: 0.3
+    collision_distance: 0.2
     collision_effort: 0.062
     collision_flag: true
     calibrate:
