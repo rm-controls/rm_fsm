@@ -5,12 +5,11 @@
 #ifndef RM_FSM_COMMON_FSM_COMMON_H_
 #define RM_FSM_COMMON_FSM_COMMON_H_
 
-#include "rm_fsm/common/data.h"
-#include "rm_fsm/common/command_sender.h"
-#include "rm_fsm/common/controller_loader.h"
-#include "rm_fsm/common/calibration_manager.h"
-
 #include <rm_common/ros_utilities.h>
+#include <rm_common/decision/command_sender.h>
+#include <rm_common/decision/controller_loader.h>
+#include <rm_common/decision/calibration_manager.h>
+#include "rm_fsm/common/data.h"
 
 namespace rm_fsm {
 class StateBase {
@@ -18,13 +17,13 @@ class StateBase {
   StateBase(ros::NodeHandle &nh, Data *data, std::string state_name)
       : nh_(nh), data_(data), state_name_(std::move(state_name)) {
     ros::NodeHandle chassis_nh(nh, "chassis");
-    chassis_cmd_sender_ = new ChassisCommandSender(chassis_nh, data_->referee_);
+    chassis_cmd_sender_ = new rm_common::ChassisCommandSender(chassis_nh, data_->referee_);
     ros::NodeHandle vel_nh(nh, "vel");
-    vel_2d_cmd_sender_ = new Vel2DCommandSender(vel_nh);
+    vel_2d_cmd_sender_ = new rm_common::Vel2DCommandSender(vel_nh);
     ros::NodeHandle gimbal_nh(nh, "gimbal");
-    gimbal_cmd_sender_ = new GimbalCommandSender(gimbal_nh, data_->referee_);
+    gimbal_cmd_sender_ = new rm_common::GimbalCommandSender(gimbal_nh, data_->referee_);
     ros::NodeHandle shooter_nh(nh, "shooter");
-    shooter_cmd_sender_ = new ShooterCommandSender(shooter_nh, data_->referee_);
+    shooter_cmd_sender_ = new rm_common::ShooterCommandSender(shooter_nh, data_->referee_);
   }
   virtual void run() {
     setChassis();
@@ -48,10 +47,10 @@ class StateBase {
   ros::NodeHandle nh_;
   Data *data_;
   std::string state_name_;
-  ChassisCommandSender *chassis_cmd_sender_;
-  Vel2DCommandSender *vel_2d_cmd_sender_;
-  GimbalCommandSender *gimbal_cmd_sender_;
-  ShooterCommandSender *shooter_cmd_sender_;
+  rm_common::ChassisCommandSender *chassis_cmd_sender_;
+  rm_common::Vel2DCommandSender *vel_2d_cmd_sender_;
+  rm_common::GimbalCommandSender *gimbal_cmd_sender_;
+  rm_common::ShooterCommandSender *shooter_cmd_sender_;
 };
 
 class FsmBase {
@@ -78,9 +77,9 @@ class FsmBase {
 
   ros::NodeHandle nh_;
   Data data_;
-  ControllerLoader *controller_loader_;
-  CalibrationManager *calibration_manager_;
-  SwitchControllersService *switch_state_ctrl_srv_, *switch_base_ctrl_srv_{};
+  rm_common::ControllerLoader *controller_loader_;
+  rm_common::CalibrationManager *calibration_manager_;
+  rm_common::SwitchControllersService *switch_state_ctrl_srv_, *switch_base_ctrl_srv_{};
 
   StateBase *current_state_, *next_state_;
   std::map<std::string, StateBase *> string2state;

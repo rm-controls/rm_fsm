@@ -22,7 +22,7 @@ class StateRaw : public StateBase {
     else {
       gimbal_cmd_sender_->setMode(rm_msgs::GimbalCmd::TRACK);
       gimbal_cmd_sender_->setBulletSpeed(shooter_cmd_sender_->getSpeed());
-      gimbal_cmd_sender_->updateCost(data_->track_data_array_, false);
+      gimbal_cmd_sender_->updateCost(data_->track_data_array_);
     }
   }
   void setShooter() override {

@@ -6,15 +6,15 @@
 
 namespace rm_fsm {
 FsmBase::FsmBase(ros::NodeHandle &nh) : nh_(nh), data_(nh) {
-  controller_loader_ = new ControllerLoader(nh);
+  controller_loader_ = new rm_common::ControllerLoader(nh);
   controller_loader_->loadControllers();
-  calibration_manager_ = new CalibrationManager(nh);
+  calibration_manager_ = new rm_common::CalibrationManager(nh);
   ros::NodeHandle state_ctrl_nh(nh, "state_controllers_switch");
-  switch_state_ctrl_srv_ = new SwitchControllersService(state_ctrl_nh);
+  switch_state_ctrl_srv_ = new rm_common::SwitchControllersService(state_ctrl_nh);
   switch_state_ctrl_srv_->startControllersOnly();
   switch_state_ctrl_srv_->callService();
   ros::NodeHandle base_ctrl_nh(nh, "base_controllers_switch");
-  switch_base_ctrl_srv_ = new SwitchControllersService(base_ctrl_nh);
+  switch_base_ctrl_srv_ = new rm_common::SwitchControllersService(base_ctrl_nh);
   string2state.insert(std::make_pair("invalid", nullptr));
   current_state_ = string2state["invalid"];
   next_state_ = current_state_;
