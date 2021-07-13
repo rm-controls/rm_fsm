@@ -65,11 +65,19 @@ class FsmBase {
  protected:
   virtual std::string getNextState() = 0;
   void checkSwitch(const ros::Time &time);
-  void remoteControlTurnOff() {
+  void checkReferee(const ros::Time &time);
+
+  // Referee
+  virtual void chassisOutputOn() {};
+  virtual void gimbalOutputOn() {};
+  virtual void shooterOutputOn() {};
+
+  // Remote Controller
+  virtual void remoteControlTurnOff() {
     switch_base_ctrl_srv_->flipControllers();
     switch_base_ctrl_srv_->callService();
   }
-  void remoteControlTurnOn() {
+  virtual void remoteControlTurnOn() {
     switch_base_ctrl_srv_->switchControllers();
     switch_base_ctrl_srv_->callService();
     calibration_manager_->reset();
