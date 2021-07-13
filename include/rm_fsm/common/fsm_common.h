@@ -59,7 +59,6 @@ class FsmBase {
     delete controller_loader_;
     delete calibration_manager_;
   }
-  enum { NORMAL, TRANSITIONING };
   virtual void run();
  protected:
   virtual std::string getNextState() = 0;
@@ -88,10 +87,8 @@ class FsmBase {
   rm_common::CalibrationManager *calibration_manager_;
   rm_common::SwitchControllersService *switch_state_ctrl_srv_, *switch_base_ctrl_srv_{};
 
-  StateBase *current_state_, *next_state_;
+  StateBase *current_state_;
   std::map<std::string, StateBase *> string2state;
-  std::string next_state_name_;
-  int operating_mode_ = NORMAL;
   bool remote_is_open_{};
 };
 }

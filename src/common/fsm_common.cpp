@@ -15,10 +15,8 @@ FsmBase::FsmBase(ros::NodeHandle &nh) : nh_(nh), data_(nh) {
   switch_state_ctrl_srv_->callService();
   ros::NodeHandle base_ctrl_nh(nh, "base_controllers_switch");
   switch_base_ctrl_srv_ = new rm_common::SwitchControllersService(base_ctrl_nh);
-  string2state.insert(std::make_pair("invalid", nullptr));
-  current_state_ = string2state["invalid"];
-  next_state_ = current_state_;
-  operating_mode_ = NORMAL;
+  string2state.insert(std::make_pair("INVALID", nullptr));
+  current_state_ = string2state["INVALID"];
 }
 
 void FsmBase::run() {
@@ -27,18 +25,12 @@ void FsmBase::run() {
   checkReferee(time);
   calibration_manager_->checkCalibrate(time);
   checkSwitch(time);
-  if (operating_mode_ == NORMAL) {
-    next_state_name_ = getNextState();
-    if (next_state_name_ != current_state_->getName()) {
-      operating_mode_ = TRANSITIONING;
-      next_state_ = string2state[next_state_name_];
-    } else current_state_->run();
-  }
-  if (operating_mode_ == TRANSITIONING) {
-    current_state_ = next_state_;
+  std::string next_state_name = getNextState();
+  if (next_state_name != current_state_->getName()) {
+    current_state_ = string2state[next_state_name];
     current_state_->onEnter();
-    operating_mode_ = NORMAL;
-  }
+    current_state_->run();
+  } else current_state_->run();
 }
 
 void FsmBase::checkReferee(const ros::Time &time) {
