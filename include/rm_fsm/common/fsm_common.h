@@ -31,8 +31,7 @@ class StateBase {
     setShooter();
     sendCommand(ros::Time::now());
   }
-  void onEnter() { ROS_INFO("Enter %s state", state_name_.c_str()); }
-  void onExit() { ROS_INFO("Exit %s state", state_name_.c_str()); }
+  void onEnter() { ROS_INFO("Enter %s", state_name_.c_str()); }
   std::string getName() { return state_name_; }
  protected:
   virtual void setChassis() { chassis_cmd_sender_->setMode(rm_msgs::ChassisCmd::RAW); }
