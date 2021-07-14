@@ -5,23 +5,18 @@
 #ifndef RM_FSM_STATE_ATTACK_H_
 #define RM_FSM_STATE_ATTACK_H_
 
-#include "rm_fsm/common/fsm_common.h"
+#include "rm_fsm/state_standby.h"
 
 namespace rm_fsm {
-class StateAttack : public StateBase {
+class StateAttack : public StateStandby {
  public:
-  StateAttack(ros::NodeHandle &nh, Data *data) : StateBase(nh, data, "ATTACK") {
+  StateAttack(ros::NodeHandle &nh, Data *data) : StateStandby(nh, data) {
+    state_name_ = "ATTACK";
     ros::NodeHandle auto_nh = ros::NodeHandle(nh, "auto");
-    if (!auto_nh.getParam("move_distance", move_distance_)) {
-      ROS_ERROR("Move distance no defined (namespace: %s)", nh.getNamespace().c_str());
-    }
     if (!auto_nh.getParam("stop_distance", stop_distance_)) {
       ROS_ERROR("Stop distance no defined (namespace: %s)", nh.getNamespace().c_str());
     }
     ros::NodeHandle attack_nh = ros::NodeHandle(auto_nh, "attack");
-    if (!attack_nh.getParam("scale_x", scale_x_)) {
-      ROS_ERROR("Scale x no defined (namespace: %s)", nh.getNamespace().c_str());
-    }
     ros::NodeHandle pitch_nh = ros::NodeHandle(attack_nh, "pitch");
     if (!pitch_nh.getParam("scale", scale_pitch_)) {
       ROS_ERROR("Scale no defined (namespace: %s)", nh.getNamespace().c_str());
@@ -73,9 +68,9 @@ class StateAttack : public StateBase {
     shooter_cmd_sender_->checkError(data_->gimbal_des_error_, ros::Time::now());
   }
   MoveStatus move_status_ = LEAVE_START;
-  double scale_yaw_, scale_pitch_, scale_x_;
+  double scale_yaw_, scale_pitch_;
   double pitch_max_, pitch_min_, yaw_max_, yaw_min_;
-  double move_distance_, stop_distance_;
+  double stop_distance_;
   int direct_pitch_ = 1, direct_yaw_ = 1;
 };
 }
