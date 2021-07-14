@@ -8,12 +8,11 @@
 #include <ros/ros.h>
 #include <tf2_ros/transform_listener.h>
 #include <rm_common/ori_tool.h>
+#include <rm_common/referee/referee.h>
 #include <rm_msgs/DbusData.h>
 #include <rm_msgs/GimbalDesError.h>
 #include <rm_msgs/TrackDataArray.h>
 #include <rm_msgs/ActuatorState.h>
-
-#include "rm_fsm/referee/referee.h"
 
 namespace rm_fsm {
 
@@ -43,7 +42,7 @@ class Data {
       sum_count_ = 0;
     }
     try { odom2baselink = tf_buffer_.lookupTransform("odom", "base_link", ros::Time(0)); }
-    catch (tf2::TransformException &ex) { ROS_WARN("%s", ex.what()); }
+    catch (tf2::TransformException &ex) {}
     pos_x_ = odom2baselink.transform.translation.x;
     try { baselink2pitch = tf_buffer_.lookupTransform("base_link", "pitch", ros::Time(0)); }
     catch (tf2::TransformException &ex) { ROS_ERROR("%s", ex.what()); }
@@ -59,7 +58,7 @@ class Data {
   rm_msgs::TrackDataArray track_data_array_;
   rm_msgs::GimbalDesError gimbal_des_error_;
   rm_msgs::ActuatorState actuator_state_;
-  Referee referee_;
+  rm_common::Referee referee_;
   tf2_ros::Buffer tf_buffer_;
   tf2_ros::TransformListener tf_listener_;
   double pos_x_, pos_pitch_, pos_yaw_;

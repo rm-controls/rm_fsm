@@ -18,12 +18,6 @@ class StateAttack : public StateBase {
     if (!auto_nh.getParam("stop_distance", stop_distance_)) {
       ROS_ERROR("Stop distance no defined (namespace: %s)", nh.getNamespace().c_str());
     }
-    if (!auto_nh.getParam("collision_distance", collision_distance_)) {
-      ROS_ERROR("Collision distance no defined (namespace: %s)", nh.getNamespace().c_str());
-    }
-    if (!auto_nh.getParam("collision_flag", collision_flag_)) {
-      ROS_ERROR("Collision flag no defined (namespace: %s)", nh.getNamespace().c_str());
-    }
     ros::NodeHandle attack_nh = ros::NodeHandle(auto_nh, "attack");
     if (!attack_nh.getParam("scale_x", scale_x_)) {
       ROS_ERROR("Scale x no defined (namespace: %s)", nh.getNamespace().c_str());
@@ -52,15 +46,8 @@ class StateAttack : public StateBase {
  protected:
   enum MoveStatus { LEAVE_START, LEAVE_END };
   void updateMoveStatus() {
-    if (collision_flag_) {
-      if (move_status_ == LEAVE_START && data_->pos_x_ >= move_distance_ - collision_distance_)
-        move_status_ = LEAVE_END;
-      else if (move_status_ == LEAVE_END && data_->pos_x_ <= collision_distance_)
-        move_status_ = LEAVE_START;
-    } else {
-      if (move_status_ == LEAVE_START && data_->pos_x_ >= move_distance_ - stop_distance_) move_status_ = LEAVE_END;
-      else if (move_status_ == LEAVE_END && data_->pos_x_ <= stop_distance_) move_status_ = LEAVE_START;
-    }
+    if (move_status_ == LEAVE_START && data_->pos_x_ >= move_distance_ - stop_distance_) move_status_ = LEAVE_END;
+    else if (move_status_ == LEAVE_END && data_->pos_x_ <= stop_distance_) move_status_ = LEAVE_START;
   }
   void setChassis() override {
     StateBase::setChassis();
@@ -88,9 +75,8 @@ class StateAttack : public StateBase {
   MoveStatus move_status_ = LEAVE_START;
   double scale_yaw_, scale_pitch_, scale_x_;
   double pitch_max_, pitch_min_, yaw_max_, yaw_min_;
-  double move_distance_, stop_distance_, collision_distance_;
+  double move_distance_, stop_distance_;
   int direct_pitch_ = 1, direct_yaw_ = 1;
-  bool collision_flag_;
 };
 }
 
