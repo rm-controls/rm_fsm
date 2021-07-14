@@ -27,13 +27,22 @@ class FsmSentry : public FsmBase {
  protected:
   std::string getNextState() override {
     if (data_.dbus_data_.s_r == rm_msgs::DbusData::UP) {
-      if (current_state_->getName() == "CALIBRATE" && !state_calibrate_->getCalibrateStatus())
-        return "CALIBRATE";
-      if (data_.referee_.referee_data_.student_interactive_data_.data_ == 0) return "STANDBY";
-      else return "ATTACK";
+      if (current_state_->getName() == "CALIBRATE" && !state_calibrate_->getCalibrateStatus()) return "CALIBRATE";
+      sendMode(ros::Time::now());
+      if (data_.referee_.referee_data_.interactive_data.header_data_.data_cmd_id_ == 0x0200) {
+        if (data_.referee_.referee_data_.interactive_data.data_ == 0) return "STANDBY";
+        else return "ATTACK";
+      }
     } else if (data_.dbus_data_.s_r == rm_msgs::DbusData::MID) return "RAW";
     else return "IDLE";
   }
+  void sendMode(const ros::Time &time) {
+    if (time - last_send_ < ros::Duration(0.5)) return;
+    int receiver_id = data_.referee_.robot_id_ == RED_SENTRY ? RED_STANDARD_4 : BLUE_STANDARD_4;
+    data_.referee_.sendInteractiveData(0x0201, receiver_id, data_.referee_.referee_data_.interactive_data.data_);
+    last_send_ = time;
+  }
+  ros::Time last_send_ = ros::Time::now();
  private:
   StateBase *state_idle_ = new StateBase(nh_, &data_, "IDLE");
   StateRaw *state_raw_ = new StateRaw(nh_, &data_);
