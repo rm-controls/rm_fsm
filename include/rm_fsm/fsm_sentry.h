@@ -16,16 +16,16 @@ namespace rm_fsm {
 class FsmSentry : public FsmBase {
  public:
   FsmSentry(ros::NodeHandle &nh) : FsmBase(nh) {
-    string2state.insert(std::pair<std::string, StateBase *>("RAW", &state_raw_));
-    string2state.insert(std::pair<std::string, StateBase *>("CALIBRATE", &state_calibrate_));
-    string2state.insert(std::pair<std::string, StateBase *>("ATTACK", &state_attack_));
-    string2state.insert(std::pair<std::string, StateBase *>("IDLE", &state_idle_));
+    string2state.insert(std::pair<std::string, StateBase *>(state_raw_->getName(), state_raw_));
+    string2state.insert(std::pair<std::string, StateBase *>(state_calibrate_->getName(), state_calibrate_));
+    string2state.insert(std::pair<std::string, StateBase *>(state_attack_->getName(), state_attack_));
+    string2state.insert(std::pair<std::string, StateBase *>(state_idle_->getName(), state_idle_));
     current_state_ = string2state["RAW"];
   }
  protected:
   std::string getNextState() override {
     if (data_.dbus_data_.s_r == rm_msgs::DbusData::UP) {
-      if (current_state_->getName() == "CALIBRATE" && !state_calibrate_.getCalibrateStatus())
+      if (current_state_->getName() == "CALIBRATE" && !state_calibrate_->getCalibrateStatus())
         return "CALIBRATE";
       else
         return "ATTACK";
@@ -33,10 +33,10 @@ class FsmSentry : public FsmBase {
     else return "IDLE";
   }
  private:
-  StateBase state_idle_ = StateBase(nh_, &data_, "IDLE");
-  StateRaw state_raw_ = StateRaw(nh_, &data_, "RAW");
-  StateCalibrate state_calibrate_ = StateCalibrate(nh_, &data_, "CALIBRATE");
-  StateAttack state_attack_ = StateAttack(nh_, &data_, "ATTACK");
+  StateBase *state_idle_ = new StateBase(nh_, &data_, "IDLE");
+  StateRaw *state_raw_ = new StateRaw(nh_, &data_);
+  StateCalibrate *state_calibrate_ = new StateCalibrate(nh_, &data_);
+  StateAttack *state_attack_ = new StateAttack(nh_, &data_);
 };
 }
 

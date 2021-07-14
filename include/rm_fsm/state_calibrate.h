@@ -10,8 +10,7 @@
 namespace rm_fsm {
 class StateCalibrate : public StateBase {
  public:
-  StateCalibrate(ros::NodeHandle &nh, Data *data, const std::string &state_string)
-      : StateBase(nh, data, state_string) {
+  StateCalibrate(ros::NodeHandle &nh, Data *data) : StateBase(nh, data, "CALIBRATE") {
     ros::NodeHandle auto_nh = ros::NodeHandle(nh, "auto");
     if (!auto_nh.getParam("collision_effort", collision_effort_)) {
       ROS_ERROR("Collision effort no defined (namespace: %s)", nh.getNamespace().c_str());
