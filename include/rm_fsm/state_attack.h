@@ -5,11 +5,12 @@
 #ifndef RM_FSM_STATE_ATTACK_H_
 #define RM_FSM_STATE_ATTACK_H_
 
+#include "rm_fsm/common/fsm_common.h"
+
 namespace rm_fsm {
 class StateAttack : public StateBase {
  public:
-  StateAttack(ros::NodeHandle &nh, Data *data, const std::string &state_string)
-      : StateBase(nh, data, state_string) {
+  StateAttack(ros::NodeHandle &nh, Data *data) : StateBase(nh, data, "ATTACK") {
     ros::NodeHandle auto_nh = ros::NodeHandle(nh, "auto");
     if (!auto_nh.getParam("move_distance", move_distance_)) {
       ROS_ERROR("Move distance no defined (namespace: %s)", nh.getNamespace().c_str());

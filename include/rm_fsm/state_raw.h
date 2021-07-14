@@ -9,8 +9,7 @@
 namespace rm_fsm {
 class StateRaw : public StateBase {
  public:
-  StateRaw(ros::NodeHandle &nh, Data *data, const std::string &state_string)
-      : StateBase(nh, data, state_string) {}
+  StateRaw(ros::NodeHandle &nh, Data *data) : StateBase(nh, data, "RAW") {}
  protected:
   void setChassis() override {
     chassis_cmd_sender_->setMode(rm_msgs::ChassisCmd::RAW);

@@ -10,8 +10,7 @@
 namespace rm_fsm {
 class StateCalibrate : public StateBase {
  public:
-  StateCalibrate(ros::NodeHandle &nh, Data *data, const std::string &state_string)
-      : StateBase(nh, data, state_string) {
+  StateCalibrate(ros::NodeHandle &nh, Data *data) : StateBase(nh, data, "CALIBRATE") {
     ros::NodeHandle calibrate_nh = ros::NodeHandle(nh, "auto/calibrate");
     if (!calibrate_nh.getParam("scale_x", scale_x_)) {
       ROS_ERROR("Move speed no defined (namespace: %s)", nh.getNamespace().c_str());

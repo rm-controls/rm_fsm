@@ -71,10 +71,10 @@ class FsmSentry : public FsmBase {
   double collision_effort_;
   bool finish_calibrate_ = false;
  private:
-  StateBase state_passive_ = StateBase(nh_, &data_, "passive");
-  StateRaw state_raw_ = StateRaw(nh_, &data_, "raw");
-  StateCalibrate state_calibrate_ = StateCalibrate(nh_, &data_, "calibrate");
-  StateAttack state_attack_ = StateAttack(nh_, &data_, "attack");
+  StateBase state_idle_ = StateBase(nh_, &data_, "IDLE");
+  StateRaw state_raw_ = StateRaw(nh_, &data_);
+  StateCalibrate state_calibrate_ = StateCalibrate(nh_, &data_);
+  StateAttack state_attack_ = StateAttack(nh_, &data_);
 };
 }
 
