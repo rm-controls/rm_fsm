@@ -31,8 +31,8 @@ class FsmSentry : public FsmBase {
       sendMode(ros::Time::now());
       if (data_.referee_.referee_data_.interactive_data.header_data_.data_cmd_id_ == 0x0200
           && data_.referee_.referee_data_.interactive_data.data_ == 0)
-        return "ATTACK";
-      else return "STANDBY";
+        return "STANDBY";
+      else return "ATTACK";
     } else if (data_.dbus_data_.s_r == rm_msgs::DbusData::MID) return "RAW";
     else return "IDLE";
   }
