@@ -27,12 +27,12 @@ class FsmSentry : public FsmBase {
  protected:
   std::string getNextState() override {
     if (data_.dbus_data_.s_r == rm_msgs::DbusData::UP) {
-      if (current_state_->getName() == "CALIBRATE" && !state_calibrate_->getCalibrateStatus()) return "CALIBRATE";
+      if (!state_calibrate_->getCalibrateStatus()) return "CALIBRATE";
       sendMode(ros::Time::now());
-      if (data_.referee_.referee_data_.interactive_data.header_data_.data_cmd_id_ == 0x0200) {
-        if (data_.referee_.referee_data_.interactive_data.data_ == 0) return "STANDBY";
-        else return "ATTACK";
-      }
+      if (data_.referee_.referee_data_.interactive_data.header_data_.data_cmd_id_ == 0x0200
+          && data_.referee_.referee_data_.interactive_data.data_ == 0)
+        return "ATTACK";
+      else return "STANDBY";
     } else if (data_.dbus_data_.s_r == rm_msgs::DbusData::MID) return "RAW";
     else return "IDLE";
   }

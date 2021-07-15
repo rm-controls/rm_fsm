@@ -38,7 +38,7 @@ class StateCalibrate : public StateBase {
  protected:
   void checkCalibrateStatus() {
     if (ros::Time::now() - init_time_ > ros::Duration(2.0) && !finish_calibrate_
-        && data_->current_effort_ <= -collision_effort_) {
+        && std::abs(data_->current_effort_) >= collision_effort_) {
       finish_calibrate_ = true;
       map2odom_.header.stamp = ros::Time::now();
       map2odom_.transform.translation.x = data_->pos_x_;
@@ -56,7 +56,7 @@ class StateCalibrate : public StateBase {
   }
   void setChassis() override {
     StateBase::setChassis();
-    vel_2d_cmd_sender_->setLinearXVel(-scale_x_);
+    vel_2d_cmd_sender_->setLinearXVel(scale_x_);
   }
   double scale_x_, collision_effort_;
   bool finish_calibrate_ = false;
