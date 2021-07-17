@@ -8,7 +8,7 @@
 #include <ros/ros.h>
 #include <tf2_ros/transform_listener.h>
 #include <rm_common/ori_tool.h>
-#include <rm_common/referee/referee.h>
+#include <rm_fsm/referee/referee.h>
 #include <rm_msgs/DbusData.h>
 #include <rm_msgs/GimbalDesError.h>
 #include <rm_msgs/TrackDataArray.h>
@@ -58,7 +58,7 @@ class Data {
   rm_msgs::TrackDataArray track_data_array_;
   rm_msgs::GimbalDesError gimbal_des_error_;
   rm_msgs::ActuatorState actuator_state_;
-  rm_common::Referee referee_;
+  Referee referee_;
   tf2_ros::Buffer tf_buffer_;
   tf2_ros::TransformListener tf_listener_;
   double pos_x_, pos_pitch_, pos_yaw_;

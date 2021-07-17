@@ -17,13 +17,13 @@ class StateBase {
   StateBase(ros::NodeHandle &nh, Data *data, std::string state_name)
       : nh_(nh), data_(data), state_name_(std::move(state_name)) {
     ros::NodeHandle chassis_nh(nh, "chassis");
-    chassis_cmd_sender_ = new rm_common::ChassisCommandSender(chassis_nh, data_->referee_);
+    chassis_cmd_sender_ = new rm_common::ChassisCommandSender(chassis_nh);
     ros::NodeHandle vel_nh(nh, "vel");
     vel_2d_cmd_sender_ = new rm_common::Vel2DCommandSender(vel_nh);
     ros::NodeHandle gimbal_nh(nh, "gimbal");
-    gimbal_cmd_sender_ = new rm_common::GimbalCommandSender(gimbal_nh, data_->referee_);
+    gimbal_cmd_sender_ = new rm_common::GimbalCommandSender(gimbal_nh);
     ros::NodeHandle shooter_nh(nh, "shooter");
-    shooter_cmd_sender_ = new rm_common::ShooterCommandSender(shooter_nh, data_->referee_);
+    shooter_cmd_sender_ = new rm_common::ShooterCommandSender(shooter_nh);
   }
   virtual void run() {
     setChassis();
@@ -34,7 +34,10 @@ class StateBase {
   void onEnter() { ROS_INFO("Enter %s", state_name_.c_str()); }
   std::string getName() { return state_name_; }
  protected:
-  virtual void setChassis() { chassis_cmd_sender_->setMode(rm_msgs::ChassisCmd::RAW); }
+  virtual void setChassis() {
+    chassis_cmd_sender_->updateLimit(data_->referee_.referee_data_);
+    chassis_cmd_sender_->setMode(rm_msgs::ChassisCmd::RAW);
+  }
   virtual void setGimbal() { gimbal_cmd_sender_->setMode(rm_msgs::GimbalCmd::RATE); }
   virtual void setShooter() { shooter_cmd_sender_->setMode(rm_msgs::ShootCmd::STOP); }
   void sendCommand(const ros::Time &time) {
