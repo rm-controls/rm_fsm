@@ -55,19 +55,18 @@ class StateStandby : public StateBase {
     gimbal_cmd_sender_->setRate(scale_yaw_ * direct_yaw_, scale_pitch_ * direct_pitch_);
     gimbal_cmd_sender_->setMode(rm_msgs::GimbalCmd::TRACK);
     gimbal_cmd_sender_->setBulletSpeed(shooter_cmd_sender_->getSpeed());
-    gimbal_cmd_sender_->updateCost(data_->referee_.referee_data_, data_->track_data_array_);
+    gimbal_cmd_sender_->updateCost(data_->track_data_array_);
   }
   void setShooter() override {
-    shooter_cmd_sender_->updateLimit(data_->referee_.referee_data_);
     if (gimbal_cmd_sender_->getMsg()->mode == rm_msgs::GimbalCmd::TRACK)
       shooter_cmd_sender_->setMode(rm_msgs::ShootCmd::PUSH);
     else
       shooter_cmd_sender_->setMode(rm_msgs::ShootCmd::READY);
     shooter_cmd_sender_->checkError(data_->gimbal_des_error_, ros::Time::now());
   }
-  double move_distance_;
-  double scale_x_, scale_yaw_, scale_pitch_;
-  double pitch_max_, pitch_min_, yaw_max_, yaw_min_;
+  double move_distance_{};
+  double scale_x_{}, scale_yaw_{}, scale_pitch_{};
+  double pitch_max_{}, pitch_min_{}, yaw_max_{}, yaw_min_{};
   int direct_pitch_ = 1, direct_yaw_ = 1;
 };
 }

@@ -21,11 +21,10 @@ class StateRaw : public StateBase {
     else {
       gimbal_cmd_sender_->setMode(rm_msgs::GimbalCmd::TRACK);
       gimbal_cmd_sender_->setBulletSpeed(shooter_cmd_sender_->getSpeed());
-      gimbal_cmd_sender_->updateCost(data_->referee_.referee_data_, data_->track_data_array_);
+      gimbal_cmd_sender_->updateCost(data_->track_data_array_);
     }
   }
   void setShooter() override {
-    shooter_cmd_sender_->updateLimit(data_->referee_.referee_data_);
     if (data_->dbus_data_.s_l == rm_msgs::DbusData::UP) {
       shooter_cmd_sender_->setMode(rm_msgs::ShootCmd::PUSH);
       shooter_cmd_sender_->checkError(data_->gimbal_des_error_, ros::Time::now());
