@@ -38,7 +38,8 @@ class FsmSentry : public FsmBase {
   }
   void sendMode(const ros::Time &time) {
     if (time - last_send_ < ros::Duration(0.5)) return;
-    int receiver_id = data_.referee_.robot_id_ == RED_SENTRY ? RED_STANDARD_4 : BLUE_STANDARD_4;
+    int receiver_id = data_.referee_.robot_id_ == rm_common::RobotId::RED_SENTRY ? rm_common::RobotId::RED_STANDARD_4
+                                                                                 : rm_common::RobotId::BLUE_STANDARD_4;
     data_.referee_.sendInteractiveData(0x0201, receiver_id, data_.referee_.referee_data_.interactive_data.data_);
     last_send_ = time;
   }

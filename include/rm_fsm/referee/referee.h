@@ -16,25 +16,6 @@
 #include <rm_msgs/ShootCmd.h>
 
 namespace rm_fsm {
-class SuperCapacitor {
- public:
-  void read(const std::vector<uint8_t> &rx_buffer);
-  float getChassisPower() const { return parameters[0]; }
-  float getLimitPower() const { return parameters[1]; }
-  float getBufferPower() const { return parameters[2]; }
-  float getCapPower() const { return parameters[3]; }
-  bool is_online_ = false;
-  ros::Time last_get_capacitor_data_ = ros::Time::now();
- private:
-  void dtpReceivedCallBack(unsigned char receive_byte);
-  void receiveCallBack(unsigned char package_id, const unsigned char *data);
-  static float int16ToFloat(unsigned short data0);
-
-  float parameters[4] = {0};
-  unsigned char receive_buffer_[1024] = {0};
-  unsigned char ping_pong_buffer_[1024] = {0};
-  unsigned int receive_buf_counter_ = 0;
-};
 
 class Referee {
  public:
@@ -44,13 +25,9 @@ class Referee {
   void sendInteractiveData(int data_cmd_id, int receiver_id, unsigned char data);
 
   ros::Publisher referee_pub_;
-  ros::Publisher super_capacitor_pub_;
 
   rm_msgs::Referee referee_pub_data_;
-  rm_msgs::SuperCapacitor super_capacitor_pub_data_;
   rm_common::RefereeData referee_data_{};
-  SuperCapacitor super_capacitor_;
-
   bool is_online_ = false;
   int robot_id_ = 0;
   int client_id_ = 0;

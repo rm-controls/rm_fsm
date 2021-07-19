@@ -53,7 +53,6 @@ void Referee::read() {
       if (frame_len != -1) kI += frame_len;
     }
   }
-  super_capacitor_.read(rx_buffer);
   getRobotInfo();
   publishData();
 }
@@ -214,14 +213,7 @@ void Referee::publishData() {
   referee_pub_data_.bullet_speed = referee_data_.shoot_data_.bullet_speed_;
   referee_pub_data_.stamp = last_get_referee_data_;
 
-  super_capacitor_pub_data_.capacity = super_capacitor_.getCapPower();
-  super_capacitor_pub_data_.chassis_power_buffer = (uint16_t) super_capacitor_.getBufferPower();
-  super_capacitor_pub_data_.limit_power = super_capacitor_.getLimitPower();
-  super_capacitor_pub_data_.chassis_power = super_capacitor_.getChassisPower();
-  super_capacitor_pub_data_.stamp = super_capacitor_.last_get_capacitor_data_;
-
   referee_pub_.publish(referee_pub_data_);
-  super_capacitor_pub_.publish(super_capacitor_pub_data_);
 }
 
 void Referee::sendInteractiveData(int data_cmd_id, int receiver_id, uint8_t data) {
@@ -302,107 +294,5 @@ void appendCRC16CheckSum(uint8_t *pch_message, uint32_t dw_length) {
   wCRC = getCRC16CheckSum((uint8_t *) pch_message, dw_length - 2, rm_common::kCrc16Init);
   pch_message[dw_length - 2] = (uint8_t) (wCRC & 0x00ff);
   pch_message[dw_length - 1] = (uint8_t) ((wCRC >> 8) & 0x00ff);
-}
-
-void SuperCapacitor::read(const std::vector<uint8_t> &rx_buffer) {
-  int count = 0;
-  memset(receive_buffer_, 0x00, sizeof(receive_buffer_));
-  memset(ping_pong_buffer_, 0x00, sizeof(ping_pong_buffer_));
-  receive_buf_counter_ = 0;
-  for (unsigned char kI : rx_buffer) {
-    dtpReceivedCallBack(kI);
-    count++;
-    if (count >= (int) sizeof(receive_buffer_)) {
-      memset(receive_buffer_, 0x00, sizeof(receive_buffer_));
-      memset(ping_pong_buffer_, 0x00, sizeof(ping_pong_buffer_));
-      receive_buf_counter_ = 0;
-    }
-  }
-  if (parameters[0] >= 120) parameters[0] = 120;
-  if (parameters[0] <= 0) parameters[0] = 0;
-  if (parameters[2] >= 25) parameters[2] = 25;
-  if (parameters[2] <= 0) parameters[2] = 0;
-  if (parameters[3] >= 1) parameters[3] = 1;
-  if (parameters[3] <= 0) parameters[3] = 0;
-  if (ros::Time::now() - last_get_capacitor_data_ > ros::Duration(0.1)) is_online_ = false;
-}
-
-void SuperCapacitor::receiveCallBack(unsigned char package_id, unsigned char *data) {
-  if (package_id == 0) {
-    last_get_capacitor_data_ = ros::Time::now();
-    parameters[0] = int16ToFloat((data[0] << 8) | data[1]);
-    parameters[1] = int16ToFloat((data[2] << 8) | data[3]);
-    parameters[2] = int16ToFloat((data[4] << 8) | data[5]);
-    parameters[3] = int16ToFloat((data[6] << 8) | data[7]);
-  }
-}
-
-void SuperCapacitor::dtpReceivedCallBack(unsigned char receive_byte) {
-  unsigned char check_flag;
-  unsigned int sof_pos, eof_pos, check_counter;
-
-  receive_buffer_[receive_buf_counter_] = receive_byte;
-  receive_buf_counter_ = receive_buf_counter_ + 1;
-  check_flag = 0;
-  sof_pos = 0;
-  eof_pos = 0;
-  check_counter = 0;
-  while (true) {
-    if (check_flag == 0 && receive_buffer_[check_counter] == 0xff) {
-      check_flag = 1;
-      sof_pos = check_counter;
-    } else if (check_flag == 1 && receive_buffer_[check_counter] == 0xff) {
-      eof_pos = check_counter;
-      break;
-    }
-    if (check_counter >= (receive_buf_counter_ - 1)) break;
-    else check_counter++;
-  }                                                           // Find Package In Buffer
-
-  if ((eof_pos - sof_pos) == 11) {
-    unsigned int temp_var;
-    unsigned char data_buffer[8] = {0};
-    unsigned char valid_buffer[12] = {0};
-
-    for (temp_var = 0; temp_var < 12; temp_var++)           // Copy Data To Another Buffer
-      valid_buffer[temp_var] = receive_buffer_[sof_pos + temp_var];
-
-    eof_pos++;
-    memset(ping_pong_buffer_, 0x00, sizeof(ping_pong_buffer_));
-    for (temp_var = 0; temp_var < receive_buf_counter_ - eof_pos; temp_var++)
-      ping_pong_buffer_[temp_var] = receive_buffer_[eof_pos + temp_var];
-    receive_buf_counter_ = receive_buf_counter_ - eof_pos;
-    memset(receive_buffer_, 0x00, sizeof(receive_buffer_));
-    for (temp_var = 0; temp_var < receive_buf_counter_; temp_var++)
-      receive_buffer_[temp_var] = ping_pong_buffer_[temp_var];
-
-    unsigned char pid_bit = valid_buffer[1] >> 4;           // Get The PID Bit
-    if (pid_bit == ((~(valid_buffer[1] & 0x0f)) & 0x0f)) {   // PID Verify
-      for (temp_var = 0; temp_var < 8; ++temp_var)
-        data_buffer[temp_var] = valid_buffer[2 + temp_var];
-      if (valid_buffer[10] != 0x00) {                   // Some Byte had been replace
-        unsigned char temp_filter = 0x00;
-        for (temp_var = 0; temp_var < 8; ++temp_var)
-          if (((valid_buffer[10] & (temp_filter | (0x01 << temp_var))) >> temp_var)
-              == 1)                                   // This Byte Need To Adjust
-            data_buffer[temp_var] = 0xff;           // Adjust to 0xff
-      }
-      receiveCallBack(pid_bit, data_buffer);
-    }
-  } else if ((eof_pos - sof_pos) != 0 && eof_pos != 0) {
-    memset(receive_buffer_, 0x00, sizeof(receive_buffer_));
-    memset(ping_pong_buffer_, 0x00, sizeof(ping_pong_buffer_));
-    receive_buf_counter_ = 0;
-  }
-}
-
-float SuperCapacitor::int16ToFloat(unsigned short data0) {
-  if (data0 == 0) return 0;
-  float *fp32;
-  unsigned int fInt32 = ((data0 & 0x8000) << 16) |
-      (((((data0 >> 10) & 0x1f) - 0x0f + 0x7f) & 0xff) << 23)
-      | ((data0 & 0x03FF) << 13);
-  fp32 = (float *) &fInt32;
-  return *fp32;
 }
 }
