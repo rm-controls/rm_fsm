@@ -1,8 +1,8 @@
 //
 // Created by peter on 2021/5/17.
 //
-#ifndef RM_FSM_REFEREE_H_
-#define RM_FSM_REFEREE_H_
+#ifndef RM_MANUAL_REFEREE_H_
+#define RM_MANUAL_REFEREE_H_
 
 #include <cstdint>
 #include <serial/serial.h>
@@ -27,7 +27,7 @@ class SuperCapacitor {
   ros::Time last_get_capacitor_data_ = ros::Time::now();
  private:
   void dtpReceivedCallBack(unsigned char receive_byte);
-  void receiveCallBack(unsigned char package_id, unsigned char *data);
+  void receiveCallBack(unsigned char package_id, const unsigned char *data);
   static float int16ToFloat(unsigned short data0);
 
   float parameters[4] = {0};
@@ -48,7 +48,7 @@ class Referee {
 
   rm_msgs::Referee referee_pub_data_;
   rm_msgs::SuperCapacitor super_capacitor_pub_data_;
-  rm_common::RefereeData referee_data_{}, last_referee_data_;
+  rm_common::RefereeData referee_data_{};
   SuperCapacitor super_capacitor_;
 
   bool is_online_ = false;
@@ -57,8 +57,8 @@ class Referee {
   std::string robot_color_;
  private:
   int unpack(uint8_t *rx_data);
-  void pack(uint8_t *tx_buffer, uint8_t *data, int cmd_id, int len);
-  void getRobotId();
+  void pack(uint8_t *tx_buffer, uint8_t *data, int cmd_id, int len) const;
+  void getRobotInfo();
   void publishData();
 
   serial::Serial serial_;
@@ -66,7 +66,7 @@ class Referee {
   const std::string serial_port_ = "/dev/usbReferee";
   const int k_frame_length_ = 128, k_header_length_ = 5, k_cmd_id_length_ = 2, k_tail_length_ = 2;
   static const int k_unpack_buffer_length_ = 256;
-  uint8_t unpack_buffer_[k_unpack_buffer_length_];
+  uint8_t unpack_buffer_[k_unpack_buffer_length_]{};
 };
 
 // CRC verification
