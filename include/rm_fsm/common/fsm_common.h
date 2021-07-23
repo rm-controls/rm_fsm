@@ -7,9 +7,10 @@
 
 #include <rm_common/ros_utilities.h>
 #include <rm_common/decision/command_sender.h>
-#include <rm_common/decision/controller_loader.h>
-#include <rm_common/decision/calibration_manager.h>
+
 #include "rm_fsm/common/data.h"
+#include "rm_common/decision/controller_manager.h"
+#include "rm_common/decision/calibration_queue.h"
 
 namespace rm_fsm {
 class StateBase {
@@ -58,8 +59,8 @@ class FsmBase {
  public:
   explicit FsmBase(ros::NodeHandle &nh);
   ~FsmBase() {
-    delete controller_loader_;
-    delete calibration_manager_;
+    delete controller_manager_;
+    delete calibration_loader;
   }
   virtual void run();
  protected:
@@ -74,23 +75,24 @@ class FsmBase {
 
   // Remote Controller
   virtual void remoteControlTurnOff() {
-    switch_base_ctrl_srv_->flipControllers();
+    switch_base_ctrl_srv_->stopControllers(main_controllers_);
+    switch_base_ctrl_srv_->stopControllers(calibration_controllers_);
     switch_base_ctrl_srv_->callService();
   }
   virtual void remoteControlTurnOn() {
-    switch_base_ctrl_srv_->switchControllers();
+    switch_base_ctrl_srv_->startControllers(main_controllers_);
     switch_base_ctrl_srv_->callService();
-    calibration_manager_->reset();
   }
 
   ros::NodeHandle nh_;
   Data data_;
-  rm_common::ControllerLoader *controller_loader_;
-  rm_common::CalibrationManager *calibration_manager_;
-  rm_common::SwitchControllersService *switch_state_ctrl_srv_, *switch_base_ctrl_srv_{};
+  rm_common::ControllerManager *controller_manager_;
+  rm_common::ControllerManager *calibration_loader;
+  rm_common::SwitchControllersServiceCaller *switch_state_ctrl_srv_, *switch_base_ctrl_srv_{};
+  std::vector<std::string> main_controllers_, calibration_controllers_;
 
   StateBase *current_state_;
-  std::map<std::string, StateBase *> string2state;
+  std::map<std::string, StateBase *>   string2state;
   bool remote_is_open_{};
 };
 }
