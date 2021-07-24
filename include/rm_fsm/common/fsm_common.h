@@ -59,8 +59,7 @@ class FsmBase {
  public:
   explicit FsmBase(ros::NodeHandle &nh);
   ~FsmBase() {
-    delete controller_manager_;
-    delete calibration_loader;
+
   }
   virtual void run();
  protected:
@@ -75,25 +74,23 @@ class FsmBase {
 
   // Remote Controller
   virtual void remoteControlTurnOff() {
-    switch_base_ctrl_srv_->stopControllers(main_controllers_);
-    switch_base_ctrl_srv_->stopControllers(calibration_controllers_);
-    switch_base_ctrl_srv_->callService();
+    controller_manager_.stopMainControllers();
+    controller_manager_.stopCalibrationControllers();
   }
   virtual void remoteControlTurnOn() {
-    switch_base_ctrl_srv_->startControllers(main_controllers_);
-    switch_base_ctrl_srv_->callService();
+    controller_manager_.startMainControllers();
   }
 
   ros::NodeHandle nh_;
   Data data_;
-  rm_common::ControllerManager *controller_manager_;
-  rm_common::ControllerManager *calibration_loader;
-  rm_common::SwitchControllersServiceCaller *switch_state_ctrl_srv_, *switch_base_ctrl_srv_{};
-  std::vector<std::string> main_controllers_, calibration_controllers_;
+  rm_common::ControllerManager controller_manager_;
+  rm_common::ControllerManager calibration_loader;
+  std::vector<std::string> main_controllers_, calibration_controllers_,state_controllers_;
 
   StateBase *current_state_;
   std::map<std::string, StateBase *>   string2state;
   bool remote_is_open_{};
+  bool chassis_output_{}, gimbal_output_{}, shooter_output_{};
 };
 }
 #endif // RM_FSM_COMMON_FSM_COMMON_H_

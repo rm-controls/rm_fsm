@@ -23,6 +23,11 @@ class FsmSentry : public FsmBase {
     string2state.insert(std::pair<std::string, StateBase *>(state_standby_->getName(), state_standby_));
     string2state.insert(std::pair<std::string, StateBase *>(state_idle_->getName(), state_idle_));
     current_state_ = string2state["RAW"];
+    try {
+      XmlRpc::XmlRpcValue rpc_value;
+      nh.getParam("trigger_calibration", rpc_value);
+      trigger_calibration_ = new rm_common::CalibrationQueue(rpc_value, nh, controller_manager_);
+    } catch(XmlRpc::XmlRpcException &e) { ROS_ERROR("%s",e.getMessage().c_str());}
   }
  protected:
   std::string getNextState() override {
@@ -38,7 +43,7 @@ class FsmSentry : public FsmBase {
   }
   void sendMode(const ros::Time &time) {
     if (time - last_send_ < ros::Duration(0.5)) return;
-    int receiver_id = data_.referee_.robot_id_ == RED_SENTRY ? RED_STANDARD_4 : BLUE_STANDARD_4;
+    int receiver_id = data_.referee_.referee_data_.robot_id_ == rm_common::RED_SENTRY ? rm_common::RED_STANDARD_4 : rm_common::BLUE_STANDARD_4;
     data_.referee_.sendInteractiveData(0x0201, receiver_id, data_.referee_.referee_data_.interactive_data.data_);
     last_send_ = time;
   }
@@ -49,6 +54,7 @@ class FsmSentry : public FsmBase {
   StateCalibrate *state_calibrate_ = new StateCalibrate(nh_, &data_);
   StateStandby *state_standby_ = new StateStandby(nh_, &data_);
   StateAttack *state_attack_ = new StateAttack(nh_, &data_);
+  rm_common::CalibrationQueue *trigger_calibration_;
 };
 }
 

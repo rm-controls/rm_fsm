@@ -6,48 +6,46 @@
 #include "rm_common/decision/controller_manager.h"
 
 namespace rm_fsm {
-FsmBase::FsmBase(ros::NodeHandle &nh) : nh_(nh), data_(nh) {
-  controller_manager_ = new rm_common::ControllerManager(nh);
-  controller_manager_->startStateControllers();
-  calibration_loader = new rm_common::ControllerManager(nh);
-  calibration_loader->startCalibrationControllers();
-  ros::NodeHandle state_ctrl_nh(nh, "state_controllers_switch");
-  switch_state_ctrl_srv_ = new rm_common::SwitchControllersServiceCaller(state_ctrl_nh);
-  switch_state_ctrl_srv_->startControllers(main_controllers_);
-  switch_state_ctrl_srv_->callService();
-  ros::NodeHandle base_ctrl_nh(nh, "base_controllers_switch");
-  switch_base_ctrl_srv_ = new rm_common::SwitchControllersServiceCaller(base_ctrl_nh);
+FsmBase::FsmBase(ros::NodeHandle &nh) : nh_(nh), data_(nh) ,controller_manager_(nh),calibration_loader(nh){
+  controller_manager_.startStateControllers();
+  calibration_loader.startCalibrationControllers();
+
   string2state.insert(std::make_pair("INVALID", nullptr));
   current_state_ = string2state["INVALID"];
+
 }
 
 void FsmBase::run() {
   ros::Time time = ros::Time::now();
   data_.update(time);
   checkReferee(time);
-
   checkSwitch(time);
+  controller_manager_.update();
   std::string next_state_name = getNextState();
   if (next_state_name != current_state_->getName()) {
     current_state_ = string2state[next_state_name];
     current_state_->onEnter();
     current_state_->run();
   } else current_state_->run();
+
 }
 
 void FsmBase::checkReferee(const ros::Time &time) {
-  if (data_.referee_.referee_data_.game_robot_status_.mains_power_chassis_output_
-      && !data_.referee_.last_referee_data_.game_robot_status_.mains_power_chassis_output_) {
+  if (data_.referee_.referee_data_.game_robot_status_.mains_power_chassis_output_) chassis_output_ = true;
+  else chassis_output_ = false;
+  if (data_.referee_.referee_data_.game_robot_status_.mains_power_gimbal_output_) gimbal_output_ = true;
+  else gimbal_output_ = false;
+  if (data_.referee_.referee_data_.game_robot_status_.mains_power_shooter_output_) shooter_output_ = true;
+  else shooter_output_ = false;
+  if (data_.referee_.referee_data_.game_robot_status_.mains_power_chassis_output_ && chassis_output_){
     ROS_INFO("Chassis output ON");
     chassisOutputOn();
   }
-  if (data_.referee_.referee_data_.game_robot_status_.mains_power_gimbal_output_
-      && !data_.referee_.last_referee_data_.game_robot_status_.mains_power_gimbal_output_) {
+  if (data_.referee_.referee_data_.game_robot_status_.mains_power_gimbal_output_ && gimbal_output_){
     ROS_INFO("Gimbal output ON");
     gimbalOutputOn();
   }
-  if (data_.referee_.referee_data_.game_robot_status_.mains_power_shooter_output_
-      && !data_.referee_.last_referee_data_.game_robot_status_.mains_power_shooter_output_) {
+  if (data_.referee_.referee_data_.game_robot_status_.mains_power_shooter_output_ && shooter_output_){
     ROS_INFO("Shooter output ON");
     shooterOutputOn();
   }

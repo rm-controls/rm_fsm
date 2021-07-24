@@ -42,14 +42,14 @@ class Data {
       sum_count_ = 0;
     }
     try { odom2baselink = tf_buffer_.lookupTransform("odom", "base_link", ros::Time(0)); }
-    catch (tf2::TransformException &ex) {}
+    catch (tf2::TransformException &ex) { ROS_ERROR_ONCE("%s", ex.what()); }
     pos_x_ = odom2baselink.transform.translation.x;
     try { baselink2pitch = tf_buffer_.lookupTransform("base_link", "pitch", ros::Time(0)); }
-    catch (tf2::TransformException &ex) { ROS_ERROR("%s", ex.what()); }
+    catch (tf2::TransformException &ex) { ROS_ERROR_ONCE("%s", ex.what()); }
     quatToRPY(baselink2pitch.transform.rotation, roll, pitch, yaw);
     pos_pitch_ = pitch;
     try { baselink2yaw = tf_buffer_.lookupTransform("base_link", "yaw", ros::Time(0)); }
-    catch (tf2::TransformException &ex) { ROS_ERROR("%s", ex.what()); }
+    catch (tf2::TransformException &ex) { ROS_ERROR_ONCE("%s", ex.what()); }
     quatToRPY(baselink2yaw.transform.rotation, roll, pitch, yaw);
     pos_yaw_ = yaw;
   }
