@@ -96,8 +96,29 @@ rm_fsm:
       - controllers/upper_shooter_controller
       - controllers/lower_shooter_controller
     calibration_controllers:
-      - controllers/trigger_calibration_controller
-    trigger_calibration:
-      - start_controller: controllers/trigger_calibration_controller
-        stop_controller: controllers/shooter_controller
-        service_name: /controllers/trigger_calibration_controller/is_calibrated
+      - controllers/upper_trigger_calibration_controller
+      - controllers/upper_yaw_calibration_controller
+      - controllers/upper_pitch_calibration_controller
+      - controllers/lower_trigger_calibration_controller
+      - controllers/lower_yaw_calibration_controller
+      - controllers/lower_pitch_calibration_controller
+
+  power_on_calibration:
+    - start_controller: controllers/upper_trigger_calibration_controller
+      stop_controller: controllers/upper_shooter_controller
+      service_name: /controllers/upper_trigger_calibration_controller/is_calibrated
+    - start_controller: controllers/upper_yaw_calibration_controller
+      stop_controller: controllers/upper_gimbal_controller
+      service_name: /controllers/upper_yaw_calibration_controller/is_calibrated
+    - start_controller: controllers/upper_pitch_calibration_controller
+      stop_controller: controllers/upper_gimbal_controller
+      service_name: /controllers/upper_pitch_calibration_controller/is_calibrated
+    - start_controller: controllers/lower_trigger_calibration_controller
+      stop_controller: controllers/lower_shooter_controller
+      service_name: /controllers/lower_trigger_calibration_controller/is_calibrated
+    - start_controller: controllers/lower_yaw_calibration_controller
+      stop_controller: controllers/lower_gimbal_controller
+      service_name: /controllers/lower_yaw_calibration_controller/is_calibrated
+    - start_controller: controllers/lower_pitch_calibration_controller
+      stop_controller: controllers/lower_gimbal_controller
+      service_name: /controllers/lower_pitch_calibration_controller/is_calibrated

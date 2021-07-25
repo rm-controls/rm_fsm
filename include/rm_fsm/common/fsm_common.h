@@ -56,7 +56,7 @@ class FsmBase {
   Data data_;
   ros::NodeHandle nh_;
   rm_common::ControllerManager controller_manager_;
-  rm_common::CalibrationQueue *trigger_calibration_{};
+  rm_common::CalibrationQueue *power_on_calibration_{};
   std::map<std::string, StateBase *> string2state_;
   bool remote_is_open_{};
   bool chassis_output_{}, gimbal_output_{}, shooter_output_{};

@@ -23,15 +23,15 @@ class FsmSentry : public FsmBase {
     current_state_ = string2state_["RAW"];
     try {
       XmlRpc::XmlRpcValue rpc_value;
-      nh.getParam("trigger_calibration", rpc_value);
-      trigger_calibration_ = new rm_common::CalibrationQueue(rpc_value, nh, controller_manager_);
+      nh.getParam("power_on_calibration", rpc_value);
+      power_on_calibration_ = new rm_common::CalibrationQueue(rpc_value, nh, controller_manager_);
     } catch (XmlRpc::XmlRpcException &e) {
       ROS_ERROR("%s", e.getMessage().c_str());
     }
   }
   void run() override {
     FsmBase::run();
-    trigger_calibration_->update(ros::Time::now());
+    power_on_calibration_->update(ros::Time::now());
   }
  protected:
   std::string getNextState() override {
@@ -45,9 +45,9 @@ class FsmSentry : public FsmBase {
     } else if (data_.dbus_data_.s_r == rm_msgs::DbusData::MID) return "RAW";
     else return "IDLE";
   }
-  void shooterOutputOn() override {
-    FsmBase::shooterOutputOn();
-    trigger_calibration_->reset();
+
+  void remoteControlTurnOn() override {
+    power_on_calibration_->reset();
   }
  private:
   void sendMode(const ros::Time &time) {
