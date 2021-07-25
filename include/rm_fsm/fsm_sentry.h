@@ -17,17 +17,17 @@ namespace rm_fsm {
 class FsmSentry : public FsmBase {
  public:
   FsmSentry(ros::NodeHandle &nh) : FsmBase(nh) {
-    string2state.insert(std::pair<std::string, StateBase *>(state_raw_->getName(), state_raw_));
-    string2state.insert(std::pair<std::string, StateBase *>(state_calibrate_->getName(), state_calibrate_));
-    string2state.insert(std::pair<std::string, StateBase *>(state_attack_->getName(), state_attack_));
-    string2state.insert(std::pair<std::string, StateBase *>(state_standby_->getName(), state_standby_));
-    string2state.insert(std::pair<std::string, StateBase *>(state_idle_->getName(), state_idle_));
-    current_state_ = string2state["RAW"];
+    string2state_.insert(std::pair<std::string, StateBase *>(state_raw_->getName(), state_raw_));
+    string2state_.insert(std::pair<std::string, StateBase *>(state_calibrate_->getName(), state_calibrate_));
+    string2state_.insert(std::pair<std::string, StateBase *>(state_attack_->getName(), state_attack_));
+    string2state_.insert(std::pair<std::string, StateBase *>(state_standby_->getName(), state_standby_));
+    string2state_.insert(std::pair<std::string, StateBase *>(state_idle_->getName(), state_idle_));
+    current_state_ = string2state_["RAW"];
     try {
       XmlRpc::XmlRpcValue rpc_value;
       nh.getParam("trigger_calibration", rpc_value);
       trigger_calibration_ = new rm_common::CalibrationQueue(rpc_value, nh, controller_manager_);
-    } catch(XmlRpc::XmlRpcException &e) { ROS_ERROR("%s",e.getMessage().c_str());}
+    } catch (XmlRpc::XmlRpcException &e) { ROS_ERROR("%s", e.getMessage().c_str()); }
   }
  protected:
   std::string getNextState() override {
