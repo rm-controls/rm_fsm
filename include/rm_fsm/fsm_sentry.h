@@ -47,6 +47,7 @@ class FsmSentry : public FsmBase {
   }
 
   void remoteControlTurnOn() override {
+    FsmBase::remoteControlTurnOn();
     power_on_calibration_->reset();
   }
  private:
