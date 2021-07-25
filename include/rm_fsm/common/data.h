@@ -5,10 +5,11 @@
 #ifndef RM_FSM_COMMON_DATA_H_
 #define RM_FSM_COMMON_DATA_H_
 
+#include "rm_fsm/referee/referee.h"
 #include <ros/ros.h>
 #include <tf2_ros/transform_listener.h>
 #include <rm_common/ori_tool.h>
-#include <rm_fsm/referee/referee.h>
+#include <sensor_msgs/JointState.h>
 #include <rm_msgs/DbusData.h>
 #include <rm_msgs/GimbalDesError.h>
 #include <rm_msgs/TrackDataArray.h>
@@ -27,7 +28,6 @@ class Data {
         nh.subscribe<rm_msgs::ActuatorState>("/actuator_states", 100, &Data::actuatorStateCallback, this);
     ros::NodeHandle root_nh;
     referee_.referee_pub_ = root_nh.advertise<rm_msgs::Referee>("/referee", 1);
-    referee_.super_capacitor_pub_ = root_nh.advertise<rm_msgs::SuperCapacitor>("/super_capacitor", 1);
     referee_.init();
   };
   void update(const ros::Time &time) {
@@ -61,7 +61,7 @@ class Data {
   Referee referee_;
   tf2_ros::Buffer tf_buffer_;
   tf2_ros::TransformListener tf_listener_;
-  double pos_x_, pos_pitch_, pos_yaw_;
+  double pos_x_{}, pos_pitch_{}, pos_yaw_{};
   double current_effort_ = 0;
  private:
   void dbusDataCallback(const rm_msgs::DbusData::ConstPtr &data) { dbus_data_ = *data; }

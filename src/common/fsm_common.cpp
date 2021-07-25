@@ -3,7 +3,6 @@
 //
 
 #include "rm_fsm/common/fsm_common.h"
-#include "rm_common/decision/controller_manager.h"
 
 namespace rm_fsm {
 StateBase::StateBase(ros::NodeHandle &nh, Data *data, std::string state_name)
