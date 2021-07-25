@@ -7,7 +7,7 @@
 
 namespace rm_fsm {
 StateBase::StateBase(ros::NodeHandle &nh, Data *data, std::string state_name)
-    : nh_(nh), data_(data), state_name_(std::move(state_name)) {
+    : data_(data), state_name_(std::move(state_name)) {
   ros::NodeHandle chassis_nh(nh, "chassis");
   chassis_cmd_sender_ = new rm_common::ChassisCommandSender(chassis_nh, data_->referee_.referee_data_);
   ros::NodeHandle vel_nh(nh, "vel");
@@ -15,7 +15,7 @@ StateBase::StateBase(ros::NodeHandle &nh, Data *data, std::string state_name)
   ros::NodeHandle upper_gimbal_nh(nh, "upper_gimbal");
   upper_gimbal_cmd_sender_ = new rm_common::GimbalCommandSender(upper_gimbal_nh, data_->referee_.referee_data_);
   ros::NodeHandle lower_gimbal_nh(nh, "lower_gimbal");
-  lower_gimbal_cmd_sender_ = new rm_common::GimbalCommandSender(upper_gimbal_nh, data_->referee_.referee_data_);
+  lower_gimbal_cmd_sender_ = new rm_common::GimbalCommandSender(lower_gimbal_nh, data_->referee_.referee_data_);
   ros::NodeHandle upper_shooter_nh(nh, "upper_shooter");
   upper_shooter_cmd_sender_ = new rm_common::ShooterCommandSender(upper_shooter_nh, data_->referee_.referee_data_);
   ros::NodeHandle lower_shooter_nh(nh, "lower_shooter");
@@ -40,9 +40,8 @@ void StateBase::sendCommand(const ros::Time &time) {
   lower_shooter_cmd_sender_->sendCommand(time);
 }
 
-FsmBase::FsmBase(ros::NodeHandle &nh) : data_(nh), nh_(nh), controller_manager_(nh), calibration_loader(nh) {
+FsmBase::FsmBase(ros::NodeHandle &nh) : data_(nh), nh_(nh), controller_manager_(nh) {
   controller_manager_.startStateControllers();
-  calibration_loader.startCalibrationControllers();
   string2state_.insert(std::make_pair("INVALID", nullptr));
   current_state_ = string2state_["INVALID"];
 }
@@ -74,6 +73,15 @@ void FsmBase::checkSwitch(const ros::Time &time) {
   }
 }
 
+void FsmBase::remoteControlTurnOff() {
+  controller_manager_.stopMainControllers();
+  controller_manager_.stopCalibrationControllers();
+}
+
+void FsmBase::remoteControlTurnOn() {
+  controller_manager_.startMainControllers();
+}
+
 void FsmBase::checkReferee(const ros::Time &time) {
   if (data_.referee_.referee_data_.game_robot_status_.mains_power_chassis_output_ && chassis_output_) {
     ROS_INFO("Chassis output ON");
@@ -95,12 +103,4 @@ void FsmBase::checkReferee(const ros::Time &time) {
   else shooter_output_ = false;
 }
 
-void FsmBase::remoteControlTurnOff() {
-  controller_manager_.stopMainControllers();
-  controller_manager_.stopCalibrationControllers();
-}
-
-void FsmBase::remoteControlTurnOn() {
-  controller_manager_.startMainControllers();
-}
 }

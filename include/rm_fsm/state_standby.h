@@ -12,33 +12,15 @@ class StateStandby : public StateBase {
  public:
   StateStandby(ros::NodeHandle &nh, Data *data) : StateBase(nh, data, "STANDBY") {
     ros::NodeHandle auto_nh = ros::NodeHandle(nh, "auto");
-    if (!auto_nh.getParam("move_distance", move_distance_)) {
+    if (!auto_nh.getParam("move_distance", move_distance_))
       ROS_ERROR("Move distance no defined (namespace: %s)", nh.getNamespace().c_str());
-    }
     ros::NodeHandle attack_nh = ros::NodeHandle(auto_nh, "attack");
-    if (!attack_nh.getParam("scale_x", scale_x_)) {
+    if (!attack_nh.getParam("scale_x", scale_x_))
       ROS_ERROR("Scale x no defined (namespace: %s)", nh.getNamespace().c_str());
-    }
-    ros::NodeHandle pitch_nh = ros::NodeHandle(attack_nh, "pitch");
-    if (!pitch_nh.getParam("scale", scale_pitch_)) {
-      ROS_ERROR("Scale no defined (namespace: %s)", nh.getNamespace().c_str());
-    }
-    if (!pitch_nh.getParam("max", pitch_max_)) {
-      ROS_ERROR("Max no defined (namespace: %s)", nh.getNamespace().c_str());
-    }
-    if (!pitch_nh.getParam("min", pitch_min_)) {
-      ROS_ERROR("Min no defined (namespace: %s)", nh.getNamespace().c_str());
-    }
-    ros::NodeHandle yaw_nh = ros::NodeHandle(attack_nh, "yaw");
-    if (!yaw_nh.getParam("scale", scale_yaw_)) {
-      ROS_ERROR("Scale no defined (namespace: %s)", nh.getNamespace().c_str());
-    }
-    if (!yaw_nh.getParam("max", yaw_max_)) {
-      ROS_ERROR("Max no defined (namespace: %s)", nh.getNamespace().c_str());
-    }
-    if (!yaw_nh.getParam("min", yaw_min_)) {
-      ROS_ERROR("Min no defined (namespace: %s)", nh.getNamespace().c_str());
-    }
+    ros::NodeHandle upper_nh = ros::NodeHandle(attack_nh, "upper");
+    getGimbalParam(upper_nh);
+    ros::NodeHandle lower_nh = ros::NodeHandle(attack_nh, "lower");
+    getGimbalParam(lower_nh);
   };
  protected:
   void setChassis() override {
@@ -75,11 +57,28 @@ class StateStandby : public StateBase {
     upper_shooter_cmd_sender_->checkError(data_->gimbal_des_error_, ros::Time::now());
   }
   void setLowerShooter() override {
-    if (upper_gimbal_cmd_sender_->getMsg()->mode == rm_msgs::GimbalCmd::TRACK)
+    if (lower_shooter_cmd_sender_->getMsg()->mode == rm_msgs::GimbalCmd::TRACK)
       lower_shooter_cmd_sender_->setMode(rm_msgs::ShootCmd::PUSH);
     else
       lower_shooter_cmd_sender_->setMode(rm_msgs::ShootCmd::READY);
     lower_shooter_cmd_sender_->checkError(data_->gimbal_des_error_, ros::Time::now());
+  }
+ protected:
+  void getGimbalParam(const ros::NodeHandle &nh) {
+    ros::NodeHandle pitch_nh = ros::NodeHandle(nh, "pitch");
+    if (!pitch_nh.getParam("scale", scale_pitch_))
+      ROS_ERROR("Scale no defined (namespace: %s)", nh.getNamespace().c_str());
+    if (!pitch_nh.getParam("max", pitch_max_))
+      ROS_ERROR("Max no defined (namespace: %s)", nh.getNamespace().c_str());
+    if (!pitch_nh.getParam("min", pitch_min_))
+      ROS_ERROR("Min no defined (namespace: %s)", nh.getNamespace().c_str());
+    ros::NodeHandle yaw_nh = ros::NodeHandle(nh, "yaw");
+    if (!yaw_nh.getParam("scale", scale_yaw_))
+      ROS_ERROR("Scale no defined (namespace: %s)", nh.getNamespace().c_str());
+    if (!yaw_nh.getParam("max", yaw_max_))
+      ROS_ERROR("Max no defined (namespace: %s)", nh.getNamespace().c_str());
+    if (!yaw_nh.getParam("min", yaw_min_))
+      ROS_ERROR("Min no defined (namespace: %s)", nh.getNamespace().c_str());
   }
   double move_distance_{};
   double scale_x_{}, scale_yaw_{}, scale_pitch_{};

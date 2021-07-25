@@ -6,6 +6,8 @@
 #define RM_FSM_STATE_CALIBRATE_H_
 
 #include "rm_fsm/common/fsm_common.h"
+#include <tf2_ros/static_transform_broadcaster.h>
+#include <tf2_ros/transform_broadcaster.h>
 
 namespace rm_fsm {
 class StateCalibrate : public StateBase {
@@ -34,7 +36,7 @@ class StateCalibrate : public StateBase {
     StateBase::run();
     checkCalibrateStatus();
   }
-  bool getCalibrateStatus() { return finish_calibrate_; }
+  bool getCalibrateStatus() const { return finish_calibrate_; }
  protected:
   void checkCalibrateStatus() {
     if (ros::Time::now() - init_time_ > ros::Duration(2.0) && !finish_calibrate_
@@ -58,7 +60,7 @@ class StateCalibrate : public StateBase {
     StateBase::setChassis();
     vel_2d_cmd_sender_->setLinearXVel(scale_x_);
   }
-  double scale_x_, collision_effort_;
+  double scale_x_{}, collision_effort_{};
   bool finish_calibrate_ = false;
   tf2_ros::StaticTransformBroadcaster static_tf_broadcaster_;
   tf2_ros::TransformBroadcaster tf_broadcaster_;

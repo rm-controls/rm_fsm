@@ -24,13 +24,13 @@ class StateAttack : public StateStandby {
     else if (move_status_ == LEAVE_END && data_->pos_x_ <= stop_distance_) move_status_ = LEAVE_START;
   }
   void setChassis() override {
-    StateBase::setChassis();
+    StateStandby::setChassis();
     updateMoveStatus();
     if (move_status_ == LEAVE_START) vel_2d_cmd_sender_->setLinearXVel(scale_x_);
     else if (move_status_ == LEAVE_END) vel_2d_cmd_sender_->setLinearXVel(-scale_x_);
   }
   MoveStatus move_status_ = LEAVE_START;
-  double stop_distance_;
+  double stop_distance_{};
 };
 }
 

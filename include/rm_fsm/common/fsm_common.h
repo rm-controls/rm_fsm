@@ -26,7 +26,6 @@ class StateBase {
   virtual void setUpperShooter() { upper_shooter_cmd_sender_->setMode(rm_msgs::ShootCmd::STOP); }
   virtual void setLowerShooter() { lower_shooter_cmd_sender_->setMode(rm_msgs::ShootCmd::STOP); }
 
-  ros::NodeHandle nh_;
   Data *data_;
   std::string state_name_;
   rm_common::ChassisCommandSender *chassis_cmd_sender_;
@@ -57,7 +56,7 @@ class FsmBase {
   Data data_;
   ros::NodeHandle nh_;
   rm_common::ControllerManager controller_manager_;
-  rm_common::ControllerManager calibration_loader;
+  rm_common::CalibrationQueue *trigger_calibration_;
   std::map<std::string, StateBase *> string2state_;
   bool remote_is_open_{};
   bool chassis_output_{}, gimbal_output_{}, shooter_output_{};

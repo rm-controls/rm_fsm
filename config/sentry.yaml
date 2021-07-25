@@ -67,14 +67,24 @@ rm_fsm:
       scale_x: 0.2
     attack:
       scale_x: 0.2
-      pitch:
-        scale: 0.3
-        min: 0.45
-        max: 0.75
-      yaw:
-        scale: 0.3
-        min: -2.70
-        max: -0.40
+      upper:
+        pitch:
+          scale: 0.3
+          min: 0.45
+          max: 0.75
+        yaw:
+          scale: 0.3
+          min: -2.70
+          max: -0.40
+      lower:
+        pitch:
+          scale: 0.3
+          min: 0.45
+          max: 0.75
+        yaw:
+          scale: 0.3
+          min: -2.70
+          max: -0.40
   controllers_list:
     state_controllers:
       - controllers/robot_state_controller
