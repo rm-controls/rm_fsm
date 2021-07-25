@@ -21,15 +21,21 @@ class StateBase {
     chassis_cmd_sender_ = new rm_common::ChassisCommandSender(chassis_nh, data_->referee_.referee_data_);
     ros::NodeHandle vel_nh(nh, "vel");
     vel_2d_cmd_sender_ = new rm_common::Vel2DCommandSender(vel_nh);
-    ros::NodeHandle gimbal_nh(nh, "gimbal");
-    gimbal_cmd_sender_ = new rm_common::GimbalCommandSender(gimbal_nh, data_->referee_.referee_data_);
-    ros::NodeHandle shooter_nh(nh, "shooter");
-    shooter_cmd_sender_ = new rm_common::ShooterCommandSender(shooter_nh, data_->referee_.referee_data_);
+    ros::NodeHandle upper_gimbal_nh(nh, "upper_gimbal");
+    upper_gimbal_cmd_sender_ = new rm_common::GimbalCommandSender(upper_gimbal_nh, data_->referee_.referee_data_);
+    ros::NodeHandle lower_gimbal_nh(nh, "lower_gimbal");
+    lower_gimbal_cmd_sender_ = new rm_common::GimbalCommandSender(upper_gimbal_nh, data_->referee_.referee_data_);
+    ros::NodeHandle upper_shooter_nh(nh, "upper_shooter");
+    upper_shooter_cmd_sender_ = new rm_common::ShooterCommandSender(upper_shooter_nh, data_->referee_.referee_data_);
+    ros::NodeHandle lower_shooter_nh(nh, "lower_shooter");
+    upper_shooter_cmd_sender_ = new rm_common::ShooterCommandSender(lower_shooter_nh, data_->referee_.referee_data_);
   }
   virtual void run() {
     setChassis();
-    setGimbal();
-    setShooter();
+    setUpperGimbal();
+    setLowerGimbal();
+    setUpperShooter();
+    setLowerShooter();
     sendCommand(ros::Time::now());
   }
   void onEnter() { ROS_INFO("Enter %s", state_name_.c_str()); }
@@ -38,21 +44,27 @@ class StateBase {
   virtual void setChassis() {
     chassis_cmd_sender_->setMode(rm_msgs::ChassisCmd::RAW);
   }
-  virtual void setGimbal() { gimbal_cmd_sender_->setMode(rm_msgs::GimbalCmd::RATE); }
-  virtual void setShooter() { shooter_cmd_sender_->setMode(rm_msgs::ShootCmd::STOP); }
+  virtual void setUpperGimbal() { upper_gimbal_cmd_sender_->setMode(rm_msgs::GimbalCmd::RATE); }
+  virtual void setLowerGimbal() { lower_gimbal_cmd_sender_->setMode(rm_msgs::GimbalCmd::RATE); }
+  virtual void setUpperShooter() { upper_shooter_cmd_sender_->setMode(rm_msgs::ShootCmd::STOP); }
+  virtual void setLowerShooter() { lower_shooter_cmd_sender_->setMode(rm_msgs::ShootCmd::STOP); }
   void sendCommand(const ros::Time &time) {
     chassis_cmd_sender_->sendCommand(time);
     vel_2d_cmd_sender_->sendCommand(time);
-    gimbal_cmd_sender_->sendCommand(time);
-    shooter_cmd_sender_->sendCommand(time);
+    upper_gimbal_cmd_sender_->sendCommand(time);
+    lower_gimbal_cmd_sender_->sendCommand(time);
+    upper_shooter_cmd_sender_->sendCommand(time);
+    lower_shooter_cmd_sender_->sendCommand(time);
   };
   ros::NodeHandle nh_;
   Data *data_;
   std::string state_name_;
   rm_common::ChassisCommandSender *chassis_cmd_sender_;
   rm_common::Vel2DCommandSender *vel_2d_cmd_sender_;
-  rm_common::GimbalCommandSender *gimbal_cmd_sender_;
-  rm_common::ShooterCommandSender *shooter_cmd_sender_;
+  rm_common::GimbalCommandSender *upper_gimbal_cmd_sender_;
+  rm_common::GimbalCommandSender *lower_gimbal_cmd_sender_;
+  rm_common::ShooterCommandSender *upper_shooter_cmd_sender_;
+  rm_common::ShooterCommandSender *lower_shooter_cmd_sender_;
 };
 
 class FsmBase {

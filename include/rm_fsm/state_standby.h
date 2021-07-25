@@ -47,22 +47,39 @@ class StateStandby : public StateBase {
     if (data_->pos_x_ - move_distance_ * 0.1 <= 0 || data_->pos_x_ + move_distance_ * 0.1 >= move_distance_)
       vel_2d_cmd_sender_->setLinearXVel(0.);
   }
-  void setGimbal() override {
+  void setUpperGimbal() override {
     if (data_->pos_yaw_ > yaw_max_) direct_yaw_ = -1;
     else if (data_->pos_yaw_ < yaw_min_) direct_yaw_ = 1;
     if (data_->pos_pitch_ > pitch_max_) direct_pitch_ = -1;
     else if (data_->pos_pitch_ < pitch_min_) direct_pitch_ = 1;
-    gimbal_cmd_sender_->setRate(scale_yaw_ * direct_yaw_, scale_pitch_ * direct_pitch_);
-    gimbal_cmd_sender_->setMode(rm_msgs::GimbalCmd::TRACK);
-    gimbal_cmd_sender_->setBulletSpeed(shooter_cmd_sender_->getSpeed());
-    gimbal_cmd_sender_->updateCost(data_->track_data_array_);
+    upper_gimbal_cmd_sender_->setRate(scale_yaw_ * direct_yaw_, scale_pitch_ * direct_pitch_);
+    upper_gimbal_cmd_sender_->setMode(rm_msgs::GimbalCmd::TRACK);
+    upper_gimbal_cmd_sender_->setBulletSpeed(upper_shooter_cmd_sender_->getSpeed());
+    upper_gimbal_cmd_sender_->updateCost(data_->track_data_array_);
   }
-  void setShooter() override {
-    if (gimbal_cmd_sender_->getMsg()->mode == rm_msgs::GimbalCmd::TRACK)
-      shooter_cmd_sender_->setMode(rm_msgs::ShootCmd::PUSH);
+  void setLowerGimbal() override {
+    if (data_->pos_yaw_ > yaw_max_) direct_yaw_ = -1;
+    else if (data_->pos_yaw_ < yaw_min_) direct_yaw_ = 1;
+    if (data_->pos_pitch_ > pitch_max_) direct_pitch_ = -1;
+    else if (data_->pos_pitch_ < pitch_min_) direct_pitch_ = 1;
+    lower_gimbal_cmd_sender_->setRate(scale_yaw_ * direct_yaw_, scale_pitch_ * direct_pitch_);
+    lower_gimbal_cmd_sender_->setMode(rm_msgs::GimbalCmd::TRACK);
+    lower_gimbal_cmd_sender_->setBulletSpeed(lower_shooter_cmd_sender_->getSpeed());
+    lower_gimbal_cmd_sender_->updateCost(data_->track_data_array_);
+  }
+  void setUpperShooter() override {
+    if (upper_gimbal_cmd_sender_->getMsg()->mode == rm_msgs::GimbalCmd::TRACK)
+      upper_shooter_cmd_sender_->setMode(rm_msgs::ShootCmd::PUSH);
     else
-      shooter_cmd_sender_->setMode(rm_msgs::ShootCmd::READY);
-    shooter_cmd_sender_->checkError(data_->gimbal_des_error_, ros::Time::now());
+      upper_shooter_cmd_sender_->setMode(rm_msgs::ShootCmd::READY);
+    upper_shooter_cmd_sender_->checkError(data_->gimbal_des_error_, ros::Time::now());
+  }
+  void setLowerShooter() override {
+    if (upper_gimbal_cmd_sender_->getMsg()->mode == rm_msgs::GimbalCmd::TRACK)
+      lower_shooter_cmd_sender_->setMode(rm_msgs::ShootCmd::PUSH);
+    else
+      lower_shooter_cmd_sender_->setMode(rm_msgs::ShootCmd::READY);
+    lower_shooter_cmd_sender_->checkError(data_->gimbal_des_error_, ros::Time::now());
   }
   double move_distance_{};
   double scale_x_{}, scale_yaw_{}, scale_pitch_{};

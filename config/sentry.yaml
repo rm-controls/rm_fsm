@@ -1,7 +1,7 @@
 rm_fsm:
   robot_type: "sentry"
   chassis:
-    topic: "/cmd_chassis"
+    topic: "/controllers/chassis_controller/command"
     accel_x: 2.0
     accel_y: 10.0
     accel_z: 20.0
@@ -15,8 +15,8 @@ rm_fsm:
     max_linear_x: 3.0
     max_linear_y: 4.0
     max_angular_z: 5.0
-  gimbal:
-    topic: "/cmd_gimbal"
+  upper_gimbal:
+    topic: "/controllers/upper_gimbal_controller/command"
     max_yaw_vel: 4.0
     max_pitch_vel: 2.0
     track_timeout: 0.5
@@ -26,8 +26,30 @@ rm_fsm:
       k_hp: 1.0
       k_freq: 1.0
       timeout: 0.05
-  shooter:
-    topic: "/cmd_shoot"
+  lower_gimbal:
+    topic: "/controllers/lower_gimbal_controller/command"
+    max_yaw_vel: 4.0
+    max_pitch_vel: 2.0
+    track_timeout: 0.5
+    target_cost_function:
+      k_pos: 1.0
+      k_vel: 1.0
+      k_hp: 1.0
+      k_freq: 1.0
+      timeout: 0.05
+  upper_shooter:
+    topic: "/controllers/upper_shooter_controller/command"
+    gimbal_error_limit: 0.05
+    heat_limit:
+      expect_shoot_frequency_1: 5
+      expect_shoot_frequency_2: 8
+      expect_shoot_frequency_3: 12
+      burst_shoot_frequency: 20
+      safe_shoot_frequency: 5
+      heat_coeff: 8.0
+      type: "ID1_17MM"
+  lower_shooter:
+    topic: "/controllers/lower_shooter_controller/command"
     gimbal_error_limit: 0.05
     heat_limit:
       expect_shoot_frequency_1: 5
@@ -59,8 +81,10 @@ rm_fsm:
       - controllers/joint_state_controller
     main_controllers:
       - controllers/chassis_controller
-      - controllers/gimbal_controller
-      - controllers/shooter_controller
+      - controllers/upper_gimbal_controller
+      - controllers/lower_gimbal_controller
+      - controllers/upper_shooter_controller
+      - controllers/lower_shooter_controller
     calibration_controllers:
       - controllers/trigger_calibration_controller
     trigger_calibration:
