@@ -17,20 +17,19 @@ class StateRaw : public StateBase {
   }
   void setUpperGimbal() override {
     upper_gimbal_cmd_sender_->setRate(-data_->dbus_data_.ch_l_x, -data_->dbus_data_.ch_l_y);
-    if (data_->dbus_data_.s_l
-        == rm_msgs::DbusData::DOWN) { upper_gimbal_cmd_sender_->setMode(rm_msgs::GimbalCmd::RATE); }
+    if (data_->dbus_data_.s_l == rm_msgs::DbusData::DOWN)
+      upper_gimbal_cmd_sender_->setMode(rm_msgs::GimbalCmd::RATE);
     else {
-      upper_gimbal_cmd_sender_->setMode(rm_msgs::GimbalCmd::TRACK);
       upper_gimbal_cmd_sender_->setBulletSpeed(upper_shooter_cmd_sender_->getSpeed());
       upper_gimbal_cmd_sender_->updateCost(data_->track_data_array_);
     }
   }
   void setLowerGimbal() override {
     lower_gimbal_cmd_sender_->setRate(-data_->dbus_data_.ch_l_x, -data_->dbus_data_.ch_l_y);
-    if (data_->dbus_data_.s_l == rm_msgs::DbusData::DOWN) { lower_gimbal_cmd_sender_->setMode(rm_msgs::GimbalCmd::RATE); }
+    if (data_->dbus_data_.s_l == rm_msgs::DbusData::DOWN)
+      lower_gimbal_cmd_sender_->setMode(rm_msgs::GimbalCmd::RATE);
     else {
-      lower_gimbal_cmd_sender_->setMode(rm_msgs::GimbalCmd::TRACK);
-      lower_gimbal_cmd_sender_->setBulletSpeed(upper_shooter_cmd_sender_->getSpeed());
+      lower_gimbal_cmd_sender_->setBulletSpeed(lower_shooter_cmd_sender_->getSpeed());
       lower_gimbal_cmd_sender_->updateCost(data_->track_data_array_);
     }
   }

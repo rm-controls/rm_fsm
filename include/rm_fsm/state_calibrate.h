@@ -17,10 +17,6 @@ class StateCalibrate : public StateBase {
     if (!auto_nh.getParam("collision_effort", collision_effort_)) {
       ROS_ERROR("Collision effort no defined (namespace: %s)", nh.getNamespace().c_str());
     }
-    ros::NodeHandle calibrate_nh = ros::NodeHandle(auto_nh, "calibrate");
-    if (!calibrate_nh.getParam("scale_x", scale_x_)) {
-      ROS_ERROR("Move speed no defined (namespace: %s)", nh.getNamespace().c_str());
-    }
     odom2baselink_.header.frame_id = "odom";
     odom2baselink_.child_frame_id = "base_link";
     map2odom_.header.stamp = ros::Time::now();
@@ -38,6 +34,11 @@ class StateCalibrate : public StateBase {
   }
   bool getCalibrateStatus() const { return finish_calibrate_; }
  protected:
+  void setChassis() override {
+    StateBase::setChassis();
+    vel_2d_cmd_sender_->setLinearXVel(1.);
+  }
+ private:
   void checkCalibrateStatus() {
     if (ros::Time::now() - init_time_ > ros::Duration(2.0) && !finish_calibrate_
         && std::abs(data_->current_effort_) >= collision_effort_) {
@@ -56,11 +57,7 @@ class StateCalibrate : public StateBase {
       tf_broadcaster_.sendTransform(odom2baselink_);
     }
   }
-  void setChassis() override {
-    StateBase::setChassis();
-    vel_2d_cmd_sender_->setLinearXVel(scale_x_);
-  }
-  double scale_x_{}, collision_effort_{};
+  double collision_effort_{};
   bool finish_calibrate_ = false;
   tf2_ros::StaticTransformBroadcaster static_tf_broadcaster_;
   tf2_ros::TransformBroadcaster tf_broadcaster_;
