@@ -103,19 +103,22 @@ rm_fsm:
       - controllers/lower_yaw_calibration_controller
       - controllers/lower_pitch_calibration_controller
 
-  power_on_calibration:
+  upper_trigger_calibration:
     - start_controller: controllers/upper_trigger_calibration_controller
       stop_controller: controllers/upper_shooter_controller
       service_name: /controllers/upper_trigger_calibration_controller/is_calibrated
+  upper_gimbal_calibration:
     - start_controller: controllers/upper_yaw_calibration_controller
       stop_controller: controllers/upper_gimbal_controller
       service_name: /controllers/upper_yaw_calibration_controller/is_calibrated
     - start_controller: controllers/upper_pitch_calibration_controller
       stop_controller: controllers/upper_gimbal_controller
       service_name: /controllers/upper_pitch_calibration_controller/is_calibrated
+  lower_trigger_calibration:
     - start_controller: controllers/lower_trigger_calibration_controller
       stop_controller: controllers/lower_shooter_controller
       service_name: /controllers/lower_trigger_calibration_controller/is_calibrated
+  lower_gimbal_calibration:
     - start_controller: controllers/lower_yaw_calibration_controller
       stop_controller: controllers/lower_gimbal_controller
       service_name: /controllers/lower_yaw_calibration_controller/is_calibrated

@@ -22,16 +22,26 @@ class FsmSentry : public FsmBase {
     string2state_.insert(std::pair<std::string, StateBase *>(state_idle_->getName(), state_idle_));
     current_state_ = string2state_["RAW"];
     try {
-      XmlRpc::XmlRpcValue rpc_value;
-      nh.getParam("power_on_calibration", rpc_value);
-      power_on_calibration_ = new rm_common::CalibrationQueue(rpc_value, nh, controller_manager_);
+      XmlRpc::XmlRpcValue upper_trigger_rpc_value, upper_gimbal_rpc_value, lower_trigger_rpc_value,
+          lower_gimbal_rpc_value;
+      nh.getParam("upper_trigger_calibration", upper_trigger_rpc_value);
+      nh.getParam("upper_gimbal_calibration", upper_gimbal_rpc_value);
+      nh.getParam("lower_trigger_calibration", lower_trigger_rpc_value);
+      nh.getParam("lower_gimbal_calibration", lower_gimbal_rpc_value);
+      upper_trigger_calibration_ = new rm_common::CalibrationQueue(upper_trigger_rpc_value, nh, controller_manager_);
+      upper_gimbal_calibration_ = new rm_common::CalibrationQueue(upper_gimbal_rpc_value, nh, controller_manager_);
+      lower_trigger_calibration_ = new rm_common::CalibrationQueue(lower_trigger_rpc_value, nh, controller_manager_);
+      lower_gimbal_calibration_ = new rm_common::CalibrationQueue(lower_gimbal_rpc_value, nh, controller_manager_);
     } catch (XmlRpc::XmlRpcException &e) {
       ROS_ERROR("%s", e.getMessage().c_str());
     }
   }
   void run() override {
     FsmBase::run();
-    power_on_calibration_->update(ros::Time::now());
+    upper_trigger_calibration_->update(ros::Time::now());
+    upper_gimbal_calibration_->update(ros::Time::now());
+    lower_trigger_calibration_->update(ros::Time::now());
+    lower_gimbal_calibration_->update(ros::Time::now());
   }
  protected:
   std::string getNextState() override {
@@ -48,7 +58,10 @@ class FsmSentry : public FsmBase {
 
   void remoteControlTurnOn() override {
     FsmBase::remoteControlTurnOn();
-    power_on_calibration_->reset();
+    upper_trigger_calibration_->reset();
+    upper_gimbal_calibration_->reset();
+    lower_trigger_calibration_->reset();
+    lower_gimbal_calibration_->reset();
   }
  private:
   void sendMode(const ros::Time &time) {
