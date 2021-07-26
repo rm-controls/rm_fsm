@@ -21,9 +21,11 @@ class Data {
  public:
   explicit Data(ros::NodeHandle &nh) : tf_listener_(tf_buffer_) {
     dbus_sub_ = nh.subscribe<rm_msgs::DbusData>("/dbus_data", 10, &Data::dbusDataCallback, this);
-    track_sub_ = nh.subscribe<rm_msgs::TrackDataArray>("/track", 10, &Data::trackCallback, this);
+    track_sub_ =
+        nh.subscribe<rm_msgs::TrackDataArray>("/controllers/gimbal_controller/track", 10, &Data::trackCallback, this);
     gimbal_des_error_sub_ =
-        nh.subscribe<rm_msgs::GimbalDesError>("/error_des", 10, &Data::gimbalDesErrorCallback, this);
+        nh.subscribe<rm_msgs::GimbalDesError>("/controllers/gimbal_controller/error_des", 10,
+                                              &Data::gimbalDesErrorCallback, this);
     actuator_state_sub_ =
         nh.subscribe<rm_msgs::ActuatorState>("/actuator_states", 100, &Data::actuatorStateCallback, this);
     ros::NodeHandle root_nh;
