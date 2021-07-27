@@ -21,11 +21,18 @@ class Data {
   explicit Data(ros::NodeHandle &nh) : tf_listener_(tf_buffer_) {
     joint_state_sub_ = nh.subscribe<sensor_msgs::JointState>("/joint_states", 10, &Data::jointStateCallback, this);
     dbus_sub_ = nh.subscribe<rm_msgs::DbusData>("/dbus_data", 10, &Data::dbusDataCallback, this);
-    track_sub_ =
-        nh.subscribe<rm_msgs::TrackDataArray>("/controllers/gimbal_controller/track", 10, &Data::trackCallback, this);
-    gimbal_des_error_sub_ =
-        nh.subscribe<rm_msgs::GimbalDesError>("/controllers/gimbal_controller/error_des", 10,
-                                              &Data::gimbalDesErrorCallback, this);
+    upper_track_sub_ =
+        nh.subscribe<rm_msgs::TrackDataArray>("/controllers/upper_gimbal_controller/track", 10,
+                                              &Data::upperTrackCallback, this);
+    lower_track_sub_ =
+        nh.subscribe<rm_msgs::TrackDataArray>("/controllers/lower_gimbal_controller/track", 10,
+                                              &Data::lowerTrackCallback, this);
+    upper_gimbal_des_error_sub_ =
+        nh.subscribe<rm_msgs::GimbalDesError>("/controllers/upper_gimbal_controller/error_des", 10,
+                                              &Data::upperGimbalDesErrorCallback, this);
+    lower_gimbal_des_error_sub_ =
+        nh.subscribe<rm_msgs::GimbalDesError>("/controllers/lower_gimbal_controller/error_des", 10,
+                                              &Data::lowerGimbalDesErrorCallback, this);
     ros::NodeHandle root_nh;
     referee_.referee_pub_ = root_nh.advertise<rm_msgs::Referee>("/referee", 1);
     referee_.init();
@@ -50,13 +57,12 @@ class Data {
       lower_yaw_ = joint_state_.position[5];
       lower_pitch_ = joint_state_.position[2];
     }
-    ROS_INFO("%f", pos_x_);
   }
 
   sensor_msgs::JointState joint_state_;
   rm_msgs::DbusData dbus_data_;
-  rm_msgs::TrackDataArray track_data_array_;
-  rm_msgs::GimbalDesError gimbal_des_error_;
+  rm_msgs::TrackDataArray upper_track_data_array_, lower_track_data_array_;
+  rm_msgs::GimbalDesError upper_gimbal_des_error_, lower_gimbal_des_error_;
 
   Referee referee_;
   tf2_ros::Buffer tf_buffer_;
@@ -67,13 +73,15 @@ class Data {
  private:
   void jointStateCallback(const sensor_msgs::JointState::ConstPtr &joint_state) { joint_state_ = *joint_state; }
   void dbusDataCallback(const rm_msgs::DbusData::ConstPtr &data) { dbus_data_ = *data; }
-  void trackCallback(const rm_msgs::TrackDataArray::ConstPtr &data) { track_data_array_ = *data; }
-  void gimbalDesErrorCallback(const rm_msgs::GimbalDesError::ConstPtr &data) { gimbal_des_error_ = *data; }
+  void upperTrackCallback(const rm_msgs::TrackDataArray::ConstPtr &data) { upper_track_data_array_ = *data; }
+  void lowerTrackCallback(const rm_msgs::TrackDataArray::ConstPtr &data) { lower_track_data_array_ = *data; }
+  void upperGimbalDesErrorCallback(const rm_msgs::GimbalDesError::ConstPtr &data) { upper_gimbal_des_error_ = *data; }
+  void lowerGimbalDesErrorCallback(const rm_msgs::GimbalDesError::ConstPtr &data) { lower_gimbal_des_error_ = *data; }
 
   ros::Subscriber joint_state_sub_;
   ros::Subscriber dbus_sub_;
-  ros::Subscriber track_sub_;
-  ros::Subscriber gimbal_des_error_sub_;
+  ros::Subscriber upper_track_sub_, lower_track_sub_;
+  ros::Subscriber upper_gimbal_des_error_sub_, lower_gimbal_des_error_sub_;
   ros::Time update_effort_;
   double sum_effort_ = 0.;
   int sum_count_ = 0;

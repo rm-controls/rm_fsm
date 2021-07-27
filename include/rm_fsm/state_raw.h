@@ -21,7 +21,7 @@ class StateRaw : public StateBase {
       upper_gimbal_cmd_sender_->setMode(rm_msgs::GimbalCmd::RATE);
     else {
       upper_gimbal_cmd_sender_->setBulletSpeed(upper_shooter_cmd_sender_->getSpeed());
-      upper_gimbal_cmd_sender_->updateCost(data_->track_data_array_);
+      upper_gimbal_cmd_sender_->updateCost(data_->upper_track_data_array_);
     }
   }
   void setLowerGimbal() override {
@@ -30,20 +30,20 @@ class StateRaw : public StateBase {
       lower_gimbal_cmd_sender_->setMode(rm_msgs::GimbalCmd::RATE);
     else {
       lower_gimbal_cmd_sender_->setBulletSpeed(lower_shooter_cmd_sender_->getSpeed());
-      lower_gimbal_cmd_sender_->updateCost(data_->track_data_array_);
+      lower_gimbal_cmd_sender_->updateCost(data_->lower_track_data_array_);
     }
   }
   void setUpperShooter() override {
     if (data_->dbus_data_.s_l == rm_msgs::DbusData::UP) {
       upper_shooter_cmd_sender_->setMode(rm_msgs::ShootCmd::PUSH);
-      upper_shooter_cmd_sender_->checkError(data_->gimbal_des_error_, ros::Time::now());
+      upper_shooter_cmd_sender_->checkError(data_->upper_gimbal_des_error_, ros::Time::now());
     } else if (data_->dbus_data_.s_l == rm_msgs::DbusData::MID) upper_shooter_cmd_sender_->setMode(rm_msgs::ShootCmd::READY);
     else upper_shooter_cmd_sender_->setMode(rm_msgs::ShootCmd::STOP);
   }
   void setLowerShooter() override {
     if (data_->dbus_data_.s_l == rm_msgs::DbusData::UP) {
       lower_shooter_cmd_sender_->setMode(rm_msgs::ShootCmd::PUSH);
-      lower_shooter_cmd_sender_->checkError(data_->gimbal_des_error_, ros::Time::now());
+      lower_shooter_cmd_sender_->checkError(data_->lower_gimbal_des_error_, ros::Time::now());
     } else if (data_->dbus_data_.s_l == rm_msgs::DbusData::MID) lower_shooter_cmd_sender_->setMode(rm_msgs::ShootCmd::READY);
     else lower_shooter_cmd_sender_->setMode(rm_msgs::ShootCmd::STOP);
   }

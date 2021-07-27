@@ -82,15 +82,15 @@ void FsmBase::remoteControlTurnOn() {
 }
 
 void FsmBase::checkReferee(const ros::Time &time) {
-  if (data_.referee_.referee_data_.game_robot_status_.mains_power_chassis_output_ && chassis_output_) {
+  if (data_.referee_.referee_data_.game_robot_status_.mains_power_chassis_output_ && !chassis_output_) {
     ROS_INFO("Chassis output ON");
     chassisOutputOn();
   }
-  if (data_.referee_.referee_data_.game_robot_status_.mains_power_gimbal_output_ && gimbal_output_) {
+  if (data_.referee_.referee_data_.game_robot_status_.mains_power_gimbal_output_ && !gimbal_output_) {
     ROS_INFO("Gimbal output ON");
     gimbalOutputOn();
   }
-  if (data_.referee_.referee_data_.game_robot_status_.mains_power_shooter_output_ && shooter_output_) {
+  if (data_.referee_.referee_data_.game_robot_status_.mains_power_shooter_output_ && !shooter_output_) {
     ROS_INFO("Shooter output ON");
     shooterOutputOn();
   }

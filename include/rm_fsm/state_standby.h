@@ -34,7 +34,7 @@ class StateStandby : public StateBase {
     else if (data_->upper_pitch_ <= upper_pitch_min_) upper_scale_pitch_ = 1.;
     upper_gimbal_cmd_sender_->setRate(upper_scale_yaw_, upper_scale_pitch_);
     upper_gimbal_cmd_sender_->setBulletSpeed(upper_shooter_cmd_sender_->getSpeed());
-    upper_gimbal_cmd_sender_->updateCost(data_->track_data_array_);
+    upper_gimbal_cmd_sender_->updateCost(data_->upper_track_data_array_);
   }
   void setLowerGimbal() override {
     if (data_->lower_yaw_ >= lower_yaw_max_) lower_scale_yaw_ = -1.;
@@ -43,21 +43,21 @@ class StateStandby : public StateBase {
     else if (data_->lower_pitch_ <= lower_pitch_min_) lower_scale_pitch_ = 1.;
     lower_gimbal_cmd_sender_->setRate(lower_scale_yaw_, lower_scale_pitch_);
     lower_gimbal_cmd_sender_->setBulletSpeed(lower_shooter_cmd_sender_->getSpeed());
-    lower_gimbal_cmd_sender_->updateCost(data_->track_data_array_);
+    lower_gimbal_cmd_sender_->updateCost(data_->lower_track_data_array_);
   }
   void setUpperShooter() override {
     if (upper_gimbal_cmd_sender_->getMsg()->mode == rm_msgs::GimbalCmd::TRACK)
       upper_shooter_cmd_sender_->setMode(rm_msgs::ShootCmd::PUSH);
     else
       upper_shooter_cmd_sender_->setMode(rm_msgs::ShootCmd::READY);
-    upper_shooter_cmd_sender_->checkError(data_->gimbal_des_error_, ros::Time::now());
+    upper_shooter_cmd_sender_->checkError(data_->upper_gimbal_des_error_, ros::Time::now());
   }
   void setLowerShooter() override {
     if (lower_shooter_cmd_sender_->getMsg()->mode == rm_msgs::GimbalCmd::TRACK)
       lower_shooter_cmd_sender_->setMode(rm_msgs::ShootCmd::PUSH);
     else
       lower_shooter_cmd_sender_->setMode(rm_msgs::ShootCmd::READY);
-    lower_shooter_cmd_sender_->checkError(data_->gimbal_des_error_, ros::Time::now());
+    lower_shooter_cmd_sender_->checkError(data_->lower_gimbal_des_error_, ros::Time::now());
   }
  protected:
   void getGimbalParam(ros::NodeHandle &nh, const std::string &side) {
