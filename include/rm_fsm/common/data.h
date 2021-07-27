@@ -36,8 +36,8 @@ class Data {
     if (!joint_state_.effort.empty())
       sum_effort_ += joint_state_.effort[0];
     sum_count_++;
-    if (time - update_effort_ > ros::Duration(0.2)) {
-      current_effort_ = sum_effort_ / sum_count_;
+    if (time - update_effort_ > ros::Duration(0.1)) {
+      if (sum_count_ != 0) current_effort_ = sum_effort_ / sum_count_;
       sum_effort_ = 0.;
       sum_count_ = 0;
     }
@@ -50,6 +50,7 @@ class Data {
       lower_yaw_ = joint_state_.position[5];
       lower_pitch_ = joint_state_.position[2];
     }
+    ROS_INFO("%f", pos_x_);
   }
 
   sensor_msgs::JointState joint_state_;

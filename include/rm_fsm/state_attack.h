@@ -26,8 +26,8 @@ class StateAttack : public StateStandby {
   void setChassis() override {
     StateStandby::setChassis();
     updateMoveStatus();
-    if (move_status_ == LEAVE_START) vel_2d_cmd_sender_->setLinearXVel(-1.);
-    else if (move_status_ == LEAVE_END) vel_2d_cmd_sender_->setLinearXVel(1.);
+    if (move_status_ == LEAVE_START) vel_2d_cmd_sender_->setLinearXVel(1.);
+    else if (move_status_ == LEAVE_END) vel_2d_cmd_sender_->setLinearXVel(-1.);
   }
  private:
   void updateMoveStatus() {

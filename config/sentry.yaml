@@ -61,14 +61,14 @@ rm_fsm:
       type: "ID1_17MM"
   auto:
     move_distance: 1.45
-    stop_distance: 0.2
-    collision_effort: 0.08
+    stop_distance: 0.08
+    collision_effort: 0.8
     attack:
       upper: { pitch: [ -0.2, 0.2 ], yaw: [ -2.7, 2.8 ] }
-      lower: { pitch: [ 0.5, 0.9 ], yaw: [ -2.3, 1.9 ] }
+      lower: { pitch: [ 0.8, 0.9 ], yaw: [ -2.3, 1.9 ] }
     standby:
-      upper: { pitch: [ -0.7, 0.0 ], yaw: [ 0.4, 2.8 ] }
-      lower: { pitch: [ 0.3, 1.0 ], yaw: [ -2.3, 1.9 ] }
+      upper: { pitch: [ -0.2, 0.2 ], yaw: [ -2.7, 2.8 ] }
+      lower: { pitch: [ 0.8, 0.9 ], yaw: [ -2.3, 1.9 ] }
 
   controllers_list:
     state_controllers:
