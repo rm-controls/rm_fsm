@@ -5,62 +5,38 @@
 #ifndef RM_FSM_COMMON_FSM_COMMON_H_
 #define RM_FSM_COMMON_FSM_COMMON_H_
 
+#include "rm_fsm/common/data.h"
 #include <rm_common/ros_utilities.h>
 #include <rm_common/decision/command_sender.h>
-#include <rm_common/decision/controller_loader.h>
-#include <rm_common/decision/calibration_manager.h>
-#include "rm_fsm/common/data.h"
+#include <rm_common/decision/controller_manager.h>
+#include <rm_common/decision/calibration_queue.h>
 
 namespace rm_fsm {
 class StateBase {
  public:
-  StateBase(ros::NodeHandle &nh, Data *data, std::string state_name)
-      : nh_(nh), data_(data), state_name_(std::move(state_name)) {
-    ros::NodeHandle chassis_nh(nh, "chassis");
-    chassis_cmd_sender_ = new rm_common::ChassisCommandSender(chassis_nh, data_->referee_.referee_data_);
-    ros::NodeHandle vel_nh(nh, "vel");
-    vel_2d_cmd_sender_ = new rm_common::Vel2DCommandSender(vel_nh);
-    ros::NodeHandle gimbal_nh(nh, "gimbal");
-    gimbal_cmd_sender_ = new rm_common::GimbalCommandSender(gimbal_nh, data_->referee_.referee_data_);
-    ros::NodeHandle shooter_nh(nh, "shooter");
-    shooter_cmd_sender_ = new rm_common::ShooterCommandSender(shooter_nh, data_->referee_.referee_data_);
-  }
-  virtual void run() {
-    setChassis();
-    setGimbal();
-    setShooter();
-    sendCommand(ros::Time::now());
-  }
+  StateBase(ros::NodeHandle &nh, Data *data, std::string state_name);
+  virtual void run();
   void onEnter() { ROS_INFO("Enter %s", state_name_.c_str()); }
   std::string getName() { return state_name_; }
  protected:
-  virtual void setChassis() {
-    chassis_cmd_sender_->setMode(rm_msgs::ChassisCmd::RAW);
-  }
-  virtual void setGimbal() { gimbal_cmd_sender_->setMode(rm_msgs::GimbalCmd::RATE); }
-  virtual void setShooter() { shooter_cmd_sender_->setMode(rm_msgs::ShootCmd::STOP); }
-  void sendCommand(const ros::Time &time) {
-    chassis_cmd_sender_->sendCommand(time);
-    vel_2d_cmd_sender_->sendCommand(time);
-    gimbal_cmd_sender_->sendCommand(time);
-    shooter_cmd_sender_->sendCommand(time);
-  };
-  ros::NodeHandle nh_;
+  void sendCommand(const ros::Time &time);
+  virtual void setChassis() { chassis_cmd_sender_->setMode(rm_msgs::ChassisCmd::RAW); }
+  virtual void setUpperGimbal() { upper_gimbal_cmd_sender_->setMode(rm_msgs::GimbalCmd::RATE); }
+  virtual void setLowerGimbal() { lower_gimbal_cmd_sender_->setMode(rm_msgs::GimbalCmd::RATE); }
+  virtual void setUpperShooter() { upper_shooter_cmd_sender_->setMode(rm_msgs::ShootCmd::STOP); }
+  virtual void setLowerShooter() { lower_shooter_cmd_sender_->setMode(rm_msgs::ShootCmd::STOP); }
+
   Data *data_;
   std::string state_name_;
   rm_common::ChassisCommandSender *chassis_cmd_sender_;
   rm_common::Vel2DCommandSender *vel_2d_cmd_sender_;
-  rm_common::GimbalCommandSender *gimbal_cmd_sender_;
-  rm_common::ShooterCommandSender *shooter_cmd_sender_;
+  rm_common::GimbalCommandSender *upper_gimbal_cmd_sender_, *lower_gimbal_cmd_sender_;
+  rm_common::ShooterCommandSender *upper_shooter_cmd_sender_, *lower_shooter_cmd_sender_;
 };
 
 class FsmBase {
  public:
   explicit FsmBase(ros::NodeHandle &nh);
-  ~FsmBase() {
-    delete controller_loader_;
-    delete calibration_manager_;
-  }
   virtual void run();
  protected:
   virtual std::string getNextState() = 0;
@@ -73,25 +49,18 @@ class FsmBase {
   virtual void shooterOutputOn() {};
 
   // Remote Controller
-  virtual void remoteControlTurnOff() {
-    switch_base_ctrl_srv_->flipControllers();
-    switch_base_ctrl_srv_->callService();
-  }
-  virtual void remoteControlTurnOn() {
-    switch_base_ctrl_srv_->switchControllers();
-    switch_base_ctrl_srv_->callService();
-    calibration_manager_->reset();
-  }
-
-  ros::NodeHandle nh_;
-  Data data_;
-  rm_common::ControllerLoader *controller_loader_;
-  rm_common::CalibrationManager *calibration_manager_;
-  rm_common::SwitchControllersService *switch_state_ctrl_srv_, *switch_base_ctrl_srv_{};
+  virtual void remoteControlTurnOff();
+  virtual void remoteControlTurnOn();
 
   StateBase *current_state_;
-  std::map<std::string, StateBase *> string2state;
+  Data data_;
+  ros::NodeHandle nh_;
+  rm_common::ControllerManager controller_manager_;
+  rm_common::CalibrationQueue *upper_trigger_calibration_{}, *upper_gimbal_calibration_{},
+      *lower_trigger_calibration_{}, *lower_gimbal_calibration_{};
+  std::map<std::string, StateBase *> string2state_;
   bool remote_is_open_{};
+  bool chassis_output_{}, gimbal_output_{}, shooter_output_{};
 };
 }
 #endif // RM_FSM_COMMON_FSM_COMMON_H_

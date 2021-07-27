@@ -1,8 +1,8 @@
 //
 // Created by peter on 2021/5/17.
 //
-#ifndef RM_MANUAL_REFEREE_H_
-#define RM_MANUAL_REFEREE_H_
+#ifndef RM_FSM_REFEREE_H_
+#define RM_FSM_REFEREE_H_
 
 #include <cstdint>
 #include <serial/serial.h>
@@ -11,27 +11,19 @@
 #include <rm_common/referee/data.h>
 #include <rm_msgs/Referee.h>
 #include <rm_msgs/SuperCapacitor.h>
-#include <rm_msgs/ChassisCmd.h>
-#include <rm_msgs/GimbalCmd.h>
-#include <rm_msgs/ShootCmd.h>
 
 namespace rm_fsm {
-
 class Referee {
  public:
-  Referee() { referee_data_.robot_hurt_.hurt_type_ = 0x09; };
+  Referee() : last_get_(ros::Time::now()), serial_port_("/dev/usbReferee") {
+    referee_data_.robot_hurt_.hurt_type_ = 0x09;
+  };
   void init();
   void read();
   void sendInteractiveData(int data_cmd_id, int receiver_id, unsigned char data);
 
   ros::Publisher referee_pub_;
-
-  rm_msgs::Referee referee_pub_data_;
   rm_common::RefereeData referee_data_{};
-  bool is_online_ = false;
-  int robot_id_ = 0;
-  int client_id_ = 0;
-  std::string robot_color_;
  private:
   int unpack(uint8_t *rx_data);
   void pack(uint8_t *tx_buffer, uint8_t *data, int cmd_id, int len) const;
@@ -39,11 +31,12 @@ class Referee {
   void publishData();
 
   serial::Serial serial_;
-  ros::Time last_get_referee_data_ = ros::Time::now();
-  const std::string serial_port_ = "/dev/usbReferee";
+  ros::Time last_get_;
+  rm_msgs::Referee referee_pub_data_;
+  const std::string serial_port_;
   const int k_frame_length_ = 128, k_header_length_ = 5, k_cmd_id_length_ = 2, k_tail_length_ = 2;
-  static const int k_unpack_buffer_length_ = 256;
-  uint8_t unpack_buffer_[k_unpack_buffer_length_]{};
+  const int k_unpack_buffer_length_ = 256;
+  uint8_t unpack_buffer_[256]{};
 };
 
 // CRC verification

@@ -16,21 +16,27 @@ class StateAttack : public StateStandby {
     if (!auto_nh.getParam("stop_distance", stop_distance_)) {
       ROS_ERROR("Stop distance no defined (namespace: %s)", nh.getNamespace().c_str());
     }
+    ros::NodeHandle attack_nh = ros::NodeHandle(nh, "auto/attack");
+    ros::NodeHandle upper_nh = ros::NodeHandle(attack_nh, "upper");
+    getGimbalParam(upper_nh, "upper");
+    ros::NodeHandle lower_nh = ros::NodeHandle(attack_nh, "lower");
+    getGimbalParam(lower_nh, "lower");
   }
  protected:
-  enum MoveStatus { LEAVE_START, LEAVE_END };
+  void setChassis() override {
+    StateStandby::setChassis();
+    updateMoveStatus();
+    if (move_status_ == LEAVE_START) vel_2d_cmd_sender_->setLinearXVel(1.);
+    else if (move_status_ == LEAVE_END) vel_2d_cmd_sender_->setLinearXVel(-1.);
+  }
+ private:
   void updateMoveStatus() {
     if (move_status_ == LEAVE_START && data_->pos_x_ >= move_distance_ - stop_distance_) move_status_ = LEAVE_END;
     else if (move_status_ == LEAVE_END && data_->pos_x_ <= stop_distance_) move_status_ = LEAVE_START;
   }
-  void setChassis() override {
-    StateBase::setChassis();
-    updateMoveStatus();
-    if (move_status_ == LEAVE_START) vel_2d_cmd_sender_->setLinearXVel(scale_x_);
-    else if (move_status_ == LEAVE_END) vel_2d_cmd_sender_->setLinearXVel(-scale_x_);
-  }
+  enum MoveStatus { LEAVE_START, LEAVE_END };
   MoveStatus move_status_ = LEAVE_START;
-  double stop_distance_;
+  double stop_distance_{};
 };
 }
 

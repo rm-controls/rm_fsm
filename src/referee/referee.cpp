@@ -16,30 +16,26 @@ void Referee::init() {
     return;
   }
   if (!serial_.isOpen()) {
-    try {
-      serial_.open();
-    } catch (serial::IOException &e) {
-      ROS_ERROR("Cannot open referee port");
-    }
+    try { serial_.open(); } catch (serial::IOException &e) { ROS_ERROR("Cannot open referee port:%s", e.what()); }
   }
-  if (is_online_) ROS_INFO("Referee system connect successfully");
+  if (referee_data_.is_online_) ROS_INFO("Referee system connect successfully");
 }
 
 // read data from referee
 void Referee::read() {
   std::vector<uint8_t> rx_buffer;
-  uint8_t temp_buffer[k_unpack_buffer_length_] = {0};
+  uint8_t temp_buffer[256] = {0};
   int rx_len = 0, frame_len;
 
-  if (ros::Time::now() - last_get_referee_data_ > ros::Duration(0.1)) is_online_ = false;
+  if (ros::Time::now() - last_get_ > ros::Duration(0.1)) referee_data_.is_online_ = false;
   try {
     if (serial_.available()) {
-      rx_len = serial_.available();
+      rx_len = (int) serial_.available();
       serial_.read(rx_buffer, rx_len);
     }
   } catch (serial::IOException &e) {
     ROS_ERROR("Referee system disconnect, cannot read referee data");
-    is_online_ = false;
+    referee_data_.is_online_ = false;
     return;
   }
   if (rx_len < k_unpack_buffer_length_) {
@@ -155,8 +151,8 @@ int Referee::unpack(uint8_t *rx_data) {
         default:ROS_WARN("Referee command ID not found.");
           break;
       }
-      is_online_ = true;
-      last_get_referee_data_ = ros::Time::now();
+      referee_data_.is_online_ = true;
+      last_get_ = ros::Time::now();
       return frame_len;
     }
   }
@@ -164,39 +160,13 @@ int Referee::unpack(uint8_t *rx_data) {
 }
 
 void Referee::getRobotInfo() {
-  robot_id_ = referee_data_.game_robot_status_.robot_id_;
-  robot_color_ = robot_id_ >= 100 ? "blue" : "red";
-  referee_data_.robot_id_ = robot_id_;
-  referee_data_.robot_color_ = robot_color_;
-  referee_data_.is_online_ = is_online_;
-  if (robot_id_ != rm_common::RobotId::BLUE_SENTRY && robot_id_ != rm_common::RobotId::RED_SENTRY) {
-    switch (robot_id_) {
-      case rm_common::RobotId::BLUE_HERO:client_id_ = rm_common::ClientId::BLUE_HERO_CLIENT;
-        break;
-      case rm_common::RobotId::BLUE_ENGINEER:client_id_ = rm_common::ClientId::BLUE_ENGINEER_CLIENT;
-        break;
-      case rm_common::RobotId::BLUE_STANDARD_3:client_id_ = rm_common::ClientId::BLUE_STANDARD_3_CLIENT;
-        break;
-      case rm_common::RobotId::BLUE_STANDARD_4:client_id_ = rm_common::ClientId::BLUE_STANDARD_4_CLIENT;
-        break;
-      case rm_common::RobotId::BLUE_STANDARD_5:client_id_ = rm_common::ClientId::BLUE_STANDARD_5_CLIENT;
-        break;
-      case rm_common::RobotId::RED_HERO:client_id_ = rm_common::ClientId::RED_HERO_CLIENT;
-        break;
-      case rm_common::RobotId::RED_ENGINEER:client_id_ = rm_common::ClientId::RED_ENGINEER_CLIENT;
-        break;
-      case rm_common::RobotId::RED_STANDARD_3:client_id_ = rm_common::ClientId::RED_STANDARD_3_CLIENT;
-        break;
-      case rm_common::RobotId::RED_STANDARD_4:client_id_ = rm_common::ClientId::RED_STANDARD_4_CLIENT;
-        break;
-      case rm_common::RobotId::RED_STANDARD_5:client_id_ = rm_common::ClientId::RED_STANDARD_5_CLIENT;
-        break;
-    }
-  }
+  referee_data_.robot_id_ = referee_data_.game_robot_status_.robot_id_;
+  referee_data_.robot_color_ = referee_data_.robot_id_ >= 100 ? "blue" : "red";
 }
 
 void Referee::publishData() {
-  if (robot_id_ == rm_common::RobotId::RED_HERO || robot_id_ == rm_common::RobotId::BLUE_HERO) {
+  if (referee_data_.robot_id_ == rm_common::RobotId::RED_HERO
+      || referee_data_.robot_id_ == rm_common::RobotId::BLUE_HERO) {
     referee_pub_data_.shooter_heat = referee_data_.power_heat_data_.shooter_id_1_42_mm_cooling_heat_;
     referee_pub_data_.shooter_heat_cooling_limit = referee_data_.game_robot_status_.shooter_id_1_42_mm_cooling_limit_;
   } else {
@@ -211,7 +181,7 @@ void Referee::publishData() {
   referee_pub_data_.hurt_armor_id = referee_data_.robot_hurt_.armor_id_;
   referee_pub_data_.hurt_type = referee_data_.robot_hurt_.hurt_type_;
   referee_pub_data_.bullet_speed = referee_data_.shoot_data_.bullet_speed_;
-  referee_pub_data_.stamp = last_get_referee_data_;
+  referee_pub_data_.stamp = last_get_;
 
   referee_pub_.publish(referee_pub_data_);
 }
@@ -223,7 +193,7 @@ void Referee::sendInteractiveData(int data_cmd_id, int receiver_id, uint8_t data
   int tx_len = k_header_length_ + k_cmd_id_length_ + (int) sizeof(rm_common::InteractiveData) + k_tail_length_;
 
   student_interactive_data->header_data_.data_cmd_id_ = data_cmd_id;
-  student_interactive_data->header_data_.sender_id_ = robot_id_;
+  student_interactive_data->header_data_.sender_id_ = referee_data_.robot_id_;
   student_interactive_data->header_data_.receiver_id_ = receiver_id;
   student_interactive_data->data_ = data;
   pack(tx_buffer, tx_data, rm_common::RefereeCmdId::INTERACTIVE_DATA_CMD, sizeof(rm_common::InteractiveData));
