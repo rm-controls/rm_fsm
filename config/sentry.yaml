@@ -17,8 +17,8 @@ rm_fsm:
     max_angular_z: 0.0
   upper_gimbal:
     topic: "/controllers/upper_gimbal_controller/command"
-    max_yaw_vel: 2.0
-    max_pitch_vel: 0.7
+    max_yaw_vel: 1.5
+    max_pitch_vel: 0.5
     track_timeout: 0.5
     target_cost_function:
       k_pos: 1.0
@@ -28,8 +28,8 @@ rm_fsm:
       timeout: 0.05
   lower_gimbal:
     topic: "/controllers/lower_gimbal_controller/command"
-    max_yaw_vel: 2.0
-    max_pitch_vel: 0.7
+    max_yaw_vel: 1.5
+    max_pitch_vel: 0.5
     track_timeout: 0.5
     target_cost_function:
       k_pos: 1.0
@@ -64,11 +64,11 @@ rm_fsm:
     stop_distance: 0.08
     collision_effort: 0.8
     attack:
-      upper: { pitch: [ -0.2, 0.2 ], yaw: [ -2.7, 2.8 ] }
-      lower: { pitch: [ 0.8, 0.9 ], yaw: [ -2.3, 1.9 ] }
+      upper: { pitch: [ -0.0, 0.4 ], yaw: [ -2.9, 2.8 ] }
+      lower: { pitch: [ 0.5, 1.0 ], yaw: [ -2.35, 1.95 ] }
     standby:
-      upper: { pitch: [ -0.2, 0.2 ], yaw: [ -2.7, 2.8 ] }
-      lower: { pitch: [ 0.8, 0.9 ], yaw: [ -2.3, 1.9 ] }
+      upper: { pitch: [ -0.0, 0.4 ], yaw: [ -2.9, 0.0 ] }
+      lower: { pitch: [ 0.5, 1.0 ], yaw: [ -2.35, 0.0 ] }
 
   controllers_list:
     state_controllers:
