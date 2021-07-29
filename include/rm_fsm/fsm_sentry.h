@@ -47,9 +47,10 @@ class FsmSentry : public FsmBase {
   std::string getNextState() override {
     if (data_.dbus_data_.s_r == rm_msgs::DbusData::UP) {
       if (!state_calibrate_->getCalibrateStatus()) return "CALIBRATE";
-      sendMode(ros::Time::now());
-      if (data_.referee_.referee_data_.interactive_data.header_data_.data_cmd_id_ == 0x0200
-          && data_.referee_.referee_data_.interactive_data.data_ == 0)
+      if ((data_.referee_.referee_data_.robot_color_ == "red"
+          && data_.referee_.referee_data_.game_robot_hp_.red_outpost_hp_ != 0)
+          || (data_.referee_.referee_data_.robot_color_ == "blue"
+              && data_.referee_.referee_data_.game_robot_hp_.blue_outpost_hp_ != 0))
         return "STANDBY";
       else return "ATTACK";
     } else if (data_.dbus_data_.s_r == rm_msgs::DbusData::MID) return "RAW";
@@ -64,13 +65,6 @@ class FsmSentry : public FsmBase {
     lower_gimbal_calibration_->reset();
   }
  private:
-  void sendMode(const ros::Time &time) {
-    if (time - last_send_ < ros::Duration(0.5)) return;
-    int receiver_id = data_.referee_.referee_data_.robot_id_ == rm_common::RED_SENTRY ? rm_common::RED_STANDARD_4
-                                                                                      : rm_common::BLUE_STANDARD_4;
-    data_.referee_.sendInteractiveData(0x0201, receiver_id, data_.referee_.referee_data_.interactive_data.data_);
-    last_send_ = time;
-  }
   StateBase *state_idle_ = new StateBase(nh_, &data_, "IDLE");
   StateRaw *state_raw_ = new StateRaw(nh_, &data_);
   StateCalibrate *state_calibrate_ = new StateCalibrate(nh_, &data_);
