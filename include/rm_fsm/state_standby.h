@@ -46,18 +46,18 @@ class StateStandby : public StateBase {
     lower_gimbal_cmd_sender_->updateCost(data_->lower_track_data_array_);
   }
   void setUpperShooter() override {
-    if (upper_gimbal_cmd_sender_->getMsg()->mode == rm_msgs::GimbalCmd::TRACK)
+    if (upper_gimbal_cmd_sender_->getMsg()->mode == rm_msgs::GimbalCmd::TRACK) {
       upper_shooter_cmd_sender_->setMode(rm_msgs::ShootCmd::PUSH);
-    else
+      upper_shooter_cmd_sender_->checkError(data_->upper_gimbal_des_error_, ros::Time::now());
+    } else
       upper_shooter_cmd_sender_->setMode(rm_msgs::ShootCmd::READY);
-    upper_shooter_cmd_sender_->checkError(data_->upper_gimbal_des_error_, ros::Time::now());
   }
   void setLowerShooter() override {
-    if (lower_shooter_cmd_sender_->getMsg()->mode == rm_msgs::GimbalCmd::TRACK)
+    if (lower_gimbal_cmd_sender_->getMsg()->mode == rm_msgs::GimbalCmd::TRACK) {
       lower_shooter_cmd_sender_->setMode(rm_msgs::ShootCmd::PUSH);
-    else
+      lower_shooter_cmd_sender_->checkError(data_->lower_gimbal_des_error_, ros::Time::now());
+    } else
       lower_shooter_cmd_sender_->setMode(rm_msgs::ShootCmd::READY);
-    lower_shooter_cmd_sender_->checkError(data_->lower_gimbal_des_error_, ros::Time::now());
   }
  protected:
   void getGimbalParam(ros::NodeHandle &nh, const std::string &side) {
