@@ -40,6 +40,10 @@ void StateBase::sendCommand(const ros::Time &time) {
 }
 
 FsmBase::FsmBase(ros::NodeHandle &nh) : data_(nh), nh_(nh), controller_manager_(nh) {
+  ros::NodeHandle upper_detection_switch_nh(nh, "upper_detection_switch");
+  upper_switch_detection_srv_ = new rm_common::SwitchDetectionCaller(upper_detection_switch_nh);
+  ros::NodeHandle lower_detection_switch_nh(nh, "lower_detection_switch");
+  lower_switch_detection_srv_ = new rm_common::SwitchDetectionCaller(lower_detection_switch_nh);
   controller_manager_.startStateControllers();
   string2state_.insert(std::make_pair("INVALID", nullptr));
   current_state_ = string2state_["INVALID"];
@@ -51,6 +55,10 @@ void FsmBase::run() {
   checkReferee(time);
   checkSwitch(time);
   controller_manager_.update();
+  upper_switch_detection_srv_->setEnemyColor(data_.referee_.referee_data_);
+  upper_switch_detection_srv_->callService();
+  lower_switch_detection_srv_->setEnemyColor(data_.referee_.referee_data_);
+  lower_switch_detection_srv_->callService();
   std::string next_state_name = getNextState();
   if (next_state_name != current_state_->getName()) {
     current_state_ = string2state_[next_state_name];

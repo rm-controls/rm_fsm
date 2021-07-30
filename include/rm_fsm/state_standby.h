@@ -23,9 +23,8 @@ class StateStandby : public StateBase {
  protected:
   void setChassis() override {
     StateBase::setChassis();
-    vel_2d_cmd_sender_->setLinearXVel(1.);
-    if (data_->pos_x_ - move_distance_ * 0.1 <= 0 || data_->pos_x_ + move_distance_ * 0.1 >= move_distance_)
-      vel_2d_cmd_sender_->setLinearXVel(0.);
+    vel_2d_cmd_sender_->setLinearXVel(-1.);
+    if (data_->pos_x_ - move_distance_ * 0.1 <= 0.) vel_2d_cmd_sender_->setLinearXVel(0.);
   }
   void setUpperGimbal() override {
     if (data_->upper_yaw_ >= upper_yaw_max_) upper_scale_yaw_ = -1.;
