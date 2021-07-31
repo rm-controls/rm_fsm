@@ -59,8 +59,14 @@ rm_fsm:
       safe_shoot_frequency: 5
       heat_coeff: 8.0
       type: "ID1_17MM"
+  upper_detection_switch:
+    fail_limit: 10
+    service_name: "/upper_detection_nodelet/status_switch"
+  lower_detection_switch:
+    fail_limit: 10
+    service_name: "/lower_detection_nodelet/status_switch"
   auto:
-    move_distance: 1.45
+    move_distance: 3.0
     stop_distance: 0.08
     collision_effort: 0.8
     attack:
