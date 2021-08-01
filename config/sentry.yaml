@@ -66,11 +66,11 @@ rm_fsm:
     fail_limit: 10
     service_name: "/lower_detection_nodelet/status_switch"
   auto:
-    move_distance: 3.0
+    move_distance: 2.2
     stop_distance: 0.08
     collision_effort: 0.8
     attack:
-      upper: { pitch: [ -0.0, 0.4 ], yaw: [ -2.9, 2.8 ] }
+      upper: { pitch: [ -0.0, 0.4 ], yaw: [ -2.80, 2.87 ] }
       lower: { pitch: [ 0.5, 1.0 ], yaw: [ -2.35, 1.92 ] }
     standby:
       upper: { pitch: [ -0.0, 0.4 ], yaw: [ -2.9, 0.0 ] }
