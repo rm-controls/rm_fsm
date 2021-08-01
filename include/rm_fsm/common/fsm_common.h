@@ -21,17 +21,18 @@ class StateBase {
  protected:
   void sendCommand(const ros::Time &time);
   virtual void setChassis() { chassis_cmd_sender_->setMode(rm_msgs::ChassisCmd::RAW); }
-  virtual void setUpperGimbal() { upper_gimbal_cmd_sender_->setMode(rm_msgs::GimbalCmd::RATE); }
-  virtual void setLowerGimbal() { lower_gimbal_cmd_sender_->setMode(rm_msgs::GimbalCmd::RATE); }
-  virtual void setUpperShooter() { upper_shooter_cmd_sender_->setMode(rm_msgs::ShootCmd::STOP); }
-  virtual void setLowerShooter() { lower_shooter_cmd_sender_->setMode(rm_msgs::ShootCmd::STOP); }
+  virtual void setGimbal(SideCommandSender *side_cmd_sender) {
+    side_cmd_sender->gimbal_cmd_sender_->setMode(rm_msgs::GimbalCmd::RATE);
+  }
+  virtual void setShooter(SideCommandSender *side_cmd_sender) {
+    side_cmd_sender->shooter_cmd_sender_->setMode(rm_msgs::ShootCmd::STOP);
+  }
 
   Data *data_;
   std::string state_name_;
   rm_common::ChassisCommandSender *chassis_cmd_sender_;
   rm_common::Vel2DCommandSender *vel_2d_cmd_sender_;
-  rm_common::GimbalCommandSender *upper_gimbal_cmd_sender_, *lower_gimbal_cmd_sender_;
-  rm_common::ShooterCommandSender *upper_shooter_cmd_sender_, *lower_shooter_cmd_sender_;
+  SideCommandSender *upper_cmd_sender_, *lower_cmd_sender_;
 };
 
 class FsmBase {

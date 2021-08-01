@@ -11,38 +11,38 @@ StateBase::StateBase(ros::NodeHandle &nh, Data *data, std::string state_name)
   chassis_cmd_sender_ = new rm_common::ChassisCommandSender(chassis_nh, data_->referee_.referee_data_);
   ros::NodeHandle vel_nh(nh, "vel");
   vel_2d_cmd_sender_ = new rm_common::Vel2DCommandSender(vel_nh);
-  ros::NodeHandle upper_gimbal_nh(nh, "upper_gimbal");
-  upper_gimbal_cmd_sender_ = new rm_common::GimbalCommandSender(upper_gimbal_nh, data_->referee_.referee_data_);
-  ros::NodeHandle lower_gimbal_nh(nh, "lower_gimbal");
-  lower_gimbal_cmd_sender_ = new rm_common::GimbalCommandSender(lower_gimbal_nh, data_->referee_.referee_data_);
-  ros::NodeHandle upper_shooter_nh(nh, "upper_shooter");
-  upper_shooter_cmd_sender_ = new rm_common::ShooterCommandSender(upper_shooter_nh, data_->referee_.referee_data_);
-  ros::NodeHandle lower_shooter_nh(nh, "lower_shooter");
-  lower_shooter_cmd_sender_ = new rm_common::ShooterCommandSender(lower_shooter_nh, data_->referee_.referee_data_);
+  ros::NodeHandle upper_nh(nh, "upper");
+  upper_cmd_sender_ = new SideCommandSender(upper_nh, data_->referee_.referee_data_, data_->upper_track_data_array_,
+                                            data_->upper_gimbal_des_error_, data_->upper_yaw_, data_->upper_pitch_);
+  ros::NodeHandle lower_nh(nh, "lower");
+  lower_cmd_sender_ = new SideCommandSender(lower_nh, data_->referee_.referee_data_, data_->lower_track_data_array_,
+                                            data_->lower_gimbal_des_error_, data_->lower_yaw_, data_->lower_pitch_);
 }
 
 void StateBase::run() {
   setChassis();
-  setUpperGimbal();
-  setLowerGimbal();
-  setUpperShooter();
-  setLowerShooter();
+  setGimbal(upper_cmd_sender_);
+  setGimbal(lower_cmd_sender_);
+  setShooter(upper_cmd_sender_);
+  setShooter(lower_cmd_sender_);
   sendCommand(ros::Time::now());
 }
 
 void StateBase::sendCommand(const ros::Time &time) {
   chassis_cmd_sender_->sendCommand(time);
   vel_2d_cmd_sender_->sendCommand(time);
-  upper_gimbal_cmd_sender_->sendCommand(time);
-  lower_gimbal_cmd_sender_->sendCommand(time);
-  upper_shooter_cmd_sender_->sendCommand(time);
-  lower_shooter_cmd_sender_->sendCommand(time);
+  upper_cmd_sender_->gimbal_cmd_sender_->sendCommand(time);
+  lower_cmd_sender_->gimbal_cmd_sender_->sendCommand(time);
+  upper_cmd_sender_->shooter_cmd_sender_->sendCommand(time);
+  lower_cmd_sender_->shooter_cmd_sender_->sendCommand(time);
 }
 
 FsmBase::FsmBase(ros::NodeHandle &nh) : data_(nh), nh_(nh), controller_manager_(nh) {
-  ros::NodeHandle upper_detection_switch_nh(nh, "upper_detection_switch");
+  ros::NodeHandle upper_nh(nh, "upper");
+  ros::NodeHandle upper_detection_switch_nh(upper_nh, "detection_switch");
   upper_switch_detection_srv_ = new rm_common::SwitchDetectionCaller(upper_detection_switch_nh);
-  ros::NodeHandle lower_detection_switch_nh(nh, "lower_detection_switch");
+  ros::NodeHandle lower_nh(nh, "lower");
+  ros::NodeHandle lower_detection_switch_nh(lower_nh, "detection_switch");
   lower_switch_detection_srv_ = new rm_common::SwitchDetectionCaller(lower_detection_switch_nh);
   controller_manager_.startStateControllers();
   string2state_.insert(std::make_pair("INVALID", nullptr));

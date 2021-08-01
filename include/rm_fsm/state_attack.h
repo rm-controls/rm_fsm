@@ -16,11 +16,6 @@ class StateAttack : public StateStandby {
     if (!auto_nh.getParam("stop_distance", stop_distance_)) {
       ROS_ERROR("Stop distance no defined (namespace: %s)", nh.getNamespace().c_str());
     }
-    ros::NodeHandle attack_nh = ros::NodeHandle(nh, "auto/attack");
-    ros::NodeHandle upper_nh = ros::NodeHandle(attack_nh, "upper");
-    getGimbalParam(upper_nh, "upper");
-    ros::NodeHandle lower_nh = ros::NodeHandle(attack_nh, "lower");
-    getGimbalParam(lower_nh, "lower");
   }
  protected:
   void setChassis() override {
