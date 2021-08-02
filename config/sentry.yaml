@@ -38,7 +38,7 @@ rm_fsm:
         expect_shoot_frequency_1: 5
         expect_shoot_frequency_2: 8
         expect_shoot_frequency_3: 12
-        burst_shoot_frequency: 10
+        burst_shoot_frequency: 15
         safe_shoot_frequency: 5
         heat_coeff: 8.0
         type: "ID1_17MM"

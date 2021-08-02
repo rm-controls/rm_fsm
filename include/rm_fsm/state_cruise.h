@@ -9,9 +9,9 @@
 #include "rm_fsm/state_standby.h"
 
 namespace rm_fsm {
-class StateCruise : public StateAttack {
+class StateCruise : public StateStandby {
  public:
-  StateCruise(ros::NodeHandle &nh, Data *data) : StateAttack(nh, data), start_pos_(0.), start_flag_(false) {
+  StateCruise(ros::NodeHandle &nh, Data *data) : StateStandby(nh, data), start_pos_(0.), start_flag_(false) {
     state_name_ = "CRUISE";
     random_distance_ = move_distance_ * 0.3 * ((double) rand() / RAND_MAX);
   }
@@ -34,20 +34,6 @@ class StateCruise : public StateAttack {
         start_flag_ = true;
       }
     } else start_flag_ = false;
-    ROS_INFO("pos %f", data_->pos_x_);
-  }
-  void setGimbal(SideCommandSender *side_cmd_sender) override {
-    if (side_cmd_sender->pos_yaw_ >= side_cmd_sender->yaw_max_) side_cmd_sender->yaw_direct_ = -1.;
-    else if (side_cmd_sender->pos_yaw_ <= side_cmd_sender->yaw_min_) side_cmd_sender->yaw_direct_ = 1.;
-    if (side_cmd_sender->pos_pitch_ >= side_cmd_sender->pitch_max_) side_cmd_sender->pitch_direct_ = -1.;
-    else if (side_cmd_sender->pos_pitch_ <= side_cmd_sender->pitch_min_) side_cmd_sender->pitch_direct_ = 1.;
-    setTrack(side_cmd_sender);
-  }
-  void setShooter(SideCommandSender *side_cmd_sender) override {
-    if (side_cmd_sender->gimbal_cmd_sender_->getMsg()->mode == rm_msgs::GimbalCmd::TRACK) {
-      side_cmd_sender->shooter_cmd_sender_->setMode(rm_msgs::ShootCmd::PUSH);
-      side_cmd_sender->shooter_cmd_sender_->checkError(side_cmd_sender->gimbal_des_error_, ros::Time::now());
-    } else side_cmd_sender->shooter_cmd_sender_->setMode(rm_msgs::ShootCmd::READY);
   }
  private:
   double random_distance_, start_pos_;

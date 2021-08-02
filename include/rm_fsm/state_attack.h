@@ -58,28 +58,23 @@ class StateAttack : public StateStandby {
   }
   void setShooter(SideCommandSender *side_cmd_sender) override {
     if (side_cmd_sender == upper_cmd_sender_) {
-      if (data_->referee_.referee_data_.game_status_.game_progress_ == 4) {
-        if (side_cmd_sender->gimbal_cmd_sender_->getMsg()->rate_yaw == 0.
-            && side_cmd_sender->gimbal_cmd_sender_->getMsg()->rate_pitch == 0.) {
-          if (data_->referee_.referee_data_.bullet_remaining_.bullet_remaining_num_17_mm_ > 400)
-            side_cmd_sender->shooter_cmd_sender_->setMode(rm_msgs::ShootCmd::PUSH);
-          else attack_finish_ = true;
-        }
+      if (data_->referee_.referee_data_.game_status_.game_progress_ == 4
+          && side_cmd_sender->gimbal_cmd_sender_->getMsg()->rate_yaw == 0.
+          && side_cmd_sender->gimbal_cmd_sender_->getMsg()->rate_pitch == 0.) {
+        if (data_->referee_.referee_data_.bullet_remaining_.bullet_remaining_num_17_mm_ > 400
+            && ((data_->referee_.referee_data_.robot_color_ == "blue"
+                && data_->referee_.referee_data_.game_robot_hp_.blue_outpost_hp_ > 0)
+                || (data_->referee_.referee_data_.robot_color_ == "red"
+                    && data_->referee_.referee_data_.game_robot_hp_.red_outpost_hp_ > 0)))
+          side_cmd_sender->shooter_cmd_sender_->setMode(rm_msgs::ShootCmd::PUSH);
+        else attack_finish_ = true;
       }
-    } else {
+    } else { // lower gimbal auto track
       if (side_cmd_sender->gimbal_cmd_sender_->getMsg()->mode == rm_msgs::GimbalCmd::TRACK) {
         side_cmd_sender->shooter_cmd_sender_->setMode(rm_msgs::ShootCmd::PUSH);
         side_cmd_sender->shooter_cmd_sender_->checkError(side_cmd_sender->gimbal_des_error_, ros::Time::now());
       } else side_cmd_sender->shooter_cmd_sender_->setMode(rm_msgs::ShootCmd::READY);
     }
-  }
-  void setTrack(SideCommandSender *side_cmd_sender) {
-    side_cmd_sender->gimbal_cmd_sender_->setBulletSpeed(side_cmd_sender->shooter_cmd_sender_->getSpeed());
-    side_cmd_sender->gimbal_cmd_sender_->updateCost(side_cmd_sender->track_data_);
-    if (side_cmd_sender->gimbal_cmd_sender_->getMsg()->mode == rm_msgs::GimbalCmd::TRACK)
-      side_cmd_sender->gimbal_cmd_sender_->setRate(0., 0.);
-    else
-      side_cmd_sender->gimbal_cmd_sender_->setRate(side_cmd_sender->yaw_direct_, side_cmd_sender->pitch_direct_);
   }
  private:
   double expect_pitch_{}, expect_yaw_{};
