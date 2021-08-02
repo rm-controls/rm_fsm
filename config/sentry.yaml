@@ -2,7 +2,7 @@ rm_fsm:
   robot_type: "sentry"
   chassis:
     topic: "/controllers/chassis_controller/command"
-    accel_x: 2.0
+    accel_x: 10.0
     accel_y: 0.0
     accel_z: 0.0
     safety_power: 30.0
@@ -12,12 +12,12 @@ rm_fsm:
     burst_power: 200
   vel:
     topic: "/cmd_vel"
-    max_linear_x: 0.6
+    max_linear_x: 3.0
     max_linear_y: 0.0
     max_angular_z: 0.0
   auto:
-    move_distance: 2.0
-    stop_distance: 0.05
+    move_distance: 2.8
+    stop_distance: 0.5
     collision_effort: 0.8
   upper:
     gimbal:
@@ -82,8 +82,8 @@ rm_fsm:
       - controllers/chassis_controller
       - controllers/upper_gimbal_controller
       - controllers/lower_gimbal_controller
-      - controllers/upper_shooter_controller
-      - controllers/lower_shooter_controller
+#      - controllers/upper_shooter_controller
+#      - controllers/lower_shooter_controller
     calibration_controllers:
       - controllers/upper_trigger_calibration_controller
       - controllers/upper_yaw_calibration_controller
@@ -92,10 +92,10 @@ rm_fsm:
       - controllers/lower_yaw_calibration_controller
       - controllers/lower_pitch_calibration_controller
 
-  upper_trigger_calibration:
-    - start_controller: controllers/upper_trigger_calibration_controller
-      stop_controller: controllers/upper_shooter_controller
-      service_name: /controllers/upper_trigger_calibration_controller/is_calibrated
+#  upper_trigger_calibration:
+#    - start_controller: controllers/upper_trigger_calibration_controller
+#      stop_controller: controllers/upper_shooter_controller
+#      service_name: /controllers/upper_trigger_calibration_controller/is_calibrated
   upper_gimbal_calibration:
     - start_controller: controllers/upper_yaw_calibration_controller
       stop_controller: controllers/upper_gimbal_controller
@@ -103,10 +103,10 @@ rm_fsm:
     - start_controller: controllers/upper_pitch_calibration_controller
       stop_controller: controllers/upper_gimbal_controller
       service_name: /controllers/upper_pitch_calibration_controller/is_calibrated
-  lower_trigger_calibration:
-    - start_controller: controllers/lower_trigger_calibration_controller
-      stop_controller: controllers/lower_shooter_controller
-      service_name: /controllers/lower_trigger_calibration_controller/is_calibrated
+#  lower_trigger_calibration:
+#    - start_controller: controllers/lower_trigger_calibration_controller
+#      stop_controller: controllers/lower_shooter_controller
+#      service_name: /controllers/lower_trigger_calibration_controller/is_calibrated
   lower_gimbal_calibration:
     - start_controller: controllers/lower_yaw_calibration_controller
       stop_controller: controllers/lower_gimbal_controller
