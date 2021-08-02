@@ -56,8 +56,10 @@ void FsmBase::run() {
   checkSwitch(time);
   controller_manager_.update();
   upper_switch_detection_srv_->setEnemyColor(data_.referee_.referee_data_);
+  upper_switch_detection_srv_->setArmorTargetType(rm_msgs::StatusChangeRequest::ARMOR_WITHOUT_OUTPOST_BASE);
   upper_switch_detection_srv_->callService();
   lower_switch_detection_srv_->setEnemyColor(data_.referee_.referee_data_);
+  lower_switch_detection_srv_->setArmorTargetType(rm_msgs::StatusChangeRequest::ARMOR_WITHOUT_OUTPOST_BASE);
   lower_switch_detection_srv_->callService();
   std::string next_state_name = getNextState();
   if (next_state_name != current_state_->getName()) {
