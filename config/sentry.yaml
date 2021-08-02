@@ -24,7 +24,7 @@ rm_fsm:
       topic: "/controllers/upper_gimbal_controller/command"
       max_yaw_vel: 1.5
       max_pitch_vel: 0.8
-      track_timeout: 0.4
+      track_timeout: 0.5
       target_cost_function:
         k_pos: 1.0
         k_vel: 1.0
@@ -38,7 +38,7 @@ rm_fsm:
         expect_shoot_frequency_1: 5
         expect_shoot_frequency_2: 8
         expect_shoot_frequency_3: 12
-        burst_shoot_frequency: 20
+        burst_shoot_frequency: 10
         safe_shoot_frequency: 5
         heat_coeff: 8.0
         type: "ID1_17MM"
@@ -46,6 +46,7 @@ rm_fsm:
       fail_limit: 10
       service_name: "/upper_detection_nodelet/status_switch"
     auto: { pitch: [ 0.0, 0.4 ], yaw: [ -2.80, 2.87 ] }
+    attack: { pitch: -0.2, yaw: 1.0 }
   lower:
     gimbal:
       topic: "/controllers/lower_gimbal_controller/command"

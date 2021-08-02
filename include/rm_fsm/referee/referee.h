@@ -17,6 +17,7 @@ class Referee {
  public:
   Referee() : last_get_(ros::Time::now()), serial_port_("/dev/usbReferee") {
     referee_data_.robot_hurt_.hurt_type_ = 0x09;
+    referee_data_.bullet_remaining_.bullet_remaining_num_17_mm_ = 500;
   };
   void init();
   void read();
