@@ -8,9 +8,9 @@
 #include "rm_fsm/referee/referee.h"
 #include <ros/ros.h>
 #include <tf2_ros/transform_listener.h>
+#include <sensor_msgs/JointState.h>
 #include <rm_common/ori_tool.h>
 #include <rm_common/decision/command_sender.h>
-#include <sensor_msgs/JointState.h>
 #include <rm_msgs/DbusData.h>
 #include <rm_msgs/GimbalDesError.h>
 #include <rm_msgs/TrackDataArray.h>

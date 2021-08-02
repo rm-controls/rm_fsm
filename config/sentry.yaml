@@ -16,15 +16,15 @@ rm_fsm:
     max_linear_y: 0.0
     max_angular_z: 0.0
   auto:
-    move_distance: 2.2
-    stop_distance: 0.08
+    move_distance: 2.0
+    stop_distance: 0.05
     collision_effort: 0.8
   upper:
     gimbal:
       topic: "/controllers/upper_gimbal_controller/command"
       max_yaw_vel: 1.5
       max_pitch_vel: 0.8
-      track_timeout: 0.5
+      track_timeout: 0.4
       target_cost_function:
         k_pos: 1.0
         k_vel: 1.0
@@ -45,12 +45,12 @@ rm_fsm:
     detection_switch:
       fail_limit: 10
       service_name: "/upper_detection_nodelet/status_switch"
-    auto: { pitch: [ -0.0, 0.4 ], yaw: [ -2.80, 2.87 ] }
+    auto: { pitch: [ 0.0, 0.4 ], yaw: [ -2.80, 2.87 ] }
   lower:
     gimbal:
       topic: "/controllers/lower_gimbal_controller/command"
       max_yaw_vel: 1.5
-      max_pitch_vel: 0.6
+      max_pitch_vel: 1.0
       track_timeout: 0.5
       target_cost_function:
         k_pos: 1.0
