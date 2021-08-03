@@ -46,7 +46,6 @@ rm_fsm:
       fail_limit: 10
       service_name: "/upper_detection_nodelet/status_switch"
     auto: { pitch: [ 0.0, 0.4 ], yaw: [ -2.80, 2.87 ] }
-    attack: { pitch: -0.2, yaw: 1.0 }
   lower:
     gimbal:
       topic: "/controllers/lower_gimbal_controller/command"
