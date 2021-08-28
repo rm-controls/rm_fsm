@@ -5,10 +5,10 @@
 #ifndef RM_FSM_COMMON_DATA_H_
 #define RM_FSM_COMMON_DATA_H_
 
-#include "rm_fsm/referee/referee.h"
 #include <ros/ros.h>
 #include <tf2_ros/transform_listener.h>
 #include <rm_common/ori_tool.h>
+#include <rm_common/referee/referee.h>
 #include <rm_common/decision/command_sender.h>
 #include <sensor_msgs/JointState.h>
 #include <rm_msgs/DbusData.h>
@@ -65,7 +65,7 @@ class Data {
   rm_msgs::TrackDataArray upper_track_data_array_, lower_track_data_array_;
   rm_msgs::GimbalDesError upper_gimbal_des_error_, lower_gimbal_des_error_;
 
-  Referee referee_;
+  rm_common::Referee referee_;
   tf2_ros::Buffer tf_buffer_;
   tf2_ros::TransformListener tf_listener_;
   double pos_x_{};
