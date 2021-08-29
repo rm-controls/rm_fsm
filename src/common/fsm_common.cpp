@@ -20,12 +20,25 @@ StateBase::StateBase(ros::NodeHandle &nh, Data *data, std::string state_name)
 }
 
 void StateBase::run() {
+  try {
+    if (data_->serial_.available()) {
+      data_->referee_.rx_len_ = (int) data_->serial_.available();
+      data_->serial_.read(data_->referee_.rx_buffer_, data_->referee_.rx_len_);
+    }
+  }
+  catch (serial::IOException &e) {}
+  data_->referee_.read();
   setChassis();
   setGimbal(upper_cmd_sender_);
   setGimbal(lower_cmd_sender_);
   setShooter(upper_cmd_sender_);
   setShooter(lower_cmd_sender_);
   sendCommand(ros::Time::now());
+  try {
+    data_->serial_.write(data_->referee_.tx_buffer_, data_->referee_.tx_len_);
+  }
+  catch (serial::PortNotOpenedException &e) {}
+  data_->referee_.clearBuffer();
 }
 
 void StateBase::sendCommand(const ros::Time &time) {

@@ -6,6 +6,7 @@
 #define RM_FSM_COMMON_DATA_H_
 
 #include <ros/ros.h>
+#include <serial/serial.h>
 #include <tf2_ros/transform_listener.h>
 #include <rm_common/ori_tool.h>
 #include <rm_common/referee/referee.h>
@@ -36,11 +37,10 @@ class Data {
                                               &Data::lowerGimbalDesErrorCallback, this);
     ros::NodeHandle root_nh;
     referee_.referee_pub_ = root_nh.advertise<rm_msgs::Referee>("/referee", 1);
-    referee_.init();
+    initSerial();
   };
   void update(const ros::Time &time) {
     geometry_msgs::TransformStamped odom2baselink;
-    referee_.read();
     if (!joint_state_.effort.empty())
       sum_effort_ += joint_state_.effort[0];
     sum_count_++;
@@ -68,6 +68,7 @@ class Data {
   rm_common::Referee referee_;
   tf2_ros::Buffer tf_buffer_;
   tf2_ros::TransformListener tf_listener_;
+  serial::Serial serial_;
   double pos_x_{};
   double upper_yaw_{}, upper_pitch_{}, lower_yaw_{}, lower_pitch_{};
   double current_effort_{};
@@ -78,6 +79,19 @@ class Data {
   void lowerTrackCallback(const rm_msgs::TrackDataArray::ConstPtr &data) { lower_track_data_array_ = *data; }
   void upperGimbalDesErrorCallback(const rm_msgs::GimbalDesError::ConstPtr &data) { upper_gimbal_des_error_ = *data; }
   void lowerGimbalDesErrorCallback(const rm_msgs::GimbalDesError::ConstPtr &data) { lower_gimbal_des_error_ = *data; }
+  void initSerial() {
+    serial::Timeout timeout = serial::Timeout::simpleTimeout(50);
+    serial_.setPort("/dev/usbReferee");
+    serial_.setBaudrate(115200);
+    serial_.setTimeout(timeout);
+    if (serial_.isOpen()) return;
+    try {
+      serial_.open();
+    }
+    catch (serial::IOException &e) {
+      ROS_ERROR("Cannot open referee port");
+    }
+  }
 
   ros::Subscriber joint_state_sub_;
   ros::Subscriber dbus_sub_;
