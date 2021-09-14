@@ -39,20 +39,21 @@ find_package(catkin REQUIRED
 ## CATKIN_DEPENDS: catkin_packages dependent projects also need
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
-        INCLUDE_DIRS
-        include
-        LIBRARIES
-        ${PROJECT_NAME}
-        CATKIN_DEPENDS
-        sensor_msgs
-        roslint
-        rm_msgs
-        std_msgs
-        nav_msgs
-        rm_common
-        tf
-        dynamic_reconfigure
-        DEPENDS
+    INCLUDE_DIRS
+    include
+    LIBRARIES
+    ${PROJECT_NAME}
+    CATKIN_DEPENDS
+    roscpp
+    sensor_msgs
+    roslint
+    rm_msgs
+    std_msgs
+    nav_msgs
+    rm_common
+    tf
+    dynamic_reconfigure
+    DEPENDS
 )
 
 ###########
