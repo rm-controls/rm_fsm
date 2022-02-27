@@ -1,0 +1,69 @@
+digraph StateMachine {
+
+    node
+        [shape=Mrecord width=1.5];
+
+    subgraph cluster_StateMachineMap {
+
+        label="StateMachineMap";
+
+        //
+        // States (Nodes)
+        //
+
+        "StateMachineMap::Idle"
+            [label="{Idle}"];
+
+        "StateMachineMap::Raw"
+            [label="{Raw|Entry/\l&nbsp;&nbsp;&nbsp;initRaw;\l|setChassis/\lsetGimbal/\lsetShooter/\lsendCommand/\l}"];
+
+        "StateMachineMap::Calibrate"
+            [label="{Calibrate|Entry/\l&nbsp;&nbsp;&nbsp;initCalibrate;\l|checkCalibrateStatus/\lgetCalibrateStatus/\lsetChassis/\lsetGimbal/\lsetShooter/\lsendCommand/\l}"];
+
+        "StateMachineMap::Standby"
+            [label="{Standby|Entry/\l&nbsp;&nbsp;&nbsp;initStandby;\l|setChassis/\lsetGimbal/\lsetShooter/\lsendCommand/\l}"];
+
+        "StateMachineMap::Cruise"
+            [label="{Cruise|Entry/\l&nbsp;&nbsp;&nbsp;initCruise;\l|setChassis/\lsetGimbal/\lsetShooter/\lsendCommand/\l}"];
+
+        "%start"
+            [label="" shape=circle style=filled fillcolor=black width=0.25];
+
+        //
+        // Transitions (Edges)
+        //
+
+        "StateMachineMap::Idle" -> "StateMachineMap::Calibrate"
+            [label="controlUpdate\l\[ ctxt.isCalibrate() == true \]/\l"];
+
+        "StateMachineMap::Idle" -> "StateMachineMap::Raw"
+            [label="controlUpdate\l\[ ctxt.isRaw() == true \]/\l"];
+
+        "StateMachineMap::Raw" -> "StateMachineMap::Idle"
+            [label="controlUpdate\l\[ ctxt.isIdle() == true \]/\l"];
+
+        "StateMachineMap::Calibrate" -> "StateMachineMap::Standby"
+            [label="jumpStandby\l\[ ctxt.isStandby() == true \]/\l"];
+
+        "StateMachineMap::Calibrate" -> "StateMachineMap::Cruise"
+            [label="jumpCruise\l\[ ctxt.isCruise() == true \]/\l"];
+
+        "StateMachineMap::Calibrate" -> "StateMachineMap::Idle"
+            [label="controlUpdate\l\[ ctxt.isIdle() == true \]/\l"];
+
+        "StateMachineMap::Standby" -> "StateMachineMap::Cruise"
+            [label="jumpCruise\l\[ ctxt.isCruise() == true \]/\l"];
+
+        "StateMachineMap::Standby" -> "StateMachineMap::Idle"
+            [label="controlUpdate\l\[ ctxt.isIdle() == true \]/\l"];
+
+        "StateMachineMap::Cruise" -> "StateMachineMap::Standby"
+            [label="jumpStandby\l\[ ctxt.isStandby() == true \]/\l"];
+
+        "StateMachineMap::Cruise" -> "StateMachineMap::Idle"
+            [label="controlUpdate\l\[ ctxt.isIdle() == true \]/\l"];
+
+        "%start" -> "StateMachineMap::Idle"
+    }
+
+}

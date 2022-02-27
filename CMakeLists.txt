@@ -60,10 +60,29 @@ catkin_package(
 ## Build ##
 ###########
 
+set(SMC ${PROJECT_SOURCE_DIR}/lib/smc/bin/Smc.jar)
+set(SM_CLASS_NAME StateMachine)
+set(SM_SOURCES ${PROJECT_SOURCE_DIR}/state_machine/${SM_CLASS_NAME}.sm)
+
+add_custom_target(${PROJECT_NAME}_generate_sm_file
+        COMMAND java -jar ${SMC} -c++ ${SM_SOURCES}
+        COMMENT "Generating State Machine file")
+add_custom_target(${PROJECT_NAME}_generate_sm_graph
+        COMMAND java -jar ${SMC} -graph -glevel 1 ${SM_SOURCES}
+        COMMAND dot -T png ${PROJECT_SOURCE_DIR}/state_machine/${SM_CLASS_NAME}_sm.dot -o ${PROJECT_SOURCE_DIR}/state_machine/${SM_CLASS_NAME}_sm.png
+        COMMENT "Generating State Machine graph")
+add_custom_target(${PROJECT_NAME}_generate_sm_table
+        COMMAND java -jar ${SMC} -table ${SM_SOURCES}
+        COMMENT "Generating State Machine graph")
+add_dependencies(${PROJECT_NAME}_generate_sm_graph ${PROJECT_NAME}_generate_sm_file)
+add_dependencies(${PROJECT_NAME}_generate_sm_table ${PROJECT_NAME}_generate_sm_file)
+
 ## Specify additional locations of header files
 ## Your package locations should be listed before other locations
 include_directories(
         include
+        lib/smc/C++
+        state_machine
         ${catkin_INCLUDE_DIRS}
 )
 
@@ -74,7 +93,7 @@ include_directories(
 # target_compile_features(${PROJECT_NAME}_core INTERFACE cxx_std_11)
 
 ## Declare cpp executables
-FILE(GLOB ALL_SOURCES "src/*.cpp" "src/common/*.cpp" "src/referee/*.cpp")
+FILE(GLOB ALL_SOURCES "src/*.cpp" "src/common/*.cpp" "src/referee/*.cpp" "state_machine/*.cpp")
 add_executable(${PROJECT_NAME} ${ALL_SOURCES})
 
 ## Add dependencies to exported targets, like ROS msgs or srvs

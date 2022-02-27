@@ -1,0 +1,122 @@
+
+%start StateMachineMap::Idle
+%class StateMachine
+%header rm_fsm/StateMachine.h
+%include "../include/rm_fsm/common/data.h"
+%include "../include/rm_fsm/common/fsm_common.h"
+
+%map StateMachineMap
+%%
+
+// Syntax:
+//
+// State {
+//  TransitionEvent
+//      [guard]
+//      NextState
+//      {Action}
+// }
+
+Idle
+{
+    controlUpdate(state: rm_msgs::FsmCmd)
+        [ ctxt.isCalibrate() == true ]
+        Calibrate {}
+    controlUpdate(state: rm_msgs::FsmCmd)
+        [ ctxt.isRaw() == true ]
+        Raw {}
+}
+
+Raw
+    Entry {
+        initRaw();
+    }
+{
+    controlUpdate(state: rm_msgs::FsmCmd)
+        [ ctxt.isIdle() == true ]
+        Idle {}
+    setChassis
+        nil {}
+    setGimbal
+        nil {}
+    setShooter
+        nil {}
+    sendCommand
+        nil {}
+}
+
+Calibrate
+    Entry {
+        initCalibrate();
+    }
+{
+    jumpStandby(state: rm_msgs::FsmCmd)
+        [ ctxt.isStandby() == true ]
+        Standby {}
+    jumpCruise(state: rm_msgs::FsmCmd)
+        [ ctxt.isCruise() == true ]
+        Cruise {}
+    controlUpdate(state: rm_msgs::FsmCmd)
+        [ ctxt.isIdle() == true ]
+        Idle {}
+    checkCalibrateStatus
+        nil {}
+    getCalibrateStatus
+        nil {}
+    setChassis
+        nil {}
+    setGimbal
+        nil {}
+    setShooter
+        nil {}
+    sendCommand
+        nil {}
+}
+
+Standby
+    Entry {
+        initStandby();
+    }
+{
+    jumpCruise(state: rm_msgs::FsmCmd)
+        [ ctxt.isCruise() == true ]
+        Cruise {}
+    controlUpdate(state: rm_msgs::FsmCmd)
+        [ ctxt.isIdle() == true ]
+        Idle {}
+    setChassis
+        nil {}
+    setGimbal
+        nil {}
+    setShooter
+        nil {}
+    sendCommand
+        nil {}
+}
+
+Cruise
+    Entry {
+        initCruise();
+    }
+{
+    jumpStandby(state: rm_msgs::FsmCmd)
+        [ ctxt.isStandby() == true ]
+        Standby {}
+    controlUpdate(state: rm_msgs::FsmCmd)
+        [ ctxt.isIdle() == true ]
+        Idle {}
+    setChassis
+        nil {}
+    setGimbal
+        nil {}
+    setShooter
+        nil {}
+    sendCommand
+        nil {}
+}
+
+Default
+{
+}
+
+%%
