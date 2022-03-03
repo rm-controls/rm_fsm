@@ -2,8 +2,6 @@
 %start StateMachineMap::Idle
 %class StateMachine
 %header rm_fsm/StateMachine.h
-%include "../include/rm_fsm/common/data.h"
-%include "../include/rm_fsm/common/fsm_common.h"
 
 %map StateMachineMap
 %%
@@ -19,12 +17,20 @@
 
 Idle
 {
-    controlUpdate(state: rm_msgs::FsmCmd)
-        [ ctxt.isCalibrate() == true ]
-        Calibrate {}
-    controlUpdate(state: rm_msgs::FsmCmd)
-        [ ctxt.isRaw() == true ]
-        Raw {}
+    dbusUpdate(data_dbus_: rm_msgs::DbusData)
+        [ ctxt.isCalibrate(data_dbus_) == true ]
+        Calibrate
+        {
+            run();
+        }
+    dbusUpdate(data_dbus_: rm_msgs::DbusData)
+        [ ctxt.isRaw(data_dbus_) == true ]
+        Raw
+        {
+            run();
+        }
+    dbusUpdate(data_dbus_: rm_msgs::DbusData)
+        nil {}
 }
 
 Raw
@@ -32,17 +38,12 @@ Raw
         initRaw();
     }
 {
-    controlUpdate(state: rm_msgs::FsmCmd)
-        [ ctxt.isIdle() == true ]
-        Idle {}
-    setChassis
-        nil {}
-    setGimbal
-        nil {}
-    setShooter
-        nil {}
-    sendCommand
-        nil {}
+    dbusUpdate(data_dbus_: rm_msgs::DbusData)
+        [ ctxt.isCalibrate(data_dbus_) == true ]
+        Calibrate
+        {
+            run();
+        }
 }
 
 Calibrate
@@ -50,27 +51,25 @@ Calibrate
         initCalibrate();
     }
 {
-    jumpStandby(state: rm_msgs::FsmCmd)
-        [ ctxt.isStandby() == true ]
-        Standby {}
-    jumpCruise(state: rm_msgs::FsmCmd)
-        [ ctxt.isCruise() == true ]
-        Cruise {}
-    controlUpdate(state: rm_msgs::FsmCmd)
-        [ ctxt.isIdle() == true ]
-        Idle {}
-    checkCalibrateStatus
-        nil {}
-    getCalibrateStatus
-        nil {}
-    setChassis
-        nil {}
-    setGimbal
-        nil {}
-    setShooter
-        nil {}
-    sendCommand
-        nil {}
+    refereeUpdate(referee_: rm_common::Referee)
+        [ ctxt.isStandby(referee_) == true ]
+        Standby
+        {
+            run();
+        }
+    refereeUpdate(referee_: rm_common::Referee)
+        [ ctxt.isCruise(referee_) == true ]
+        Cruise
+        {
+            run();
+        }
+
+    dbusUpdate(data_dbus_: rm_msgs::DbusData)
+        [ ctxt.isRaw(data_dbus_) == true ]
+        Raw
+        {
+            run();
+        }
 }
 
 Standby
@@ -78,20 +77,18 @@ Standby
         initStandby();
     }
 {
-    jumpCruise(state: rm_msgs::FsmCmd)
-        [ ctxt.isCruise() == true ]
-        Cruise {}
-    controlUpdate(state: rm_msgs::FsmCmd)
-        [ ctxt.isIdle() == true ]
-        Idle {}
-    setChassis
-        nil {}
-    setGimbal
-        nil {}
-    setShooter
-        nil {}
-    sendCommand
-        nil {}
+    refereeUpdate(referee_: rm_common::Referee)
+        [ ctxt.isCruise(referee_) == true ]
+        Cruise
+        {
+            run();
+        }
+    dbusUpdate(data_dbus_: rm_msgs::DbusData)
+        [ ctxt.isRaw(data_dbus_) == true ]
+        Raw
+        {
+            run();
+        }
 }
 
 Cruise
@@ -99,20 +96,18 @@ Cruise
         initCruise();
     }
 {
-    jumpStandby(state: rm_msgs::FsmCmd)
-        [ ctxt.isStandby() == true ]
-        Standby {}
-    controlUpdate(state: rm_msgs::FsmCmd)
-        [ ctxt.isIdle() == true ]
-        Idle {}
-    setChassis
-        nil {}
-    setGimbal
-        nil {}
-    setShooter
-        nil {}
-    sendCommand
-        nil {}
+    refereeUpdate(referee_: rm_common::Referee)
+        [ ctxt.isStandby(referee_) == true ]
+        Standby
+        {
+            run();
+        }
+    dbusUpdate(data_dbus_: rm_msgs::DbusData)
+        [ ctxt.isRaw(data_dbus_) == true ]
+        Raw
+        {
+            run();
+        }
 }
 
 Default

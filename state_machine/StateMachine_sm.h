@@ -12,6 +12,8 @@
 #define SMC_USES_IOSTREAMS
 
 #include <statemap.h>
+#include <rm_common/referee/referee.h>
+#include <rm_msgs/DbusData.h>
 
 // Forward declarations.
 class StateMachineMap;
@@ -37,15 +39,8 @@ public:
     virtual void Entry(StateMachineContext&) {};
     virtual void Exit(StateMachineContext&) {};
 
-    virtual void checkCalibrateStatus(StateMachineContext& context);
-    virtual void controlUpdate(StateMachineContext& context, rm_msgs::FsmCmd state);
-    virtual void getCalibrateStatus(StateMachineContext& context);
-    virtual void jumpCruise(StateMachineContext& context, rm_msgs::FsmCmd state);
-    virtual void jumpStandby(StateMachineContext& context, rm_msgs::FsmCmd state);
-    virtual void sendCommand(StateMachineContext& context);
-    virtual void setChassis(StateMachineContext& context);
-    virtual void setGimbal(StateMachineContext& context);
-    virtual void setShooter(StateMachineContext& context);
+    virtual void dbusUpdate(StateMachineContext& context, rm_msgs::DbusData data_dbus_);
+    virtual void refereeUpdate(StateMachineContext& context, rm_common::Referee referee_);
 
 protected:
 
@@ -82,7 +77,7 @@ public:
     : StateMachineMap_Default(name, stateId)
     {};
 
-    virtual void controlUpdate(StateMachineContext& context, rm_msgs::FsmCmd state);
+    virtual void dbusUpdate(StateMachineContext& context, rm_msgs::DbusData data_dbus_);
 };
 
 class StateMachineMap_Raw :
@@ -94,11 +89,7 @@ public:
     {};
 
     virtual void Entry(StateMachineContext&);
-    virtual void controlUpdate(StateMachineContext& context, rm_msgs::FsmCmd state);
-    virtual void sendCommand(StateMachineContext& context);
-    virtual void setChassis(StateMachineContext& context);
-    virtual void setGimbal(StateMachineContext& context);
-    virtual void setShooter(StateMachineContext& context);
+    virtual void dbusUpdate(StateMachineContext& context, rm_msgs::DbusData data_dbus_);
 };
 
 class StateMachineMap_Calibrate :
@@ -110,15 +101,8 @@ public:
     {};
 
     virtual void Entry(StateMachineContext&);
-    virtual void checkCalibrateStatus(StateMachineContext& context);
-    virtual void controlUpdate(StateMachineContext& context, rm_msgs::FsmCmd state);
-    virtual void getCalibrateStatus(StateMachineContext& context);
-    virtual void jumpCruise(StateMachineContext& context, rm_msgs::FsmCmd state);
-    virtual void jumpStandby(StateMachineContext& context, rm_msgs::FsmCmd state);
-    virtual void sendCommand(StateMachineContext& context);
-    virtual void setChassis(StateMachineContext& context);
-    virtual void setGimbal(StateMachineContext& context);
-    virtual void setShooter(StateMachineContext& context);
+    virtual void dbusUpdate(StateMachineContext& context, rm_msgs::DbusData data_dbus_);
+    virtual void refereeUpdate(StateMachineContext& context, rm_common::Referee referee_);
 };
 
 class StateMachineMap_Standby :
@@ -130,12 +114,8 @@ public:
     {};
 
     virtual void Entry(StateMachineContext&);
-    virtual void controlUpdate(StateMachineContext& context, rm_msgs::FsmCmd state);
-    virtual void jumpCruise(StateMachineContext& context, rm_msgs::FsmCmd state);
-    virtual void sendCommand(StateMachineContext& context);
-    virtual void setChassis(StateMachineContext& context);
-    virtual void setGimbal(StateMachineContext& context);
-    virtual void setShooter(StateMachineContext& context);
+    virtual void dbusUpdate(StateMachineContext& context, rm_msgs::DbusData data_dbus_);
+    virtual void refereeUpdate(StateMachineContext& context, rm_common::Referee referee_);
 };
 
 class StateMachineMap_Cruise :
@@ -147,12 +127,8 @@ public:
     {};
 
     virtual void Entry(StateMachineContext&);
-    virtual void controlUpdate(StateMachineContext& context, rm_msgs::FsmCmd state);
-    virtual void jumpStandby(StateMachineContext& context, rm_msgs::FsmCmd state);
-    virtual void sendCommand(StateMachineContext& context);
-    virtual void setChassis(StateMachineContext& context);
-    virtual void setGimbal(StateMachineContext& context);
-    virtual void setShooter(StateMachineContext& context);
+    virtual void dbusUpdate(StateMachineContext& context, rm_msgs::DbusData data_dbus_);
+    virtual void refereeUpdate(StateMachineContext& context, rm_common::Referee referee_);
 };
 
 class StateMachineContext :
@@ -191,49 +167,14 @@ public:
         return dynamic_cast<StateMachineState&>(*_state);
     };
 
-    inline void checkCalibrateStatus()
+    inline void dbusUpdate(rm_msgs::DbusData data_dbus_)
     {
-        getState().checkCalibrateStatus(*this);
+        getState().dbusUpdate(*this, data_dbus_);
     };
 
-    inline void controlUpdate(rm_msgs::FsmCmd state)
+    inline void refereeUpdate(rm_common::Referee referee_)
     {
-        getState().controlUpdate(*this, state);
-    };
-
-    inline void getCalibrateStatus()
-    {
-        getState().getCalibrateStatus(*this);
-    };
-
-    inline void jumpCruise(rm_msgs::FsmCmd state)
-    {
-        getState().jumpCruise(*this, state);
-    };
-
-    inline void jumpStandby(rm_msgs::FsmCmd state)
-    {
-        getState().jumpStandby(*this, state);
-    };
-
-    inline void sendCommand()
-    {
-        getState().sendCommand(*this);
-    };
-
-    inline void setChassis()
-    {
-        getState().setChassis(*this);
-    };
-
-    inline void setGimbal()
-    {
-        getState().setGimbal(*this);
-    };
-
-    inline void setShooter()
-    {
-        getState().setShooter(*this);
+        getState().refereeUpdate(*this, referee_);
     };
 
 private:

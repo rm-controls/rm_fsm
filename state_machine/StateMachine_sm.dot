@@ -12,19 +12,19 @@ digraph StateMachine {
         //
 
         "StateMachineMap::Idle"
-            [label="{Idle}"];
+            [label="{Idle|dbusUpdate/\l}"];
 
         "StateMachineMap::Raw"
-            [label="{Raw|Entry/\l&nbsp;&nbsp;&nbsp;initRaw;\l|setChassis/\lsetGimbal/\lsetShooter/\lsendCommand/\l}"];
+            [label="{Raw|Entry/\l&nbsp;&nbsp;&nbsp;initRaw;\l}"];
 
         "StateMachineMap::Calibrate"
-            [label="{Calibrate|Entry/\l&nbsp;&nbsp;&nbsp;initCalibrate;\l|checkCalibrateStatus/\lgetCalibrateStatus/\lsetChassis/\lsetGimbal/\lsetShooter/\lsendCommand/\l}"];
+            [label="{Calibrate|Entry/\l&nbsp;&nbsp;&nbsp;initCalibrate;\l}"];
 
         "StateMachineMap::Standby"
-            [label="{Standby|Entry/\l&nbsp;&nbsp;&nbsp;initStandby;\l|setChassis/\lsetGimbal/\lsetShooter/\lsendCommand/\l}"];
+            [label="{Standby|Entry/\l&nbsp;&nbsp;&nbsp;initStandby;\l}"];
 
         "StateMachineMap::Cruise"
-            [label="{Cruise|Entry/\l&nbsp;&nbsp;&nbsp;initCruise;\l|setChassis/\lsetGimbal/\lsetShooter/\lsendCommand/\l}"];
+            [label="{Cruise|Entry/\l&nbsp;&nbsp;&nbsp;initCruise;\l}"];
 
         "%start"
             [label="" shape=circle style=filled fillcolor=black width=0.25];
@@ -34,34 +34,34 @@ digraph StateMachine {
         //
 
         "StateMachineMap::Idle" -> "StateMachineMap::Calibrate"
-            [label="controlUpdate\l\[ ctxt.isCalibrate() == true \]/\l"];
+            [label="dbusUpdate\l\[ ctxt.isCalibrate(data_dbus_) == true \]/\lrun;\l"];
 
         "StateMachineMap::Idle" -> "StateMachineMap::Raw"
-            [label="controlUpdate\l\[ ctxt.isRaw() == true \]/\l"];
+            [label="dbusUpdate\l\[ ctxt.isRaw(data_dbus_) == true \]/\lrun;\l"];
 
-        "StateMachineMap::Raw" -> "StateMachineMap::Idle"
-            [label="controlUpdate\l\[ ctxt.isIdle() == true \]/\l"];
+        "StateMachineMap::Raw" -> "StateMachineMap::Calibrate"
+            [label="dbusUpdate\l\[ ctxt.isCalibrate(data_dbus_) == true \]/\lrun;\l"];
 
         "StateMachineMap::Calibrate" -> "StateMachineMap::Standby"
-            [label="jumpStandby\l\[ ctxt.isStandby() == true \]/\l"];
+            [label="refereeUpdate\l\[ ctxt.isStandby(referee_) == true \]/\lrun;\l"];
 
         "StateMachineMap::Calibrate" -> "StateMachineMap::Cruise"
-            [label="jumpCruise\l\[ ctxt.isCruise() == true \]/\l"];
+            [label="refereeUpdate\l\[ ctxt.isCruise(referee_) == true \]/\lrun;\l"];
 
-        "StateMachineMap::Calibrate" -> "StateMachineMap::Idle"
-            [label="controlUpdate\l\[ ctxt.isIdle() == true \]/\l"];
+        "StateMachineMap::Calibrate" -> "StateMachineMap::Raw"
+            [label="dbusUpdate\l\[ ctxt.isRaw(data_dbus_) == true \]/\lrun;\l"];
 
         "StateMachineMap::Standby" -> "StateMachineMap::Cruise"
-            [label="jumpCruise\l\[ ctxt.isCruise() == true \]/\l"];
+            [label="refereeUpdate\l\[ ctxt.isCruise(referee_) == true \]/\lrun;\l"];
 
-        "StateMachineMap::Standby" -> "StateMachineMap::Idle"
-            [label="controlUpdate\l\[ ctxt.isIdle() == true \]/\l"];
+        "StateMachineMap::Standby" -> "StateMachineMap::Raw"
+            [label="dbusUpdate\l\[ ctxt.isRaw(data_dbus_) == true \]/\lrun;\l"];
 
         "StateMachineMap::Cruise" -> "StateMachineMap::Standby"
-            [label="jumpStandby\l\[ ctxt.isStandby() == true \]/\l"];
+            [label="refereeUpdate\l\[ ctxt.isStandby(referee_) == true \]/\lrun;\l"];
 
-        "StateMachineMap::Cruise" -> "StateMachineMap::Idle"
-            [label="controlUpdate\l\[ ctxt.isIdle() == true \]/\l"];
+        "StateMachineMap::Cruise" -> "StateMachineMap::Raw"
+            [label="dbusUpdate\l\[ ctxt.isRaw(data_dbus_) == true \]/\lrun;\l"];
 
         "%start" -> "StateMachineMap::Idle"
     }
