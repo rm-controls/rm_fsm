@@ -15,12 +15,15 @@ StateMachine::StateMachine(ros::NodeHandle& nh) : context_(*this), controller_ma
     } catch (XmlRpc::XmlRpcException &e) {
         ROS_ERROR("%s", e.getMessage().c_str());
     }
+    dbus_sub_ = nh_.subscribe<rm_msgs::DbusData>("/dbus_data", 10, &StateMachine::dbusCB, this);
+    referee_sub_ = nh_.subscribe<rm_msgs::Referee>("/referee", 10, &StateMachine::refereeCB, this);
     context_.enterStartState();
 }
 
-void StateMachine::initCalibrate()
-{
-    if (!nh_.getParam("collision_effort", collision_effort_)) {
+void StateMachine::initCalibrate() {
+    ROS_INFO("Enter Calibrate");
+    ros::NodeHandle auto_nh = ros::NodeHandle(nh_, "auto");
+    if (!auto_nh.getParam("collision_effort", collision_effort_)) {
         ROS_ERROR("Collision effort no defined (namespace: %s)", nh_.getNamespace().c_str());
     }
     odom2baselink_.header.frame_id = "odom";
@@ -35,19 +38,25 @@ void StateMachine::initCalibrate()
     static_tf_broadcaster_.sendTransform(map2odom_);
 }
 
-void StateMachine::initStandby()
-{
-    if (!nh_.getParam("move_distance", move_distance_))
-        ROS_ERROR("Move distance no defined (namespace: %s)",nh_.getNamespace().c_str());
-    if (!nh_.getParam("stop_distance", stop_distance_))
+void StateMachine::initStandby() {
+    ROS_INFO("Enter Standby");
+    ros::NodeHandle auto_nh = ros::NodeHandle(nh_, "auto");
+    if (!auto_nh.getParam("move_distance", move_distance_))
+        ROS_ERROR("Move distance no defined (namespace: %s)", nh_.getNamespace().c_str());
+    if (!auto_nh.getParam("stop_distance", stop_distance_))
         ROS_ERROR("Stop distance no defined (namespace: %s)", nh_.getNamespace().c_str());
 }
 
-void StateMachine::initCruise()
-{}
+void StateMachine::initCruise() {
+    ROS_INFO("Enter Cruise");
+    start_flag_ = false;
+    start_pos_ = 0.;
+    random_distance_ = move_distance_ * 0.3 * ((double) rand() / RAND_MAX);
+}
 
-void StateMachine::initRaw()
-{}
+void StateMachine::initRaw() {
+    ROS_INFO("Enter Raw");
+}
 
 void StateMachine::checkCalibrateStatus()
 {
@@ -69,15 +78,6 @@ void StateMachine::checkCalibrateStatus()
     }
 }
 
-void StateMachine::run() {
-    setChassis();
-    setGimbal(upper_cmd_sender_);
-    setGimbal(lower_cmd_sender_);
-    setShooter(upper_cmd_sender_);
-    setShooter(lower_cmd_sender_);
-    sendCommand(ros::Time::now());
-}
-
 void StateMachine::sendCommand(const ros::Time &time) {
     chassis_cmd_sender_->sendCommand(time);
     vel_2d_cmd_sender_->sendCommand(time);
@@ -86,3 +86,86 @@ void StateMachine::sendCommand(const ros::Time &time) {
     upper_cmd_sender_->shooter_cmd_sender_->sendCommand(time);
     lower_cmd_sender_->shooter_cmd_sender_->sendCommand(time);
 }
+
+void StateMachine::cruiseChassis() {
+    chassis_cmd_sender_->setMode(rm_msgs::ChassisCmd::RAW);
+    if (vel_2d_cmd_sender_->getMsg()->linear.x == 0.) vel_2d_cmd_sender_->setLinearXVel(1.);
+    if (fsm_data_.pos_x_ <= start_pos_ - random_distance_ || fsm_data_.pos_x_ <= -move_distance_) {
+        vel_2d_cmd_sender_->setLinearXVel(1.);
+        if (!start_flag_) {
+            start_pos_ = fsm_data_.pos_x_;
+            random_distance_ = move_distance_ * 0.3 * ((double) rand() / RAND_MAX);
+            start_flag_ = true;
+        }
+    } else if (fsm_data_.pos_x_ >= start_pos_ + random_distance_ || fsm_data_.pos_x_ >= 0.) {
+        vel_2d_cmd_sender_->setLinearXVel(-1.);
+        if (!start_flag_) {
+            start_pos_ = fsm_data_.pos_x_;
+            random_distance_ = move_distance_ * 0.3 * ((double) rand() / RAND_MAX);
+            start_flag_ = true;
+        }
+    } else start_flag_ = false;
+}
+
+void StateMachine::cruiseGimbal() {
+    lower_cmd_sender_->gimbal_cmd_sender_->setMode(rm_msgs::GimbalCmd::RATE);
+}
+
+void StateMachine::cruiseShooter() {
+    lower_cmd_sender_->shooter_cmd_sender_->setMode(rm_msgs::ShootCmd::STOP);
+}
+
+void StateMachine::rawChassis() {
+    chassis_cmd_sender_->setMode(rm_msgs::ChassisCmd::RAW);
+    vel_2d_cmd_sender_->setLinearXVel(fsm_data_.dbus_data_.ch_r_y);
+}
+
+void StateMachine::rawGimbal() {
+    lower_cmd_sender_->gimbal_cmd_sender_->setRate(-fsm_data_.dbus_data_.ch_l_x, -fsm_data_.dbus_data_.ch_l_y);
+    if (fsm_data_.dbus_data_.s_l == rm_msgs::DbusData::DOWN)
+        lower_cmd_sender_->gimbal_cmd_sender_->setMode(rm_msgs::GimbalCmd::RATE);
+    else {
+        lower_cmd_sender_->gimbal_cmd_sender_->setBulletSpeed(lower_cmd_sender_->shooter_cmd_sender_->getSpeed());
+        lower_cmd_sender_->gimbal_cmd_sender_->updateCost(lower_cmd_sender_->track_data_);
+    }
+}
+
+void StateMachine::rawShooter() {
+    if (fsm_data_.dbus_data_.s_l == rm_msgs::DbusData::UP) {
+        lower_cmd_sender_->shooter_cmd_sender_->setMode(rm_msgs::ShootCmd::PUSH);
+        lower_cmd_sender_->shooter_cmd_sender_->checkError(lower_cmd_sender_->gimbal_des_error_, ros::Time::now());
+    } else if (fsm_data_.dbus_data_.s_l == rm_msgs::DbusData::MID)
+        lower_cmd_sender_->shooter_cmd_sender_->setMode(rm_msgs::ShootCmd::READY);
+    else lower_cmd_sender_->shooter_cmd_sender_->setMode(rm_msgs::ShootCmd::STOP);
+}
+
+void StateMachine::standbyChassis() {
+    chassis_cmd_sender_->setMode(rm_msgs::ChassisCmd::RAW);
+    vel_2d_cmd_sender_->setLinearXVel(0.);
+}
+
+void StateMachine::standbyGimbal() {
+    if (lower_cmd_sender_->pos_yaw_ >= lower_cmd_sender_->yaw_max_) lower_cmd_sender_->yaw_direct_ = -1.;
+    else if (lower_cmd_sender_->pos_yaw_ <= lower_cmd_sender_->yaw_min_) lower_cmd_sender_->yaw_direct_ = 1.;
+    if (lower_cmd_sender_->pos_pitch_ >= lower_cmd_sender_->pitch_max_) lower_cmd_sender_->pitch_direct_ = -1.;
+    else if (lower_cmd_sender_->pos_pitch_ <= lower_cmd_sender_->pitch_min_) lower_cmd_sender_->pitch_direct_ = 1.;
+    setTrack(lower_cmd_sender_);
+}
+
+void StateMachine::setTrack(SideCommandSender *side_cmd_sender) {
+    side_cmd_sender->gimbal_cmd_sender_->setBulletSpeed(side_cmd_sender->shooter_cmd_sender_->getSpeed());
+    side_cmd_sender->gimbal_cmd_sender_->updateCost(side_cmd_sender->track_data_);
+    if (side_cmd_sender->gimbal_cmd_sender_->getMsg()->mode == rm_msgs::GimbalCmd::TRACK)
+        side_cmd_sender->gimbal_cmd_sender_->setRate(0., 0.);
+    else
+        side_cmd_sender->gimbal_cmd_sender_->setRate(side_cmd_sender->yaw_direct_, side_cmd_sender->pitch_direct_);
+}
+
+void StateMachine::standbyShooter() {
+    if (lower_cmd_sender_->gimbal_cmd_sender_->getMsg()->mode == rm_msgs::GimbalCmd::TRACK) {
+        lower_cmd_sender_->shooter_cmd_sender_->setMode(rm_msgs::ShootCmd::PUSH);
+        lower_cmd_sender_->shooter_cmd_sender_->checkError(lower_cmd_sender_->gimbal_des_error_, ros::Time::now());
+    } else lower_cmd_sender_->shooter_cmd_sender_->setMode(rm_msgs::ShootCmd::READY);
+}
+
+void StateMachine::run() {}

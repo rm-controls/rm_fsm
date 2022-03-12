@@ -14,21 +14,7 @@ FsmData::FsmData()
     lower_gimbal_des_error_sub_ =
             nh_.subscribe<rm_msgs::GimbalDesError>("/controllers/lower_gimbal_controller/error_des", 10,
                                                   &FsmData::lowerGimbalDesErrorCallback, this);
-    initSerial();
-}
 
-void FsmData::initSerial() {
-    serial::Timeout timeout = serial::Timeout::simpleTimeout(50);
-    serial_.setPort("/dev/usbReferee");
-    serial_.setBaudrate(115200);
-    serial_.setTimeout(timeout);
-    if (serial_.isOpen()) return;
-    try {
-        serial_.open();
-    }
-    catch (serial::IOException &e) {
-        ROS_ERROR("Cannot open referee port");
-    }
 }
 
 void FsmData::update(const ros::Time &time) {

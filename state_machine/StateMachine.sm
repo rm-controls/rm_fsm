@@ -21,13 +21,13 @@ Idle
         [ ctxt.isCalibrate(data_dbus_) == true ]
         Calibrate
         {
-            run();
+            initCalibrate();
         }
     dbusUpdate(data_dbus_: rm_msgs::DbusData)
         [ ctxt.isRaw(data_dbus_) == true ]
         Raw
         {
-            run();
+            initRaw();
         }
     dbusUpdate(data_dbus_: rm_msgs::DbusData)
         nil {}
@@ -35,79 +35,99 @@ Idle
 
 Raw
     Entry {
-        initRaw();
+            rawChassis();
+            rawGimbal();
+            rawShooter();
     }
 {
     dbusUpdate(data_dbus_: rm_msgs::DbusData)
         [ ctxt.isCalibrate(data_dbus_) == true ]
         Calibrate
         {
-            run();
+            initCalibrate();
         }
+    dbusUpdate(data_dbus_: rm_msgs::DbusData)
+        nil {}
 }
 
 Calibrate
     Entry {
-        initCalibrate();
+        run();
     }
 {
-    refereeUpdate(referee_: rm_common::Referee)
+    refereeUpdate(referee_: rm_referee::Referee)
         [ ctxt.isStandby(referee_) == true ]
         Standby
         {
-            run();
+            initStandby();
         }
-    refereeUpdate(referee_: rm_common::Referee)
+    refereeUpdate(referee_: rm_referee::Referee)
         [ ctxt.isCruise(referee_) == true ]
         Cruise
         {
-            run();
+            initCruise();
         }
 
     dbusUpdate(data_dbus_: rm_msgs::DbusData)
         [ ctxt.isRaw(data_dbus_) == true ]
         Raw
         {
-            run();
+            initRaw();
         }
+    dbusUpdate(data_dbus_: rm_msgs::DbusData)
+        nil {}
+    refereeUpdate(referee_: rm_referee::Referee)
+        nil {}
 }
 
 Standby
     Entry {
-        initStandby();
+            standbyChassis();
+            standbyGimbal();
+            standbyShooter();
     }
 {
-    refereeUpdate(referee_: rm_common::Referee)
+    refereeUpdate(referee_: rm_referee::Referee)
         [ ctxt.isCruise(referee_) == true ]
         Cruise
         {
-            run();
+            initCruise();
         }
     dbusUpdate(data_dbus_: rm_msgs::DbusData)
         [ ctxt.isRaw(data_dbus_) == true ]
         Raw
         {
-            run();
+            initRaw();
         }
+    dbusUpdate(data_dbus_: rm_msgs::DbusData)
+        nil {}
+    refereeUpdate(referee_: rm_referee::Referee)
+        nil {}
 }
 
 Cruise
     Entry {
-        initCruise();
+            cruiseChassis();
+            cruiseShooter();
+            cruiseGimbal();
     }
 {
-    refereeUpdate(referee_: rm_common::Referee)
+    refereeUpdate(referee_: rm_referee::Referee)
         [ ctxt.isStandby(referee_) == true ]
         Standby
         {
-            run();
+            initStandby();
         }
     dbusUpdate(data_dbus_: rm_msgs::DbusData)
         [ ctxt.isRaw(data_dbus_) == true ]
         Raw
         {
-            run();
+            initRaw();
         }
+    dbusUpdate(data_dbus_: rm_msgs::DbusData)
+        nil {}
+    refereeUpdate(referee_: rm_referee::Referee)
+        nil {}
 }
 
 Default

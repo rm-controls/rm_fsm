@@ -12,7 +12,7 @@
 #define SMC_USES_IOSTREAMS
 
 #include <statemap.h>
-#include <rm_common/referee/referee.h>
+#include <rm_referee/common/referee.h>
 #include <rm_msgs/DbusData.h>
 
 // Forward declarations.
@@ -28,23 +28,23 @@ class StateMachineContext;
 class StateMachine;
 
 class StateMachineState :
-    public statemap::State
-{
+    public statemap::State {
 public:
 
-    StateMachineState(const char * const name, const int stateId)
-    : statemap::State(name, stateId)
-    {};
+    StateMachineState(const char *const name, const int stateId)
+            : statemap::State(name, stateId) {};
 
-    virtual void Entry(StateMachineContext&) {};
-    virtual void Exit(StateMachineContext&) {};
+    virtual void Entry(StateMachineContext &) {};
 
-    virtual void dbusUpdate(StateMachineContext& context, rm_msgs::DbusData data_dbus_);
-    virtual void refereeUpdate(StateMachineContext& context, rm_common::Referee referee_);
+    virtual void Exit(StateMachineContext &) {};
+
+    virtual void dbusUpdate(StateMachineContext &context, rm_msgs::DbusData data_dbus_);
+
+    virtual void refereeUpdate(StateMachineContext &context, rm_referee::Referee referee_);
 
 protected:
 
-    virtual void Default(StateMachineContext& context);
+    virtual void Default(StateMachineContext &context);
 };
 
 class StateMachineMap
@@ -93,42 +93,42 @@ public:
 };
 
 class StateMachineMap_Calibrate :
-    public StateMachineMap_Default
-{
+        public StateMachineMap_Default {
 public:
-    StateMachineMap_Calibrate(const char * const name, const int stateId)
-    : StateMachineMap_Default(name, stateId)
-    {};
+    StateMachineMap_Calibrate(const char *const name, const int stateId)
+            : StateMachineMap_Default(name, stateId) {};
 
-    virtual void Entry(StateMachineContext&);
-    virtual void dbusUpdate(StateMachineContext& context, rm_msgs::DbusData data_dbus_);
-    virtual void refereeUpdate(StateMachineContext& context, rm_common::Referee referee_);
+    virtual void Entry(StateMachineContext &);
+
+    virtual void dbusUpdate(StateMachineContext &context, rm_msgs::DbusData data_dbus_);
+
+    virtual void refereeUpdate(StateMachineContext &context, rm_referee::Referee referee_);
 };
 
 class StateMachineMap_Standby :
-    public StateMachineMap_Default
-{
+        public StateMachineMap_Default {
 public:
-    StateMachineMap_Standby(const char * const name, const int stateId)
-    : StateMachineMap_Default(name, stateId)
-    {};
+    StateMachineMap_Standby(const char *const name, const int stateId)
+            : StateMachineMap_Default(name, stateId) {};
 
-    virtual void Entry(StateMachineContext&);
-    virtual void dbusUpdate(StateMachineContext& context, rm_msgs::DbusData data_dbus_);
-    virtual void refereeUpdate(StateMachineContext& context, rm_common::Referee referee_);
+    virtual void Entry(StateMachineContext &);
+
+    virtual void dbusUpdate(StateMachineContext &context, rm_msgs::DbusData data_dbus_);
+
+    virtual void refereeUpdate(StateMachineContext &context, rm_referee::Referee referee_);
 };
 
 class StateMachineMap_Cruise :
-    public StateMachineMap_Default
-{
+        public StateMachineMap_Default {
 public:
-    StateMachineMap_Cruise(const char * const name, const int stateId)
-    : StateMachineMap_Default(name, stateId)
-    {};
+    StateMachineMap_Cruise(const char *const name, const int stateId)
+            : StateMachineMap_Default(name, stateId) {};
 
-    virtual void Entry(StateMachineContext&);
-    virtual void dbusUpdate(StateMachineContext& context, rm_msgs::DbusData data_dbus_);
-    virtual void refereeUpdate(StateMachineContext& context, rm_common::Referee referee_);
+    virtual void Entry(StateMachineContext &);
+
+    virtual void dbusUpdate(StateMachineContext &context, rm_msgs::DbusData data_dbus_);
+
+    virtual void refereeUpdate(StateMachineContext &context, rm_referee::Referee referee_);
 };
 
 class StateMachineContext :
@@ -172,8 +172,7 @@ public:
         getState().dbusUpdate(*this, data_dbus_);
     };
 
-    inline void refereeUpdate(rm_common::Referee referee_)
-    {
+    inline void refereeUpdate(rm_referee::Referee referee_) {
         getState().refereeUpdate(*this, referee_);
     };
 

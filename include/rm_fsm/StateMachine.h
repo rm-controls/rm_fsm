@@ -15,69 +15,86 @@
 
 class StateMachine {
 public:
-    StateMachine(ros::NodeHandle& nh);
-    bool isCalibrate(rm_msgs::DbusData data_dbus_)
-    {
+    StateMachine(ros::NodeHandle &nh);
+
+    bool isCalibrate(rm_msgs::DbusData data_dbus_) {
         if (data_dbus_.s_r == rm_msgs::DbusData::UP)
             return true;
         else
             return false;
     }
-    bool isRaw(rm_msgs::DbusData data_dbus_)
-    {
+
+    bool isRaw(rm_msgs::DbusData data_dbus_) {
         if (data_dbus_.s_r == rm_msgs::DbusData::MID)
             return true;
         else
             return false;
     }
-    bool isStandby(rm_common::Referee referee_)
-    {
+
+    bool isStandby(rm_referee::Referee referee_) {
         if (referee_.referee_data_.interactive_data.header_data_.data_cmd_id_ == 0x0200
-        && referee_.referee_data_.interactive_data.data_ == 0)
+            && referee_.referee_data_.interactive_data.data_ == 0)
             return true;
         else
             return false;
     }
-    bool isCruise(rm_common::Referee referee_)
-    {
-        if ( !(referee_.referee_data_.interactive_data.header_data_.data_cmd_id_ == 0x0200
-        && referee_.referee_data_.interactive_data.data_ == 0) )
+
+    bool isCruise(rm_referee::Referee referee_) {
+        if (!(referee_.referee_data_.interactive_data.header_data_.data_cmd_id_ == 0x0200
+              && referee_.referee_data_.interactive_data.data_ == 0))
             return true;
         else
             return false;
     }
-    void commandCB(const rm_msgs::DbusDataConstPtr& msg)
-    {
-        cmd_rt_buffer_.writeFromNonRT(*msg);
-    }
+
     void initRaw();
 
     void initCalibrate();
+
     void checkCalibrateStatus();
+
     bool getCalibrateStatus() const { return finish_calibrate_; }
 
     void initStandby();
+
     void initCruise();
 
-    void setChassis() { chassis_cmd_sender_->setMode(rm_msgs::ChassisCmd::RAW); }
-    void setGimbal(SideCommandSender *side_cmd_sender) {
-        side_cmd_sender->gimbal_cmd_sender_->setMode(rm_msgs::GimbalCmd::RATE);
-    }
-    void setShooter(SideCommandSender *side_cmd_sender) {
-        side_cmd_sender->shooter_cmd_sender_->setMode(rm_msgs::ShootCmd::STOP);
-    }
-    void run();
     void sendCommand(const ros::Time &time);
+
+    void cruiseChassis();
+
+    void cruiseShooter();
+
+    void cruiseGimbal();
+
+    void standbyChassis();
+
+    void standbyGimbal();
+
+    void setTrack(SideCommandSender *side_cmd_sender);
+
+    void standbyShooter();
+
+    void rawChassis();
+
+    void rawGimbal();
+
+    void rawShooter();
+
+    void run();
 
     FsmData fsm_data_;
 
 protected:
     StateMachineContext context_;
     rm_msgs::DbusData dbus_;
-    realtime_tools::RealtimeBuffer<rm_msgs::DbusData> cmd_rt_buffer_;
+    realtime_tools::RealtimeBuffer<rm_msgs::DbusData> dbus_rt_buffer_;
+    realtime_tools::RealtimeBuffer<rm_msgs::Referee> referee_rt_buffer_;
+
     rm_common::CalibrationQueue *lower_trigger_calibration_{}, *lower_gimbal_calibration_{};
     rm_common::ControllerManager controller_manager_;
     ros::NodeHandle nh_;
+    //calibrate
     double collision_effort_{};
     bool finish_calibrate_ = false, init_flag_ = false;
     double move_distance_{}, stop_distance_{};
@@ -88,5 +105,22 @@ protected:
     rm_common::ChassisCommandSender *chassis_cmd_sender_;
     rm_common::Vel2DCommandSender *vel_2d_cmd_sender_;
     SideCommandSender *upper_cmd_sender_, *lower_cmd_sender_;
+    //cruise
+    double random_distance_, start_pos_;
+    bool start_flag_;
+    ros::Time last_send_ = ros::Time::now();
+
+    ros::Subscriber dbus_sub_;
+    ros::Subscriber referee_sub_;
+
+    void dbusCB(const rm_msgs::DbusData::ConstPtr &dbus_data) {
+        dbus_rt_buffer_.writeFromNonRT(*dbus_data);
+        context_.dbusUpdate(*dbus_data);
+    }
+
+    void refereeCB(const rm_msgs::Referee::ConstPtr &referee_data) {
+        referee_rt_buffer_.writeFromNonRT(*referee_data);
+        context_.refereeUpdate(fsm_data_.referee_);
+    }
 
 };

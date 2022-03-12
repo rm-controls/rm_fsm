@@ -22,7 +22,7 @@ void StateMachineState::dbusUpdate(StateMachineContext& context, rm_msgs::DbusDa
     Default(context);
 }
 
-void StateMachineState::refereeUpdate(StateMachineContext& context, rm_common::Referee referee_)
+void StateMachineState::refereeUpdate(StateMachineContext& context, rm_referee::Referee referee_)
 {
     Default(context);
 }
@@ -46,7 +46,7 @@ void StateMachineMap_Idle::dbusUpdate(StateMachineContext& context, rm_msgs::Dbu
         context.clearState();
         try
         {
-            ctxt.run();
+            ctxt.initCalibrate();
             context.setState(StateMachineMap::Calibrate);
         }
         catch (...)
@@ -63,11 +63,7 @@ void StateMachineMap_Idle::dbusUpdate(StateMachineContext& context, rm_msgs::Dbu
         context.clearState();
         try
         {
-            ctxt.run();
-            if (ctxt.getCalibrateStatus() == true)
-            {
-                ctxt.checkCalibrateStatus();
-            }
+            ctxt.initRaw();
             context.setState(StateMachineMap::Raw);
         }
         catch (...)
@@ -85,7 +81,9 @@ void StateMachineMap_Raw::Entry(StateMachineContext& context)
 {
     StateMachine& ctxt = context.getOwner();
 
-    ctxt.initRaw();
+    ctxt.rawChassis();
+    ctxt.rawGimbal();
+    ctxt.rawShooter();
 }
 
 void StateMachineMap_Raw::dbusUpdate(StateMachineContext& context, rm_msgs::DbusData data_dbus_)
@@ -98,7 +96,7 @@ void StateMachineMap_Raw::dbusUpdate(StateMachineContext& context, rm_msgs::Dbus
         context.clearState();
         try
         {
-            ctxt.run();
+            ctxt.initCalibrate();
             context.setState(StateMachineMap::Calibrate);
         }
         catch (...)
@@ -108,11 +106,6 @@ void StateMachineMap_Raw::dbusUpdate(StateMachineContext& context, rm_msgs::Dbus
         }
         context.getState().Entry(context);
     }
-    else
-    {
-         StateMachineMap_Default::dbusUpdate(context, data_dbus_);
-    }
-
 
 }
 
@@ -121,7 +114,7 @@ void StateMachineMap_Calibrate::Entry(StateMachineContext& context)
 {
     StateMachine& ctxt = context.getOwner();
 
-    ctxt.initCalibrate();
+    ctxt.run();
 }
 
 void StateMachineMap_Calibrate::dbusUpdate(StateMachineContext& context, rm_msgs::DbusData data_dbus_)
@@ -134,7 +127,7 @@ void StateMachineMap_Calibrate::dbusUpdate(StateMachineContext& context, rm_msgs
         context.clearState();
         try
         {
-            ctxt.run();
+            ctxt.initRaw();
             context.setState(StateMachineMap::Raw);
         }
         catch (...)
@@ -144,15 +137,10 @@ void StateMachineMap_Calibrate::dbusUpdate(StateMachineContext& context, rm_msgs
         }
         context.getState().Entry(context);
     }
-    else
-    {
-         StateMachineMap_Default::dbusUpdate(context, data_dbus_);
-    }
-
 
 }
 
-void StateMachineMap_Calibrate::refereeUpdate(StateMachineContext& context, rm_common::Referee referee_)
+void StateMachineMap_Calibrate::refereeUpdate(StateMachineContext& context, rm_referee::Referee referee_)
 {
     StateMachine& ctxt = context.getOwner();
 
@@ -162,7 +150,7 @@ void StateMachineMap_Calibrate::refereeUpdate(StateMachineContext& context, rm_c
         context.clearState();
         try
         {
-            ctxt.run();
+            ctxt.initStandby();
             context.setState(StateMachineMap::Standby);
         }
         catch (...)
@@ -179,7 +167,7 @@ void StateMachineMap_Calibrate::refereeUpdate(StateMachineContext& context, rm_c
         context.clearState();
         try
         {
-            ctxt.run();
+            ctxt.initCruise();
             context.setState(StateMachineMap::Cruise);
         }
         catch (...)
@@ -188,11 +176,7 @@ void StateMachineMap_Calibrate::refereeUpdate(StateMachineContext& context, rm_c
             throw;
         }
         context.getState().Entry(context);
-    }    else
-    {
-         StateMachineMap_Default::refereeUpdate(context, referee_);
     }
-
 
 }
 
@@ -201,7 +185,9 @@ void StateMachineMap_Standby::Entry(StateMachineContext& context)
 {
     StateMachine& ctxt = context.getOwner();
 
-    ctxt.initStandby();
+    ctxt.standbyChassis();
+    ctxt.standbyGimbal();
+    ctxt.standbyShooter();
 }
 
 void StateMachineMap_Standby::dbusUpdate(StateMachineContext& context, rm_msgs::DbusData data_dbus_)
@@ -214,7 +200,7 @@ void StateMachineMap_Standby::dbusUpdate(StateMachineContext& context, rm_msgs::
         context.clearState();
         try
         {
-            ctxt.run();
+            ctxt.initRaw();
             context.setState(StateMachineMap::Raw);
         }
         catch (...)
@@ -224,15 +210,10 @@ void StateMachineMap_Standby::dbusUpdate(StateMachineContext& context, rm_msgs::
         }
         context.getState().Entry(context);
     }
-    else
-    {
-         StateMachineMap_Default::dbusUpdate(context, data_dbus_);
-    }
-
 
 }
 
-void StateMachineMap_Standby::refereeUpdate(StateMachineContext& context, rm_common::Referee referee_)
+void StateMachineMap_Standby::refereeUpdate(StateMachineContext& context, rm_referee::Referee referee_)
 {
     StateMachine& ctxt = context.getOwner();
 
@@ -242,7 +223,7 @@ void StateMachineMap_Standby::refereeUpdate(StateMachineContext& context, rm_com
         context.clearState();
         try
         {
-            ctxt.run();
+            ctxt.initCruise();
             context.setState(StateMachineMap::Cruise);
         }
         catch (...)
@@ -252,11 +233,6 @@ void StateMachineMap_Standby::refereeUpdate(StateMachineContext& context, rm_com
         }
         context.getState().Entry(context);
     }
-    else
-    {
-         StateMachineMap_Default::refereeUpdate(context, referee_);
-    }
-
 
 }
 
@@ -265,7 +241,9 @@ void StateMachineMap_Cruise::Entry(StateMachineContext& context)
 {
     StateMachine& ctxt = context.getOwner();
 
-    ctxt.initCruise();
+    ctxt.cruiseChassis();
+    ctxt.cruiseShooter();
+    ctxt.cruiseGimbal();
 }
 
 void StateMachineMap_Cruise::dbusUpdate(StateMachineContext& context, rm_msgs::DbusData data_dbus_)
@@ -278,7 +256,7 @@ void StateMachineMap_Cruise::dbusUpdate(StateMachineContext& context, rm_msgs::D
         context.clearState();
         try
         {
-            ctxt.run();
+            ctxt.initRaw();
             context.setState(StateMachineMap::Raw);
         }
         catch (...)
@@ -288,15 +266,10 @@ void StateMachineMap_Cruise::dbusUpdate(StateMachineContext& context, rm_msgs::D
         }
         context.getState().Entry(context);
     }
-    else
-    {
-         StateMachineMap_Default::dbusUpdate(context, data_dbus_);
-    }
-
 
 }
 
-void StateMachineMap_Cruise::refereeUpdate(StateMachineContext& context, rm_common::Referee referee_)
+void StateMachineMap_Cruise::refereeUpdate(StateMachineContext& context, rm_referee::Referee referee_)
 {
     StateMachine& ctxt = context.getOwner();
 
@@ -306,7 +279,7 @@ void StateMachineMap_Cruise::refereeUpdate(StateMachineContext& context, rm_comm
         context.clearState();
         try
         {
-            ctxt.run();
+            ctxt.initStandby();
             context.setState(StateMachineMap::Standby);
         }
         catch (...)
@@ -316,11 +289,6 @@ void StateMachineMap_Cruise::refereeUpdate(StateMachineContext& context, rm_comm
         }
         context.getState().Entry(context);
     }
-    else
-    {
-         StateMachineMap_Default::refereeUpdate(context, referee_);
-    }
-
 
 }
 

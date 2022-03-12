@@ -7,7 +7,7 @@
 
 #include <ros/ros.h>
 #include <serial/serial.h>
-#include <rm_common/referee/referee.h>
+#include <rm_referee/common/referee.h>
 #include <tf2_ros/transform_listener.h>
 #include <rm_common/decision/command_sender.h>
 #include <sensor_msgs/JointState.h>
@@ -18,38 +18,40 @@
 class FsmData
         {
         private:
-            void initSerial();
             void jointStateCallback(const sensor_msgs::JointState::ConstPtr &joint_state) { joint_state_ = *joint_state; }
             void dbusDataCallback(const rm_msgs::DbusData::ConstPtr &data) { dbus_data_ = *data; }
 
             ros::Subscriber joint_state_sub_;
             ros::Subscriber dbus_sub_;
             ros::Subscriber lower_track_sub_;
-            ros::NodeHandle nh_;
-            double sum_effort_ = 0.;
-            int sum_count_ = 0;
-            ros::Time update_effort_;
+    ros::NodeHandle nh_;
+    double sum_effort_ = 0.;
+    int sum_count_ = 0;
+    ros::Time update_effort_;
 
-        public:
-            FsmData();
-            ~FsmData() = default;
-            void update(const ros::Time &time);
-            void lowerTrackCallback(const rm_msgs::TrackDataArray::ConstPtr &data) { lower_track_data_array_ = *data; }
-            void lowerGimbalDesErrorCallback(const rm_msgs::GimbalDesError::ConstPtr &data) { lower_gimbal_des_error_ = *data; }
+public:
+    FsmData();
 
-            rm_common::Referee referee_;
-            serial::Serial serial_;
-            sensor_msgs::JointState joint_state_;
-            rm_msgs::DbusData dbus_data_;
-            ros::Subscriber lower_gimbal_des_error_sub_;
-            double pos_x_{};
-            double upper_yaw_{}, upper_pitch_{}, lower_yaw_{}, lower_pitch_{};
-            double current_effort_{};
-            tf2_ros::Buffer tf_buffer_;
-            rm_msgs::TrackDataArray lower_track_data_array_;
-            rm_msgs::GimbalDesError lower_gimbal_des_error_;
+    ~FsmData() = default;
 
-        };
+    void update(const ros::Time &time);
+
+    void lowerTrackCallback(const rm_msgs::TrackDataArray::ConstPtr &data) { lower_track_data_array_ = *data; }
+
+    void lowerGimbalDesErrorCallback(const rm_msgs::GimbalDesError::ConstPtr &data) { lower_gimbal_des_error_ = *data; }
+
+    sensor_msgs::JointState joint_state_;
+    rm_msgs::DbusData dbus_data_;
+    ros::Subscriber lower_gimbal_des_error_sub_;
+    double pos_x_{};
+    double upper_yaw_{}, upper_pitch_{}, lower_yaw_{}, lower_pitch_{};
+    double current_effort_{};
+    tf2_ros::Buffer tf_buffer_;
+    rm_msgs::TrackDataArray lower_track_data_array_;
+    rm_msgs::GimbalDesError lower_gimbal_des_error_;
+    rm_referee::Referee referee_;
+
+};
 
 class SideCommandSender {
 public:
