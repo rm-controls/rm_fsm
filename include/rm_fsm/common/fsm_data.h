@@ -15,15 +15,15 @@
 #include <rm_msgs/GimbalDesError.h>
 #include <rm_msgs/TrackDataArray.h>
 
-class FsmData
-        {
-        private:
-            void jointStateCallback(const sensor_msgs::JointState::ConstPtr &joint_state) { joint_state_ = *joint_state; }
-            void dbusDataCallback(const rm_msgs::DbusData::ConstPtr &data) { dbus_data_ = *data; }
+class FsmData {
+private:
+    void jointStateCallback(const sensor_msgs::JointState::ConstPtr &joint_state) { joint_state_ = *joint_state; }
 
-            ros::Subscriber joint_state_sub_;
-            ros::Subscriber dbus_sub_;
-            ros::Subscriber lower_track_sub_;
+    void dbusDataCallback(const rm_msgs::DbusData::ConstPtr &data) { dbus_data_ = *data; }
+
+    ros::Subscriber joint_state_sub_;
+    ros::Subscriber dbus_sub_;
+    ros::Subscriber lower_track_sub_;
     ros::NodeHandle nh_;
     double sum_effort_ = 0.;
     int sum_count_ = 0;

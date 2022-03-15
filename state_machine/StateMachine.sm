@@ -18,7 +18,7 @@
 Idle
 {
     dbusUpdate(data_dbus_: rm_msgs::DbusData)
-        [ ctxt.isCalibrate(data_dbus_) == true ]
+        [ ctxt.getCalibrateStatus() == false ]
         Calibrate
         {
             initCalibrate();
@@ -28,6 +28,18 @@ Idle
         Raw
         {
             initRaw();
+        }
+    refereeUpdate(referee_: rm_msgs::Referee)
+        [ ctxt.isStandby(referee_) == true ]
+        Standby
+        {
+            initStandby();
+        }
+    refereeUpdate(referee_: rm_msgs::Referee)
+        [ ctxt.isCruise(referee_) == true ]
+        Cruise
+        {
+            initCruise();
         }
     dbusUpdate(data_dbus_: rm_msgs::DbusData)
         nil {}
@@ -46,6 +58,18 @@ Raw
         {
             initCalibrate();
         }
+    refereeUpdate(referee_: rm_msgs::Referee)
+        [ ctxt.isStandby(referee_) == true ]
+        Standby
+        {
+            initStandby();
+        }
+    refereeUpdate(referee_: rm_msgs::Referee)
+        [ ctxt.isCruise(referee_) == true ]
+        Cruise
+        {
+            initCruise();
+        }
     dbusUpdate(data_dbus_: rm_msgs::DbusData)
         nil {}
 }
@@ -55,19 +79,18 @@ Calibrate
         run();
     }
 {
-    refereeUpdate(referee_: rm_referee::Referee)
+    refereeUpdate(referee_: rm_msgs::Referee)
         [ ctxt.isStandby(referee_) == true ]
         Standby
         {
             initStandby();
         }
-    refereeUpdate(referee_: rm_referee::Referee)
+    refereeUpdate(referee_: rm_msgs::Referee)
         [ ctxt.isCruise(referee_) == true ]
         Cruise
         {
             initCruise();
         }
-
     dbusUpdate(data_dbus_: rm_msgs::DbusData)
         [ ctxt.isRaw(data_dbus_) == true ]
         Raw
@@ -75,8 +98,6 @@ Calibrate
             initRaw();
         }
     dbusUpdate(data_dbus_: rm_msgs::DbusData)
-        nil {}
-    refereeUpdate(referee_: rm_referee::Referee)
         nil {}
 }
 
@@ -87,7 +108,7 @@ Standby
             standbyShooter();
     }
 {
-    refereeUpdate(referee_: rm_referee::Referee)
+    refereeUpdate(referee_: rm_msgs::Referee)
         [ ctxt.isCruise(referee_) == true ]
         Cruise
         {
@@ -101,8 +122,6 @@ Standby
         }
     dbusUpdate(data_dbus_: rm_msgs::DbusData)
         nil {}
-    refereeUpdate(referee_: rm_referee::Referee)
-        nil {}
 }
 
 Cruise
@@ -112,7 +131,7 @@ Cruise
             cruiseGimbal();
     }
 {
-    refereeUpdate(referee_: rm_referee::Referee)
+    refereeUpdate(referee_: rm_msgs::Referee)
         [ ctxt.isStandby(referee_) == true ]
         Standby
         {
@@ -125,8 +144,6 @@ Cruise
             initRaw();
         }
     dbusUpdate(data_dbus_: rm_msgs::DbusData)
-        nil {}
-    refereeUpdate(referee_: rm_referee::Referee)
         nil {}
 }
 

@@ -31,7 +31,7 @@ public:
             return false;
     }
 
-    bool isStandby(rm_referee::Referee referee_) {
+    bool isStandby(rm_msgs::Referee referee_) {
         if (referee_.referee_data_.interactive_data.header_data_.data_cmd_id_ == 0x0200
             && referee_.referee_data_.interactive_data.data_ == 0)
             return true;
@@ -39,7 +39,7 @@ public:
             return false;
     }
 
-    bool isCruise(rm_referee::Referee referee_) {
+    bool isCruise(rm_msgs::Referee referee_) {
         if (!(referee_.referee_data_.interactive_data.header_data_.data_cmd_id_ == 0x0200
               && referee_.referee_data_.interactive_data.data_ == 0))
             return true;
@@ -88,8 +88,6 @@ public:
 protected:
     StateMachineContext context_;
     rm_msgs::DbusData dbus_;
-    realtime_tools::RealtimeBuffer<rm_msgs::DbusData> dbus_rt_buffer_;
-    realtime_tools::RealtimeBuffer<rm_msgs::Referee> referee_rt_buffer_;
 
     rm_common::CalibrationQueue *lower_trigger_calibration_{}, *lower_gimbal_calibration_{};
     rm_common::ControllerManager controller_manager_;
@@ -114,13 +112,12 @@ protected:
     ros::Subscriber referee_sub_;
 
     void dbusCB(const rm_msgs::DbusData::ConstPtr &dbus_data) {
-        dbus_rt_buffer_.writeFromNonRT(*dbus_data);
+        dbus_ = *dbus_data;
         context_.dbusUpdate(*dbus_data);
     }
 
     void refereeCB(const rm_msgs::Referee::ConstPtr &referee_data) {
-        referee_rt_buffer_.writeFromNonRT(*referee_data);
-        context_.refereeUpdate(fsm_data_.referee_);
+        context_.refereeUpdate(*referee_data);
     }
 
 };
