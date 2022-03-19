@@ -32,16 +32,16 @@ public:
     }
 
     bool isStandby(rm_msgs::Referee referee_) {
-        if (referee_.referee_data_.interactive_data.header_data_.data_cmd_id_ == 0x0200
-            && referee_.referee_data_.interactive_data.data_ == 0)
+        if (referee_.data_cmd_id == 0x0200
+            && referee_.interactive_data == 0 && rm_msgs::DbusData::UP)
             return true;
         else
             return false;
     }
 
     bool isCruise(rm_msgs::Referee referee_) {
-        if (!(referee_.referee_data_.interactive_data.header_data_.data_cmd_id_ == 0x0200
-              && referee_.referee_data_.interactive_data.data_ == 0))
+        if (!(referee_.data_cmd_id == 0x0200
+              && referee_.interactive_data == 0 && dbus_.s_r == rm_msgs::DbusData::UP))
             return true;
         else
             return false;
