@@ -20,7 +20,6 @@ find_package(catkin REQUIRED
         rm_msgs
         std_msgs
         nav_msgs
-        rm_referee
         rm_common
         tf
         serial
@@ -52,7 +51,6 @@ catkin_package(
         rm_msgs
         std_msgs
         nav_msgs
-        rm_referee
         rm_common
         tf
         dynamic_reconfigure

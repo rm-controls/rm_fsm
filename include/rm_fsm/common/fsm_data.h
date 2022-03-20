@@ -7,7 +7,7 @@
 
 #include <ros/ros.h>
 #include <serial/serial.h>
-#include <rm_referee/common/referee.h>
+#include <rm_common/referee/referee.h>
 #include <tf2_ros/transform_listener.h>
 #include <rm_common/decision/command_sender.h>
 #include <sensor_msgs/JointState.h>
@@ -49,7 +49,7 @@ public:
     tf2_ros::Buffer tf_buffer_;
     rm_msgs::TrackDataArray lower_track_data_array_;
     rm_msgs::GimbalDesError lower_gimbal_des_error_;
-    rm_referee::Referee referee_;
+    rm_common::Referee referee_;
 
 };
 

@@ -5,7 +5,7 @@
 
 StateMachine::StateMachine(ros::NodeHandle& nh) : context_(*this), controller_manager_(nh)
 {
-    nh_ = ros::NodeHandle(nh, "StateMachine");
+    nh_ = ros::NodeHandle(nh);
     try {
         XmlRpc::XmlRpcValue lower_trigger_rpc_value, lower_gimbal_rpc_value;
         nh.getParam("lower_trigger_calibration", lower_trigger_rpc_value);
@@ -15,6 +15,10 @@ StateMachine::StateMachine(ros::NodeHandle& nh) : context_(*this), controller_ma
     } catch (XmlRpc::XmlRpcException &e) {
         ROS_ERROR("%s", e.getMessage().c_str());
     }
+    ros::NodeHandle chassis_nh(nh_, "chassis");
+    chassis_cmd_sender_ = new rm_common::ChassisCommandSender(chassis_nh, fsm_data_.referee_.referee_data_);
+    ros::NodeHandle vel_nh(nh_, "vel");
+    vel_2d_cmd_sender_ = new rm_common::Vel2DCommandSender(vel_nh);
     dbus_sub_ = nh_.subscribe<rm_msgs::DbusData>("/dbus_data", 10, &StateMachine::dbusCB, this);
     referee_sub_ = nh_.subscribe<rm_msgs::Referee>("/referee", 10, &StateMachine::refereeCB, this);
     context_.enterStartState();
@@ -78,17 +82,20 @@ void StateMachine::checkCalibrateStatus()
     }
 }
 
-void StateMachine::sendCommand(const ros::Time &time) {
+void StateMachine::sendRawCommand(const ros::Time &time) {
     chassis_cmd_sender_->sendCommand(time);
+    vel_2d_cmd_sender_->setLinearXVel(dbus_.ch_r_y);
     vel_2d_cmd_sender_->sendCommand(time);
-    upper_cmd_sender_->gimbal_cmd_sender_->sendCommand(time);
-    lower_cmd_sender_->gimbal_cmd_sender_->sendCommand(time);
-    upper_cmd_sender_->shooter_cmd_sender_->sendCommand(time);
-    lower_cmd_sender_->shooter_cmd_sender_->sendCommand(time);
 }
 
-void StateMachine::cruiseChassis() {
-    chassis_cmd_sender_->setMode(rm_msgs::ChassisCmd::RAW);
+void StateMachine::sendCalibrateCommand(const ros::Time &time) {
+    chassis_cmd_sender_->sendCommand(time);
+    vel_2d_cmd_sender_->setLinearXVel(1.);
+    vel_2d_cmd_sender_->sendCommand(time);
+}
+
+void StateMachine::sendCruiseCommand(const ros::Time &time) {
+    chassis_cmd_sender_->sendCommand(time);
     if (vel_2d_cmd_sender_->getMsg()->linear.x == 0.) vel_2d_cmd_sender_->setLinearXVel(1.);
     if (fsm_data_.pos_x_ <= start_pos_ - random_distance_ || fsm_data_.pos_x_ <= -move_distance_) {
         vel_2d_cmd_sender_->setLinearXVel(1.);
@@ -105,6 +112,17 @@ void StateMachine::cruiseChassis() {
             start_flag_ = true;
         }
     } else start_flag_ = false;
+    vel_2d_cmd_sender_->sendCommand(time);
+}
+
+void StateMachine::sendStandbyCommand(const ros::Time &time) {
+    chassis_cmd_sender_->sendCommand(time);
+    vel_2d_cmd_sender_->setLinearXVel(0.);
+    vel_2d_cmd_sender_->sendCommand(time);
+}
+
+void StateMachine::cruiseChassis() {
+    chassis_cmd_sender_->setMode(rm_msgs::ChassisCmd::RAW);
 }
 
 void StateMachine::cruiseGimbal() {
@@ -117,7 +135,6 @@ void StateMachine::cruiseShooter() {
 
 void StateMachine::rawChassis() {
     chassis_cmd_sender_->setMode(rm_msgs::ChassisCmd::RAW);
-    vel_2d_cmd_sender_->setLinearXVel(fsm_data_.dbus_data_.ch_r_y);
 }
 
 void StateMachine::rawGimbal() {
@@ -141,7 +158,6 @@ void StateMachine::rawShooter() {
 
 void StateMachine::standbyChassis() {
     chassis_cmd_sender_->setMode(rm_msgs::ChassisCmd::RAW);
-    vel_2d_cmd_sender_->setLinearXVel(0.);
 }
 
 void StateMachine::standbyGimbal() {
@@ -168,4 +184,8 @@ void StateMachine::standbyShooter() {
     } else lower_cmd_sender_->shooter_cmd_sender_->setMode(rm_msgs::ShootCmd::READY);
 }
 
-void StateMachine::run() {}
+void StateMachine::calibrateChassis() {
+    ROS_INFO("Set Chassis");
+    chassis_cmd_sender_->setMode(rm_msgs::ChassisCmd::RAW);
+    ROS_INFO("finish");
+}

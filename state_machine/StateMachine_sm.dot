@@ -15,16 +15,16 @@ digraph StateMachine {
             [label="{Idle|dbusUpdate/\l}"];
 
         "StateMachineMap::Raw"
-            [label="{Raw|Entry/\l&nbsp;&nbsp;&nbsp;rawChassis;\l&nbsp;&nbsp;&nbsp;rawGimbal;\l&nbsp;&nbsp;&nbsp;rawShooter;\l|dbusUpdate/\l}"];
+            [label="{Raw|Entry/\l&nbsp;&nbsp;&nbsp;rawChassis;\l|dbusUpdate/\l&nbsp;&nbsp;&nbsp;sendRawCommand;\l}"];
 
         "StateMachineMap::Calibrate"
-            [label="{Calibrate|Entry/\l&nbsp;&nbsp;&nbsp;run;\l|dbusUpdate/\l}"];
+            [label="{Calibrate|Entry/\l&nbsp;&nbsp;&nbsp;calibrateChassis;\l|dbusUpdate/\l&nbsp;&nbsp;&nbsp;sendCalibrateCommand;\l}"];
 
         "StateMachineMap::Standby"
-            [label="{Standby|Entry/\l&nbsp;&nbsp;&nbsp;standbyChassis;\l&nbsp;&nbsp;&nbsp;standbyGimbal;\l&nbsp;&nbsp;&nbsp;standbyShooter;\l|dbusUpdate/\l}"];
+            [label="{Standby|Entry/\l&nbsp;&nbsp;&nbsp;standbyChassis;\l|refereeUpdate/\l&nbsp;&nbsp;&nbsp;sendStandbyCommand;\ldbusUpdate/\l&nbsp;&nbsp;&nbsp;sendStandbyCommand;\l}"];
 
         "StateMachineMap::Cruise"
-            [label="{Cruise|Entry/\l&nbsp;&nbsp;&nbsp;cruiseChassis;\l&nbsp;&nbsp;&nbsp;cruiseShooter;\l&nbsp;&nbsp;&nbsp;cruiseGimbal;\l|dbusUpdate/\l}"];
+            [label="{Cruise|Entry/\l&nbsp;&nbsp;&nbsp;cruiseChassis;\l|refereeUpdate/\l&nbsp;&nbsp;&nbsp;sendCruiseCommand;\ldbusUpdate/\l&nbsp;&nbsp;&nbsp;sendCruiseCommand;\l}"];
 
         "%start"
             [label="" shape=circle style=filled fillcolor=black width=0.25];

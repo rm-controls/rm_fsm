@@ -59,7 +59,12 @@ public:
 
     void initCruise();
 
-    void sendCommand(const ros::Time &time);
+    void sendRawCommand(const ros::Time &time);
+    void sendCalibrateCommand(const ros::Time &time);
+    void sendCruiseCommand(const ros::Time &time);
+    void sendStandbyCommand(const ros::Time &time);
+
+    void calibrateChassis();
 
     void cruiseChassis();
 

@@ -6,7 +6,7 @@
 //
 
 #include "rm_fsm/StateMachine.h"
-#include "/home/luotinkai/ros_ws/src/rm_software/rm_fsm/state_machine/StateMachine_sm.h"
+#include "/home/dynamicx/rm_ws/src/rm_software/rm_fsm/state_machine/StateMachine_sm.h"
 
 using namespace statemap;
 
@@ -126,8 +126,6 @@ void StateMachineMap_Raw::Entry(StateMachineContext& context)
     StateMachine& ctxt = context.getOwner();
 
     ctxt.rawChassis();
-    ctxt.rawGimbal();
-    ctxt.rawShooter();
 }
 
 void StateMachineMap_Raw::dbusUpdate(StateMachineContext& context, rm_msgs::DbusData data_dbus_)
@@ -149,6 +147,22 @@ void StateMachineMap_Raw::dbusUpdate(StateMachineContext& context, rm_msgs::Dbus
             throw;
         }
         context.getState().Entry(context);
+    }
+    else
+    {
+        StateMachineState& endState = context.getState();
+
+        context.clearState();
+        try
+        {
+            ctxt.sendRawCommand(ros::Time::now());
+            context.setState(endState);
+        }
+        catch (...)
+        {
+            context.setState(endState);
+            throw;
+        }
     }
 
 }
@@ -202,7 +216,7 @@ void StateMachineMap_Calibrate::Entry(StateMachineContext& context)
 {
     StateMachine& ctxt = context.getOwner();
 
-    ctxt.run();
+    ctxt.calibrateChassis();
 }
 
 void StateMachineMap_Calibrate::dbusUpdate(StateMachineContext& context, rm_msgs::DbusData data_dbus_)
@@ -224,6 +238,22 @@ void StateMachineMap_Calibrate::dbusUpdate(StateMachineContext& context, rm_msgs
             throw;
         }
         context.getState().Entry(context);
+    }
+    else
+    {
+        StateMachineState& endState = context.getState();
+
+        context.clearState();
+        try
+        {
+            ctxt.sendCalibrateCommand(ros::Time::now());
+            context.setState(endState);
+        }
+        catch (...)
+        {
+            context.setState(endState);
+            throw;
+        }
     }
 
 }
@@ -278,8 +308,6 @@ void StateMachineMap_Standby::Entry(StateMachineContext& context)
     StateMachine& ctxt = context.getOwner();
 
     ctxt.standbyChassis();
-    ctxt.standbyGimbal();
-    ctxt.standbyShooter();
 }
 
 void StateMachineMap_Standby::dbusUpdate(StateMachineContext& context, rm_msgs::DbusData data_dbus_)
@@ -301,6 +329,22 @@ void StateMachineMap_Standby::dbusUpdate(StateMachineContext& context, rm_msgs::
             throw;
         }
         context.getState().Entry(context);
+    }
+    else
+    {
+        StateMachineState& endState = context.getState();
+
+        context.clearState();
+        try
+        {
+            ctxt.sendStandbyCommand(ros::Time::now());
+            context.setState(endState);
+        }
+        catch (...)
+        {
+            context.setState(endState);
+            throw;
+        }
     }
 
 }
@@ -327,9 +371,20 @@ void StateMachineMap_Standby::refereeUpdate(StateMachineContext& context, rm_msg
     }
     else
     {
-         StateMachineMap_Default::refereeUpdate(context, referee_);
-    }
+        StateMachineState& endState = context.getState();
 
+        context.clearState();
+        try
+        {
+            ctxt.sendStandbyCommand(ros::Time::now());
+            context.setState(endState);
+        }
+        catch (...)
+        {
+            context.setState(endState);
+            throw;
+        }
+    }
 
 }
 
@@ -339,8 +394,6 @@ void StateMachineMap_Cruise::Entry(StateMachineContext& context)
     StateMachine& ctxt = context.getOwner();
 
     ctxt.cruiseChassis();
-    ctxt.cruiseShooter();
-    ctxt.cruiseGimbal();
 }
 
 void StateMachineMap_Cruise::dbusUpdate(StateMachineContext& context, rm_msgs::DbusData data_dbus_)
@@ -362,6 +415,22 @@ void StateMachineMap_Cruise::dbusUpdate(StateMachineContext& context, rm_msgs::D
             throw;
         }
         context.getState().Entry(context);
+    }
+    else
+    {
+        StateMachineState& endState = context.getState();
+
+        context.clearState();
+        try
+        {
+            ctxt.sendCruiseCommand(ros::Time::now());
+            context.setState(endState);
+        }
+        catch (...)
+        {
+            context.setState(endState);
+            throw;
+        }
     }
 
 }
@@ -388,9 +457,20 @@ void StateMachineMap_Cruise::refereeUpdate(StateMachineContext& context, rm_msgs
     }
     else
     {
-         StateMachineMap_Default::refereeUpdate(context, referee_);
-    }
+        StateMachineState& endState = context.getState();
 
+        context.clearState();
+        try
+        {
+            ctxt.sendCruiseCommand(ros::Time::now());
+            context.setState(endState);
+        }
+        catch (...)
+        {
+            context.setState(endState);
+            throw;
+        }
+    }
 
 }
 

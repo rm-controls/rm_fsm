@@ -48,8 +48,6 @@ Idle
 Raw
     Entry {
             rawChassis();
-            rawGimbal();
-            rawShooter();
     }
 {
     dbusUpdate(data_dbus_: rm_msgs::DbusData)
@@ -71,12 +69,15 @@ Raw
             initCruise();
         }
     dbusUpdate(data_dbus_: rm_msgs::DbusData)
-        nil {}
+        nil
+        {
+            sendRawCommand(ros::Time::now());
+        }
 }
 
 Calibrate
     Entry {
-        run();
+        calibrateChassis();
     }
 {
     refereeUpdate(referee_: rm_msgs::Referee)
@@ -98,14 +99,12 @@ Calibrate
             initRaw();
         }
     dbusUpdate(data_dbus_: rm_msgs::DbusData)
-        nil {}
+        nil { sendCalibrateCommand(ros::Time::now()); }
 }
 
 Standby
     Entry {
             standbyChassis();
-            standbyGimbal();
-            standbyShooter();
     }
 {
     refereeUpdate(referee_: rm_msgs::Referee)
@@ -121,14 +120,14 @@ Standby
             initRaw();
         }
     dbusUpdate(data_dbus_: rm_msgs::DbusData)
-        nil {}
+        nil { sendStandbyCommand(ros::Time::now()); }
+    refereeUpdate(referee_: rm_msgs::Referee)
+        nil { sendStandbyCommand(ros::Time::now()); }
 }
 
 Cruise
     Entry {
             cruiseChassis();
-            cruiseShooter();
-            cruiseGimbal();
     }
 {
     refereeUpdate(referee_: rm_msgs::Referee)
@@ -144,7 +143,9 @@ Cruise
             initRaw();
         }
     dbusUpdate(data_dbus_: rm_msgs::DbusData)
-        nil {}
+        nil { sendCruiseCommand(ros::Time::now()); }
+    refereeUpdate(referee_: rm_msgs::Referee)
+        nil { sendCruiseCommand(ros::Time::now()); }
 }
 
 Default
