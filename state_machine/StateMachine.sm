@@ -18,28 +18,16 @@
 Idle
 {
     dbusUpdate(data_dbus_: rm_msgs::DbusData)
-        [ ctxt.getCalibrateStatus() == false ]
-        Calibrate
+        [ ctxt.isCruise(data_dbus_) == true ]
+        Cruise
         {
-            initCalibrate();
+            initCruise();
         }
     dbusUpdate(data_dbus_: rm_msgs::DbusData)
         [ ctxt.isRaw(data_dbus_) == true ]
         Raw
         {
             initRaw();
-        }
-    refereeUpdate(referee_: rm_msgs::Referee)
-        [ ctxt.isStandby(referee_) == true ]
-        Standby
-        {
-            initStandby();
-        }
-    refereeUpdate(referee_: rm_msgs::Referee)
-        [ ctxt.isCruise(referee_) == true ]
-        Cruise
-        {
-            initCruise();
         }
     dbusUpdate(data_dbus_: rm_msgs::DbusData)
         nil {}
@@ -51,19 +39,7 @@ Raw
     }
 {
     dbusUpdate(data_dbus_: rm_msgs::DbusData)
-        [ ctxt.isCalibrate(data_dbus_) == true ]
-        Calibrate
-        {
-            initCalibrate();
-        }
-    refereeUpdate(referee_: rm_msgs::Referee)
-        [ ctxt.isStandby(referee_) == true ]
-        Standby
-        {
-            initStandby();
-        }
-    refereeUpdate(referee_: rm_msgs::Referee)
-        [ ctxt.isCruise(referee_) == true ]
+        [ ctxt.isCruise(data_dbus_) == true ]
         Cruise
         {
             initCruise();
@@ -75,76 +51,23 @@ Raw
         }
 }
 
-Calibrate
-    Entry {
-        calibrateChassis();
-    }
-{
-    refereeUpdate(referee_: rm_msgs::Referee)
-        [ ctxt.isStandby(referee_) == true ]
-        Standby
-        {
-            initStandby();
-        }
-    refereeUpdate(referee_: rm_msgs::Referee)
-        [ ctxt.isCruise(referee_) == true ]
-        Cruise
-        {
-            initCruise();
-        }
-    dbusUpdate(data_dbus_: rm_msgs::DbusData)
-        [ ctxt.isRaw(data_dbus_) == true ]
-        Raw
-        {
-            initRaw();
-        }
-    dbusUpdate(data_dbus_: rm_msgs::DbusData)
-        nil { sendCalibrateCommand(ros::Time::now()); }
-}
-
-Standby
-    Entry {
-            standbyChassis();
-    }
-{
-    refereeUpdate(referee_: rm_msgs::Referee)
-        [ ctxt.isCruise(referee_) == true ]
-        Cruise
-        {
-            initCruise();
-        }
-    dbusUpdate(data_dbus_: rm_msgs::DbusData)
-        [ ctxt.isRaw(data_dbus_) == true ]
-        Raw
-        {
-            initRaw();
-        }
-    dbusUpdate(data_dbus_: rm_msgs::DbusData)
-        nil { sendStandbyCommand(ros::Time::now()); }
-    refereeUpdate(referee_: rm_msgs::Referee)
-        nil { sendStandbyCommand(ros::Time::now()); }
-}
-
 Cruise
     Entry {
             cruiseChassis();
     }
 {
-    refereeUpdate(referee_: rm_msgs::Referee)
-        [ ctxt.isStandby(referee_) == true ]
-        Standby
-        {
-            initStandby();
-        }
     dbusUpdate(data_dbus_: rm_msgs::DbusData)
         [ ctxt.isRaw(data_dbus_) == true ]
         Raw
         {
             initRaw();
         }
+    tofUpdate()
+        nil
+        {
+            changeVel();
+        }
     dbusUpdate(data_dbus_: rm_msgs::DbusData)
-        nil { sendCruiseCommand(ros::Time::now()); }
-    refereeUpdate(referee_: rm_msgs::Referee)
         nil { sendCruiseCommand(ros::Time::now()); }
 }
 

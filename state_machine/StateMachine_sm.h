@@ -19,8 +19,6 @@
 class StateMachineMap;
 class StateMachineMap_Idle;
 class StateMachineMap_Raw;
-class StateMachineMap_Calibrate;
-class StateMachineMap_Standby;
 class StateMachineMap_Cruise;
 class StateMachineMap_Default;
 class StateMachineState;
@@ -40,7 +38,7 @@ public:
     virtual void Exit(StateMachineContext&) {};
 
     virtual void dbusUpdate(StateMachineContext& context, rm_msgs::DbusData data_dbus_);
-    virtual void refereeUpdate(StateMachineContext& context, rm_msgs::Referee referee_);
+    virtual void tofUpdate(StateMachineContext& context);
 
 protected:
 
@@ -53,8 +51,6 @@ public:
 
     static StateMachineMap_Idle Idle;
     static StateMachineMap_Raw Raw;
-    static StateMachineMap_Calibrate Calibrate;
-    static StateMachineMap_Standby Standby;
     static StateMachineMap_Cruise Cruise;
 };
 
@@ -78,7 +74,6 @@ public:
     {};
 
     virtual void dbusUpdate(StateMachineContext& context, rm_msgs::DbusData data_dbus_);
-    virtual void refereeUpdate(StateMachineContext& context, rm_msgs::Referee referee_);
 };
 
 class StateMachineMap_Raw :
@@ -91,33 +86,6 @@ public:
 
     virtual void Entry(StateMachineContext&);
     virtual void dbusUpdate(StateMachineContext& context, rm_msgs::DbusData data_dbus_);
-    virtual void refereeUpdate(StateMachineContext& context, rm_msgs::Referee referee_);
-};
-
-class StateMachineMap_Calibrate :
-    public StateMachineMap_Default
-{
-public:
-    StateMachineMap_Calibrate(const char * const name, const int stateId)
-    : StateMachineMap_Default(name, stateId)
-    {};
-
-    virtual void Entry(StateMachineContext&);
-    virtual void dbusUpdate(StateMachineContext& context, rm_msgs::DbusData data_dbus_);
-    virtual void refereeUpdate(StateMachineContext& context, rm_msgs::Referee referee_);
-};
-
-class StateMachineMap_Standby :
-    public StateMachineMap_Default
-{
-public:
-    StateMachineMap_Standby(const char * const name, const int stateId)
-    : StateMachineMap_Default(name, stateId)
-    {};
-
-    virtual void Entry(StateMachineContext&);
-    virtual void dbusUpdate(StateMachineContext& context, rm_msgs::DbusData data_dbus_);
-    virtual void refereeUpdate(StateMachineContext& context, rm_msgs::Referee referee_);
 };
 
 class StateMachineMap_Cruise :
@@ -130,7 +98,7 @@ public:
 
     virtual void Entry(StateMachineContext&);
     virtual void dbusUpdate(StateMachineContext& context, rm_msgs::DbusData data_dbus_);
-    virtual void refereeUpdate(StateMachineContext& context, rm_msgs::Referee referee_);
+    virtual void tofUpdate(StateMachineContext& context);
 };
 
 class StateMachineContext :
@@ -174,9 +142,9 @@ public:
         getState().dbusUpdate(*this, data_dbus_);
     };
 
-    inline void refereeUpdate(rm_msgs::Referee referee_)
+    inline void tofUpdate()
     {
-        getState().refereeUpdate(*this, referee_);
+        getState().tofUpdate(*this);
     };
 
 private:

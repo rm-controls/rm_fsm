@@ -3,8 +3,7 @@
 //
 #include "rm_fsm/StateMachine.h"
 
-StateMachine::StateMachine(ros::NodeHandle& nh) : context_(*this), controller_manager_(nh)
-{
+StateMachine::StateMachine(ros::NodeHandle &nh) : context_(*this), controller_manager_(nh) {
     nh_ = ros::NodeHandle(nh);
     try {
         XmlRpc::XmlRpcValue lower_trigger_rpc_value, lower_gimbal_rpc_value;
@@ -21,6 +20,11 @@ StateMachine::StateMachine(ros::NodeHandle& nh) : context_(*this), controller_ma
     vel_2d_cmd_sender_ = new rm_common::Vel2DCommandSender(vel_nh);
     dbus_sub_ = nh_.subscribe<rm_msgs::DbusData>("/dbus_data", 10, &StateMachine::dbusCB, this);
     referee_sub_ = nh_.subscribe<rm_msgs::Referee>("/referee", 10, &StateMachine::refereeCB, this);
+    tof_left_sub_ = nh_.subscribe<rm_msgs::TofSensor>("/controllers/left_tof_sensor_controller/left_chassis_tof/data",
+                                                      10, &StateMachine::leftTofCB, this);
+    tof_right_sub = nh_.subscribe<rm_msgs::TofSensor>("/controllers/right_tof_sensor_controller/right_chassis_tof/data",
+                                                      10, &StateMachine::rightTofCB, this);
+
     context_.enterStartState();
 }
 
@@ -53,6 +57,10 @@ void StateMachine::initStandby() {
 
 void StateMachine::initCruise() {
     ROS_INFO("Enter Cruise");
+    ros::NodeHandle auto_nh(nh_, "auto");
+    if (!auto_nh.getParam("auto_linear_x", auto_linear_x_)) {
+        ROS_ERROR("Can not find auto_linear_x");
+    }
     start_flag_ = false;
     start_pos_ = 0.;
     random_distance_ = move_distance_ * 0.3 * ((double) rand() / RAND_MAX);
@@ -62,10 +70,9 @@ void StateMachine::initRaw() {
     ROS_INFO("Enter Raw");
 }
 
-void StateMachine::checkCalibrateStatus()
-{
+void StateMachine::checkCalibrateStatus() {
     if (ros::Time::now() - init_time_ > ros::Duration(1.0) && !finish_calibrate_
-    && fsm_data_.current_effort_ >= collision_effort_) {
+        && fsm_data_.current_effort_ >= collision_effort_) {
         finish_calibrate_ = true;
         map2odom_.header.stamp = ros::Time::now();
         map2odom_.transform.translation.x = fsm_data_.pos_x_ + 0.15;
@@ -95,23 +102,7 @@ void StateMachine::sendCalibrateCommand(const ros::Time &time) {
 }
 
 void StateMachine::sendCruiseCommand(const ros::Time &time) {
-    chassis_cmd_sender_->sendCommand(time);
-    if (vel_2d_cmd_sender_->getMsg()->linear.x == 0.) vel_2d_cmd_sender_->setLinearXVel(1.);
-    if (fsm_data_.pos_x_ <= start_pos_ - random_distance_ || fsm_data_.pos_x_ <= -move_distance_) {
-        vel_2d_cmd_sender_->setLinearXVel(1.);
-        if (!start_flag_) {
-            start_pos_ = fsm_data_.pos_x_;
-            random_distance_ = move_distance_ * 0.3 * ((double) rand() / RAND_MAX);
-            start_flag_ = true;
-        }
-    } else if (fsm_data_.pos_x_ >= start_pos_ + random_distance_ || fsm_data_.pos_x_ >= 0.) {
-        vel_2d_cmd_sender_->setLinearXVel(-1.);
-        if (!start_flag_) {
-            start_pos_ = fsm_data_.pos_x_;
-            random_distance_ = move_distance_ * 0.3 * ((double) rand() / RAND_MAX);
-            start_flag_ = true;
-        }
-    } else start_flag_ = false;
+    vel_2d_cmd_sender_->setLinearXVel(auto_linear_x_);
     vel_2d_cmd_sender_->sendCommand(time);
 }
 
@@ -123,6 +114,7 @@ void StateMachine::sendStandbyCommand(const ros::Time &time) {
 
 void StateMachine::cruiseChassis() {
     chassis_cmd_sender_->setMode(rm_msgs::ChassisCmd::RAW);
+    chassis_cmd_sender_->sendCommand(ros::Time::now());
 }
 
 void StateMachine::cruiseGimbal() {

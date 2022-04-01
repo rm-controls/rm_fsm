@@ -14,6 +14,7 @@
 #include <rm_msgs/DbusData.h>
 #include <rm_msgs/GimbalDesError.h>
 #include <rm_msgs/TrackDataArray.h>
+#include <rm_msgs/TofSensor.h>
 
 class FsmData {
 private:
@@ -57,7 +58,7 @@ class SideCommandSender {
 public:
     SideCommandSender(ros::NodeHandle &nh, rm_common::RefereeData &referee_data, rm_msgs::TrackDataArray &track_data,
                       rm_msgs::GimbalDesError &gimbal_des_error, double &pos_yaw, double &pos_pitch)
-                      : track_data_(track_data), gimbal_des_error_(gimbal_des_error), pos_yaw_(pos_yaw), pos_pitch_(pos_pitch) {
+            : track_data_(track_data), gimbal_des_error_(gimbal_des_error), pos_yaw_(pos_yaw), pos_pitch_(pos_pitch) {
         ros::NodeHandle gimbal_nh(nh, "gimbal");
         gimbal_cmd_sender_ = new rm_common::GimbalCommandSender(gimbal_nh, referee_data);
         ros::NodeHandle shooter_nh(nh, "shooter");
