@@ -15,57 +15,45 @@ StateMachineMap_Idle StateMachineMap::Idle("StateMachineMap::Idle", 0);
 StateMachineMap_Raw StateMachineMap::Raw("StateMachineMap::Raw", 1);
 StateMachineMap_Cruise StateMachineMap::Cruise("StateMachineMap::Cruise", 2);
 
-void StateMachineState::dbusUpdate(StateMachineContext& context, rm_msgs::DbusData data_dbus_)
-{
+void StateMachineState::dbusUpdate(StateMachineContext &context, rm_msgs::DbusData data_dbus_) {
     Default(context);
 }
 
-void StateMachineState::tofUpdate(StateMachineContext& context)
-{
+void StateMachineState::tofUpdate(StateMachineContext &context) {
     Default(context);
 }
 
-void StateMachineState::Default(StateMachineContext& context)
-{
+void StateMachineState::Default(StateMachineContext &context) {
     throw (
-        TransitionUndefinedException(
-            (context.getState()).getName(),
-            context.getTransition()));
+            TransitionUndefinedException(
+                    (context.getState()).getName(),
+                    context.getTransition()));
 
 }
 
-void StateMachineMap_Idle::dbusUpdate(StateMachineContext& context, rm_msgs::DbusData data_dbus_)
-{
-    StateMachine& ctxt = context.getOwner();
+void StateMachineMap_Idle::dbusUpdate(StateMachineContext &context, rm_msgs::DbusData data_dbus_) {
+    StateMachine &ctxt = context.getOwner();
 
-    if ( ctxt.isCruise(data_dbus_) == true )
-    {
+    if (ctxt.isCruise(data_dbus_) == true) {
         context.getState().Exit(context);
         context.clearState();
-        try
-        {
+        try {
             ctxt.initCruise();
             context.setState(StateMachineMap::Cruise);
         }
-        catch (...)
-        {
+        catch (...) {
             context.setState(StateMachineMap::Cruise);
             throw;
         }
         context.getState().Entry(context);
-    }
-    else if ( ctxt.isRaw(data_dbus_) == true )
-
-    {
+    } else if (ctxt.isRaw(data_dbus_) == true) {
         context.getState().Exit(context);
         context.clearState();
-        try
-        {
+        try {
             ctxt.initRaw();
             context.setState(StateMachineMap::Raw);
         }
-        catch (...)
-        {
+        catch (...) {
             context.setState(StateMachineMap::Raw);
             throw;
         }
@@ -74,46 +62,36 @@ void StateMachineMap_Idle::dbusUpdate(StateMachineContext& context, rm_msgs::Dbu
 
 }
 
-void StateMachineMap_Raw::Entry(StateMachineContext& context)
-
-{
-    StateMachine& ctxt = context.getOwner();
+void StateMachineMap_Raw::Entry(StateMachineContext &context) {
+    StateMachine &ctxt = context.getOwner();
 
     ctxt.rawChassis();
 }
 
-void StateMachineMap_Raw::dbusUpdate(StateMachineContext& context, rm_msgs::DbusData data_dbus_)
-{
-    StateMachine& ctxt = context.getOwner();
+void StateMachineMap_Raw::dbusUpdate(StateMachineContext &context, rm_msgs::DbusData data_dbus_) {
+    StateMachine &ctxt = context.getOwner();
 
-    if ( ctxt.isCruise(data_dbus_) == true )
-    {
+    if (ctxt.isCruise(data_dbus_) == true) {
         context.getState().Exit(context);
         context.clearState();
-        try
-        {
+        try {
             ctxt.initCruise();
             context.setState(StateMachineMap::Cruise);
         }
-        catch (...)
-        {
+        catch (...) {
             context.setState(StateMachineMap::Cruise);
             throw;
         }
         context.getState().Entry(context);
-    }
-    else
-    {
-        StateMachineState& endState = context.getState();
+    } else {
+        StateMachineState &endState = context.getState();
 
         context.clearState();
-        try
-        {
+        try {
             ctxt.sendRawCommand(ros::Time::now());
             context.setState(endState);
         }
-        catch (...)
-        {
+        catch (...) {
             context.setState(endState);
             throw;
         }
@@ -121,46 +99,36 @@ void StateMachineMap_Raw::dbusUpdate(StateMachineContext& context, rm_msgs::Dbus
 
 }
 
-void StateMachineMap_Cruise::Entry(StateMachineContext& context)
-
-{
-    StateMachine& ctxt = context.getOwner();
+void StateMachineMap_Cruise::Entry(StateMachineContext &context) {
+    StateMachine &ctxt = context.getOwner();
 
     ctxt.cruiseChassis();
 }
 
-void StateMachineMap_Cruise::dbusUpdate(StateMachineContext& context, rm_msgs::DbusData data_dbus_)
-{
-    StateMachine& ctxt = context.getOwner();
+void StateMachineMap_Cruise::dbusUpdate(StateMachineContext &context, rm_msgs::DbusData data_dbus_) {
+    StateMachine &ctxt = context.getOwner();
 
-    if ( ctxt.isRaw(data_dbus_) == true )
-    {
+    if (ctxt.isRaw(data_dbus_) == true) {
         context.getState().Exit(context);
         context.clearState();
-        try
-        {
+        try {
             ctxt.initRaw();
             context.setState(StateMachineMap::Raw);
         }
-        catch (...)
-        {
+        catch (...) {
             context.setState(StateMachineMap::Raw);
             throw;
         }
         context.getState().Entry(context);
-    }
-    else
-    {
-        StateMachineState& endState = context.getState();
+    } else {
+        StateMachineState &endState = context.getState();
 
         context.clearState();
-        try
-        {
+        try {
             ctxt.sendCruiseCommand(ros::Time::now());
             context.setState(endState);
         }
-        catch (...)
-        {
+        catch (...) {
             context.setState(endState);
             throw;
         }
@@ -168,20 +136,17 @@ void StateMachineMap_Cruise::dbusUpdate(StateMachineContext& context, rm_msgs::D
 
 }
 
-void StateMachineMap_Cruise::tofUpdate(StateMachineContext& context)
-{
-    StateMachine& ctxt = context.getOwner();
+void StateMachineMap_Cruise::tofUpdate(StateMachineContext &context) {
+    StateMachine &ctxt = context.getOwner();
 
-    StateMachineState& endState = context.getState();
+    StateMachineState &endState = context.getState();
 
     context.clearState();
-    try
-    {
+    try {
         ctxt.changeVel();
         context.setState(endState);
     }
-    catch (...)
-    {
+    catch (...) {
         context.setState(endState);
         throw;
     }

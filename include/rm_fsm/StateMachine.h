@@ -124,6 +124,8 @@ protected:
     bool start_flag_;
     ros::Time last_send_ = ros::Time::now();
     double auto_linear_x_;
+    ros::Time last_time_ = ros::Time::now();
+    double rand_time_ = 0.8;
 
     ros::Subscriber dbus_sub_;
     ros::Subscriber referee_sub_;

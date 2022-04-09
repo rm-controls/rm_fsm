@@ -20,9 +20,9 @@ StateMachine::StateMachine(ros::NodeHandle &nh) : context_(*this), controller_ma
     vel_2d_cmd_sender_ = new rm_common::Vel2DCommandSender(vel_nh);
     dbus_sub_ = nh_.subscribe<rm_msgs::DbusData>("/dbus_data", 10, &StateMachine::dbusCB, this);
     referee_sub_ = nh_.subscribe<rm_msgs::Referee>("/referee", 10, &StateMachine::refereeCB, this);
-    tof_left_sub_ = nh_.subscribe<rm_msgs::TofSensor>("/controllers/left_tof_sensor_controller/left_chassis_tof/data",
+    tof_left_sub_ = nh_.subscribe<rm_msgs::TofSensor>("/controllers/tof_sensor_controller/left_chassis_tof/data",
                                                       10, &StateMachine::leftTofCB, this);
-    tof_right_sub = nh_.subscribe<rm_msgs::TofSensor>("/controllers/right_tof_sensor_controller/right_chassis_tof/data",
+    tof_right_sub = nh_.subscribe<rm_msgs::TofSensor>("/controllers/tof_sensor_controller/right_chassis_tof/data",
                                                       10, &StateMachine::rightTofCB, this);
 
     context_.enterStartState();
@@ -63,7 +63,6 @@ void StateMachine::initCruise() {
     }
     start_flag_ = false;
     start_pos_ = 0.;
-    random_distance_ = move_distance_ * 0.3 * ((double) rand() / RAND_MAX);
 }
 
 void StateMachine::initRaw() {
