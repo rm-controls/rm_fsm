@@ -18,10 +18,20 @@ int main(int argc, char **argv) {
     }
     StateMachine sm(fsm_nh);
     ROS_INFO("Enter sentry robot.");
+    std::default_random_engine random;
+    std::uniform_real_distribution<double> real_random(1.0, 3.0);
     ros::Rate loop_rate(100);
     while (ros::ok()) {
         ros::Time time = ros::Time::now();
         sm.fsm_data_.update(time);
+        ros::Time begin_time = ros::Time::now();
+        if ((begin_time - sm.last_time_).toSec() == sm.rand_time_ ||
+            (begin_time - sm.last_time_).toSec() > sm.rand_time_) {
+            ROS_INFO("difference: %f, rand time: %f", (begin_time - sm.last_time_).toSec(), sm.rand_time_);
+            sm.changeVel();
+            sm.last_time_ = ros::Time::now();
+            sm.rand_time_ = real_random(random);
+        }
         ros::spinOnce();
         loop_rate.sleep();
     }

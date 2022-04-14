@@ -6,6 +6,7 @@
 #define SRC_REFEREE_DATA_H
 
 #include <ros/ros.h>
+#include <random>
 #include <serial/serial.h>
 #include <rm_common/referee/referee.h>
 #include <tf2_ros/transform_listener.h>

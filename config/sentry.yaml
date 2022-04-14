@@ -2,7 +2,7 @@ rm_fsm:
   robot_type: "sentry"
   chassis:
     topic: "/controllers/chassis_controller/command"
-    accel_x: 10.0
+    accel_x: 9999.0
     accel_y: 0.0
     accel_z: 0.0
     safety_power: 30.0
@@ -16,101 +16,14 @@ rm_fsm:
     max_linear_y: 0.0
     max_angular_z: 0.0
   auto:
+    auto_linear_x: 1.0
     move_distance: 2.7
     stop_distance: 0.5
     collision_effort: 0.8
-  upper:
-    gimbal:
-      topic: "/controllers/upper_gimbal_controller/command"
-      max_yaw_vel: 1.5
-      max_pitch_vel: 0.8
-      track_timeout: 0.5
-      target_cost_function:
-        k_pos: 1.0
-        k_vel: 1.0
-        k_hp: 1.0
-        k_freq: 1.0
-        timeout: 0.05
-    shooter:
-      topic: "/controllers/upper_shooter_controller/command"
-      gimbal_error_limit: 0.05
-      heat_limit:
-        expect_shoot_frequency_1: 5
-        expect_shoot_frequency_2: 8
-        expect_shoot_frequency_3: 12
-        burst_shoot_frequency: 15
-        safe_shoot_frequency: 5
-        heat_coeff: 8.0
-        type: "ID1_17MM"
-    detection_switch:
-      fail_limit: 10
-      service_name: "/upper_detection_nodelet/status_switch"
-    auto: { pitch: [ 0.0, 0.4 ], yaw: [ -2.80, 2.87 ] }
-  lower:
-    gimbal:
-      topic: "/controllers/lower_gimbal_controller/command"
-      max_yaw_vel: 1.5
-      max_pitch_vel: 1.0
-      track_timeout: 0.5
-      target_cost_function:
-        k_pos: 1.0
-        k_vel: 1.0
-        k_hp: 1.0
-        k_freq: 1.0
-        timeout: 0.05
-    shooter:
-      topic: "/controllers/lower_shooter_controller/command"
-      gimbal_error_limit: 0.05
-      heat_limit:
-        expect_shoot_frequency_1: 5
-        expect_shoot_frequency_2: 8
-        expect_shoot_frequency_3: 12
-        burst_shoot_frequency: 20
-        safe_shoot_frequency: 5
-        heat_coeff: 8.0
-        type: "ID1_17MM"
-    detection_switch:
-      fail_limit: 10
-      service_name: "/lower_detection_nodelet/status_switch"
-    auto: { pitch: [ 0.5, 1.0 ], yaw: [ -2.35, 1.80 ] }
-
   controllers_list:
     state_controllers:
       - controllers/robot_state_controller
       - controllers/joint_state_controller
     main_controllers:
       - controllers/chassis_controller
-      - controllers/upper_gimbal_controller
-      - controllers/lower_gimbal_controller
-      - controllers/upper_shooter_controller
-      - controllers/lower_shooter_controller
-    calibration_controllers:
-      - controllers/upper_trigger_calibration_controller
-      - controllers/upper_yaw_calibration_controller
-      - controllers/upper_pitch_calibration_controller
-      - controllers/lower_trigger_calibration_controller
-      - controllers/lower_yaw_calibration_controller
-      - controllers/lower_pitch_calibration_controller
-
-  upper_trigger_calibration:
-    - start_controller: controllers/upper_trigger_calibration_controller
-      stop_controller: controllers/upper_shooter_controller
-      service_name: /controllers/upper_trigger_calibration_controller/is_calibrated
-  upper_gimbal_calibration:
-    - start_controller: controllers/upper_yaw_calibration_controller
-      stop_controller: controllers/upper_gimbal_controller
-      service_name: /controllers/upper_yaw_calibration_controller/is_calibrated
-    - start_controller: controllers/upper_pitch_calibration_controller
-      stop_controller: controllers/upper_gimbal_controller
-      service_name: /controllers/upper_pitch_calibration_controller/is_calibrated
-  lower_trigger_calibration:
-    - start_controller: controllers/lower_trigger_calibration_controller
-      stop_controller: controllers/lower_shooter_controller
-      service_name: /controllers/lower_trigger_calibration_controller/is_calibrated
-  lower_gimbal_calibration:
-    - start_controller: controllers/lower_yaw_calibration_controller
-      stop_controller: controllers/lower_gimbal_controller
-      service_name: /controllers/lower_yaw_calibration_controller/is_calibrated
-    - start_controller: controllers/lower_pitch_calibration_controller
-      stop_controller: controllers/lower_gimbal_controller
-      service_name: /controllers/lower_pitch_calibration_controller/is_calibrated
+      - controllers/tof_sensor_controller

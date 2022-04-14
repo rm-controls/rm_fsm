@@ -96,6 +96,8 @@ public:
     void run();
 
     FsmData fsm_data_;
+    ros::Time last_time_ = ros::Time::now();
+    double rand_time_ = 0.8;
 
 protected:
     StateMachineContext context_;
@@ -124,8 +126,8 @@ protected:
     bool start_flag_;
     ros::Time last_send_ = ros::Time::now();
     double auto_linear_x_;
-    ros::Time last_time_ = ros::Time::now();
-    double rand_time_ = 0.8;
+    std::default_random_engine random_;
+    std::uniform_real_distribution<double> generator_{1.0, 2.0};
 
     ros::Subscriber dbus_sub_;
     ros::Subscriber referee_sub_;
@@ -144,6 +146,8 @@ protected:
         left_rt_buffer_.writeFromNonRT(*tof_data);
         if ((left_rt_buffer_.readFromRT()->distance) < 0.8 && vel_2d_cmd_sender_->getMsg()->linear.x > 0 &&
             left_rt_buffer_.readFromRT()->signal_strength > 4) {
+            last_time_ = ros::Time::now();
+            rand_time_ = generator_(random_);
             context_.tofUpdate();
         }
 
@@ -153,6 +157,8 @@ protected:
         right_rt_buffer_.writeFromNonRT(*tof_data);
         if ((right_rt_buffer_.readFromRT()->distance) < 0.8 && vel_2d_cmd_sender_->getMsg()->linear.x < 0 &&
             right_rt_buffer_.readFromRT()->signal_strength > 4) {
+            last_time_ = ros::Time::now();
+            rand_time_ = generator_(random_);
             context_.tofUpdate();
         }
     }
