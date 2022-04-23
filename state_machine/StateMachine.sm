@@ -62,7 +62,7 @@ Cruise
         {
             initRaw();
         }
-    tofUpdate()
+    radarUpdate()
         nil
         {
             changeVel();

@@ -15,7 +15,7 @@
 #include <rm_msgs/DbusData.h>
 #include <rm_msgs/GimbalDesError.h>
 #include <rm_msgs/TrackDataArray.h>
-#include <rm_msgs/TofSensor.h>
+#include <rm_msgs/TfRadarData.h>
 
 class FsmData {
 private:

@@ -102,10 +102,7 @@ public:
 protected:
     StateMachineContext context_;
     rm_msgs::DbusData dbus_;
-    rm_msgs::TofSensor left_tof_;
-    rm_msgs::TofSensor right_tof_;
-    realtime_tools::RealtimeBuffer<rm_msgs::TofSensor> left_rt_buffer_;
-    realtime_tools::RealtimeBuffer<rm_msgs::TofSensor> right_rt_buffer_;
+    realtime_tools::RealtimeBuffer<rm_msgs::TfRadarData> radar_rt_buffer_;
 
     rm_common::CalibrationQueue *lower_trigger_calibration_{}, *lower_gimbal_calibration_{};
     rm_common::ControllerManager controller_manager_;
@@ -131,8 +128,7 @@ protected:
 
     ros::Subscriber dbus_sub_;
     ros::Subscriber referee_sub_;
-    ros::Subscriber tof_left_sub_;
-    ros::Subscriber tof_right_sub;
+    ros::Subscriber radar_sub_;
 
     void dbusCB(const rm_msgs::DbusData::ConstPtr &dbus_data) {
         dbus_ = *dbus_data;
@@ -142,24 +138,14 @@ protected:
     void refereeCB(const rm_msgs::Referee::ConstPtr &referee_data) {
     }
 
-    void leftTofCB(const rm_msgs::TofSensorConstPtr &tof_data) {
-        left_rt_buffer_.writeFromNonRT(*tof_data);
-        if ((left_rt_buffer_.readFromRT()->distance) < 0.8 && vel_2d_cmd_sender_->getMsg()->linear.x > 0 &&
-            left_rt_buffer_.readFromRT()->signal_strength > 4) {
+    void radarCB(const rm_msgs::TfRadarDataConstPtr &radar_data) {
+        radar_rt_buffer_.writeFromNonRT(*radar_data);
+        if (((radar_rt_buffer_.readFromRT()->distance) > 2.7 && vel_2d_cmd_sender_->getMsg()->linear.x > 0) ||
+            ((radar_rt_buffer_.readFromRT()->distance) < 0.8 && vel_2d_cmd_sender_->getMsg()->linear.x < 0)) {
             last_time_ = ros::Time::now();
             rand_time_ = generator_(random_);
-            context_.tofUpdate();
+            context_.radarUpdate();
         }
 
-    }
-
-    void rightTofCB(const rm_msgs::TofSensorConstPtr &tof_data) {
-        right_rt_buffer_.writeFromNonRT(*tof_data);
-        if ((right_rt_buffer_.readFromRT()->distance) < 0.8 && vel_2d_cmd_sender_->getMsg()->linear.x < 0 &&
-            right_rt_buffer_.readFromRT()->signal_strength > 4) {
-            last_time_ = ros::Time::now();
-            rand_time_ = generator_(random_);
-            context_.tofUpdate();
-        }
     }
 };

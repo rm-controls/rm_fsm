@@ -20,10 +20,8 @@ StateMachine::StateMachine(ros::NodeHandle &nh) : context_(*this), controller_ma
     vel_2d_cmd_sender_ = new rm_common::Vel2DCommandSender(vel_nh);
     dbus_sub_ = nh_.subscribe<rm_msgs::DbusData>("/dbus_data", 10, &StateMachine::dbusCB, this);
     referee_sub_ = nh_.subscribe<rm_msgs::Referee>("/referee", 10, &StateMachine::refereeCB, this);
-    tof_left_sub_ = nh_.subscribe<rm_msgs::TofSensor>("/controllers/tof_sensor_controller/left_chassis_tof/data",
-                                                      10, &StateMachine::leftTofCB, this);
-    tof_right_sub = nh_.subscribe<rm_msgs::TofSensor>("/controllers/tof_sensor_controller/right_chassis_tof/data",
-                                                      10, &StateMachine::rightTofCB, this);
+    radar_sub_ = nh_.subscribe<rm_msgs::TfRadarData>("/controllers/tf_radar_controller/chassis_radar/data",
+                                                     10, &StateMachine::radarCB, this);
 
     context_.enterStartState();
 }

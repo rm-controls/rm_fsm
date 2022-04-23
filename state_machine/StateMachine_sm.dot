@@ -18,7 +18,7 @@ digraph StateMachine {
             [label="{Raw|Entry/\l&nbsp;&nbsp;&nbsp;rawChassis;\l|dbusUpdate/\l&nbsp;&nbsp;&nbsp;sendRawCommand;\l}"];
 
         "StateMachineMap::Cruise"
-            [label="{Cruise|Entry/\l&nbsp;&nbsp;&nbsp;cruiseChassis;\l|dbusUpdate/\l&nbsp;&nbsp;&nbsp;sendCruiseCommand;\ltofUpdate/\l&nbsp;&nbsp;&nbsp;changeVel;\l}"];
+            [label="{Cruise|Entry/\l&nbsp;&nbsp;&nbsp;cruiseChassis;\l|dbusUpdate/\l&nbsp;&nbsp;&nbsp;sendCruiseCommand;\lradarUpdate/\l&nbsp;&nbsp;&nbsp;changeVel;\l}"];
 
         "%start"
             [label="" shape=circle style=filled fillcolor=black width=0.25];
