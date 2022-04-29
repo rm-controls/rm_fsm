@@ -26,4 +26,4 @@ rm_fsm:
       - controllers/joint_state_controller
     main_controllers:
       - controllers/chassis_controller
-      - controllers/tof_sensor_controller
+      - controllers/tf_radar_controller

@@ -124,7 +124,7 @@ protected:
     ros::Time last_send_ = ros::Time::now();
     double auto_linear_x_;
     std::default_random_engine random_;
-    std::uniform_real_distribution<double> generator_{1.0, 2.0};
+    std::uniform_real_distribution<double> generator_{0.5, 2.0};
 
     ros::Subscriber dbus_sub_;
     ros::Subscriber referee_sub_;
