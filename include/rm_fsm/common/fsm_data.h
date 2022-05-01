@@ -2,8 +2,7 @@
 // Created by luotinkai on 2022/3/2.
 //
 
-#ifndef SRC_REFEREE_DATA_H
-#define SRC_REFEREE_DATA_H
+#pragma once
 
 #include <ros/ros.h>
 #include <random>
@@ -84,4 +83,3 @@ public:
     double yaw_direct_{1.}, pitch_direct_{1.};
 };
 
-#endif //SRC_REFEREE_DATA_H

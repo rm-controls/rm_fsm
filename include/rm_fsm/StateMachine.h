@@ -53,25 +53,15 @@ public:
 
     void initRaw();
 
-    void initCalibrate();
-
-    void checkCalibrateStatus();
-
-    bool getCalibrateStatus() const { return finish_calibrate_; }
-
     void initStandby();
 
     void initCruise();
 
     void sendRawCommand(const ros::Time &time);
 
-    void sendCalibrateCommand(const ros::Time &time);
-
     void sendCruiseCommand(const ros::Time &time);
 
     void sendStandbyCommand(const ros::Time &time);
-
-    void calibrateChassis();
 
     void cruiseChassis();
 
@@ -79,13 +69,7 @@ public:
 
     void cruiseGimbal();
 
-    void standbyChassis();
-
-    void standbyGimbal();
-
     void setTrack(SideCommandSender *side_cmd_sender);
-
-    void standbyShooter();
 
     void rawChassis();
 
