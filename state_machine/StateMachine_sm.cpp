@@ -6,7 +6,7 @@
 //
 
 #include "rm_fsm/StateMachine.h"
-#include "/home/luotinkai/ros_ws/src/rm_software/rm_fsm/state_machine/StateMachine_sm.h"
+#include "/home/dynamicx/rm_ws/src/rm_software/rm_fsm/state_machine/StateMachine_sm.h"
 
 using namespace statemap;
 
@@ -109,6 +109,8 @@ void StateMachineMap_Raw::dbusUpdate(StateMachineContext& context, rm_msgs::Dbus
         context.clearState();
         try
         {
+            ctxt.rawShooter();
+            ctxt.rawGimbal();
             ctxt.sendRawCommand(ros::Time::now());
             context.setState(endState);
         }
@@ -156,6 +158,9 @@ void StateMachineMap_Cruise::dbusUpdate(StateMachineContext& context, rm_msgs::D
         context.clearState();
         try
         {
+            ctxt.update(ros::Time::now());
+            ctxt.cruiseShooter();
+            ctxt.cruiseGimbal();
             ctxt.sendCruiseCommand(ros::Time::now());
             context.setState(endState);
         }

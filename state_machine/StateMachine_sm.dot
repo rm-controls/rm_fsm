@@ -15,10 +15,10 @@ digraph StateMachine {
             [label="{Idle|dbusUpdate/\l}"];
 
         "StateMachineMap::Raw"
-            [label="{Raw|Entry/\l&nbsp;&nbsp;&nbsp;rawChassis;\l|dbusUpdate/\l&nbsp;&nbsp;&nbsp;sendRawCommand;\l}"];
+            [label="{Raw|Entry/\l&nbsp;&nbsp;&nbsp;rawChassis;\l|dbusUpdate/\l&nbsp;&nbsp;&nbsp;rawShooter;\l&nbsp;&nbsp;&nbsp;rawGimbal;\l&nbsp;&nbsp;&nbsp;sendRawCommand;\l}"];
 
         "StateMachineMap::Cruise"
-            [label="{Cruise|Entry/\l&nbsp;&nbsp;&nbsp;cruiseChassis;\l|dbusUpdate/\l&nbsp;&nbsp;&nbsp;sendCruiseCommand;\lradarUpdate/\l&nbsp;&nbsp;&nbsp;changeVel;\l}"];
+            [label="{Cruise|Entry/\l&nbsp;&nbsp;&nbsp;cruiseChassis;\l|dbusUpdate/\l&nbsp;&nbsp;&nbsp;update;\l&nbsp;&nbsp;&nbsp;cruiseShooter;\l&nbsp;&nbsp;&nbsp;cruiseGimbal;\l&nbsp;&nbsp;&nbsp;sendCruiseCommand;\lradarUpdate/\l&nbsp;&nbsp;&nbsp;changeVel;\l}"];
 
         "%start"
             [label="" shape=circle style=filled fillcolor=black width=0.25];

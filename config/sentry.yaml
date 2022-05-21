@@ -20,6 +20,30 @@ rm_fsm:
     move_distance: 2.7
     stop_distance: 0.5
     collision_effort: 0.8
+  lower:
+    gimbal:
+      topic: "/controllers/lower_gimbal_controller/command"
+      max_yaw_vel: 1.5
+      max_pitch_vel: 1.0
+      track_timeout: 0.5
+      target_cost_function:
+        k_pos: 1.0
+        k_vel: 1.0
+        k_hp: 1.0
+        k_freq: 1.0
+        timeout: 0.05
+    shooter:
+      topic: "/controllers/lower_shooter_controller/command"
+      gimbal_error_limit: 0.05
+      heat_limit:
+        expect_shoot_frequency_1: 5
+        expect_shoot_frequency_2: 8
+        expect_shoot_frequency_3: 12
+        burst_shoot_frequency: 20
+        safe_shoot_frequency: 5
+        heat_coeff: 8.0
+        type: "ID1_17MM"
+    auto: { pitch: [ 0.2, 0.5 ], yaw: [ -1.04, 1.89 ] }
   controllers_list:
     state_controllers:
       - controllers/robot_state_controller
@@ -27,3 +51,4 @@ rm_fsm:
     main_controllers:
       - controllers/chassis_controller
       - controllers/tf_radar_controller
+      - controller/lower_gimbal_controller

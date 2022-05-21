@@ -18,7 +18,13 @@
 
 class FsmData {
 private:
-    void jointStateCallback(const sensor_msgs::JointState::ConstPtr &joint_state) { joint_state_ = *joint_state; }
+    void jointStateCallback(const sensor_msgs::JointState::ConstPtr &joint_state) {
+        joint_state_ = *joint_state;
+        if (!joint_state_.position.empty()) {
+            lower_yaw_ = joint_state_.position[6];
+            lower_pitch_ = joint_state_.position[3];
+        }
+    }
 
     void dbusDataCallback(const rm_msgs::DbusData::ConstPtr &data) { dbus_data_ = *data; }
 
@@ -35,7 +41,7 @@ public:
 
     ~FsmData() = default;
 
-    void update(const ros::Time &time);
+    void updatePosX(const ros::Time &time);
 
     void lowerTrackCallback(const rm_msgs::TrackDataArray::ConstPtr &data) { lower_track_data_array_ = *data; }
 
@@ -45,7 +51,7 @@ public:
     rm_msgs::DbusData dbus_data_;
     ros::Subscriber lower_gimbal_des_error_sub_;
     double pos_x_{};
-    double upper_yaw_{}, upper_pitch_{}, lower_yaw_{}, lower_pitch_{};
+    double lower_yaw_{}, lower_pitch_{};
     double current_effort_{};
     tf2_ros::Buffer tf_buffer_;
     rm_msgs::TrackDataArray lower_track_data_array_;
@@ -69,6 +75,7 @@ public:
             auto_nh.getParam("pitch", pitch_value);
             pitch_min_ = (double) (pitch_value[0]);
             pitch_max_ = (double) (pitch_value[1]);
+            ROS_INFO("pitch_mini: %f, pitch_max: %f", pitch_min_, pitch_max_);
             auto_nh.getParam("yaw", yaw_value);
             yaw_min_ = (double) (yaw_value[0]);
             yaw_max_ = (double) (yaw_value[1]);
