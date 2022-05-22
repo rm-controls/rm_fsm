@@ -34,10 +34,6 @@ StateMachine::StateMachine(ros::NodeHandle &nh) : context_(*this), controller_ma
 }
 
 void StateMachine::update(const ros::Time &time) {
-    lower_cmd_sender_->pos_pitch_ = fsm_data_.lower_pitch_;
-    lower_cmd_sender_->pos_yaw_ = fsm_data_.lower_yaw_;
-    lower_cmd_sender_->track_data_ = fsm_data_.lower_track_data_array_;
-    lower_cmd_sender_->gimbal_des_error_ = fsm_data_.lower_gimbal_des_error_;
     fsm_data_.updatePosX(time);
     ros::Time begin_time = ros::Time::now();
     if ((begin_time - last_time_).toSec() >= rand_time_) {
@@ -126,4 +122,47 @@ void StateMachine::setTrack(SideCommandSender *side_cmd_sender) {
         side_cmd_sender->gimbal_cmd_sender_->setRate(0., 0.);
     else
         side_cmd_sender->gimbal_cmd_sender_->setRate(side_cmd_sender->yaw_direct_, side_cmd_sender->pitch_direct_);
+}
+
+void StateMachine::checkReferee(const ros::Time &time) {
+    if (fsm_data_.referee_.referee_data_.game_robot_status_.mains_power_chassis_output_ && !chassis_output_) {
+        ROS_INFO("Chassis output ON");
+        chassisOutputOn();
+    }
+    if (fsm_data_.referee_.referee_data_.game_robot_status_.mains_power_gimbal_output_ && !gimbal_output_) {
+        ROS_INFO("Gimbal output ON");
+        gimbalOutputOn();
+    }
+    if (fsm_data_.referee_.referee_data_.game_robot_status_.mains_power_shooter_output_ && !shooter_output_) {
+        ROS_INFO("Shooter output ON");
+        shooterOutputOn();
+    }
+    if (fsm_data_.referee_.referee_data_.game_robot_status_.mains_power_chassis_output_) chassis_output_ = true;
+    else chassis_output_ = false;
+    if (fsm_data_.referee_.referee_data_.game_robot_status_.mains_power_gimbal_output_) gimbal_output_ = true;
+    else gimbal_output_ = false;
+    if (fsm_data_.referee_.referee_data_.game_robot_status_.mains_power_shooter_output_) shooter_output_ = true;
+    else shooter_output_ = false;
+}
+
+void StateMachine::checkSwitch(const ros::Time &time) {
+    if (remote_is_open_ && (time - fsm_data_.dbus_data_.stamp).toSec() > 0.1) {
+        ROS_INFO("Remote controller OFF");
+        remoteControlTurnOff();
+        remote_is_open_ = false;
+    }
+    if (!remote_is_open_ && (time - fsm_data_.dbus_data_.stamp).toSec() < 0.1) {
+        ROS_INFO("Remote controller ON");
+        remoteControlTurnOn();
+        remote_is_open_ = true;
+    }
+}
+
+void StateMachine::remoteControlTurnOff() {
+    controller_manager_.stopMainControllers();
+    controller_manager_.stopCalibrationControllers();
+}
+
+void StateMachine::remoteControlTurnOn() {
+    controller_manager_.startMainControllers();
 }

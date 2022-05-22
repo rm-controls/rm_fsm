@@ -32,9 +32,6 @@ private:
     ros::Subscriber dbus_sub_;
     ros::Subscriber lower_track_sub_;
     ros::NodeHandle nh_;
-    double sum_effort_ = 0.;
-    int sum_count_ = 0;
-    ros::Time update_effort_;
 
 public:
     FsmData();
@@ -75,7 +72,6 @@ public:
             auto_nh.getParam("pitch", pitch_value);
             pitch_min_ = (double) (pitch_value[0]);
             pitch_max_ = (double) (pitch_value[1]);
-            ROS_INFO("pitch_mini: %f, pitch_max: %f", pitch_min_, pitch_max_);
             auto_nh.getParam("yaw", yaw_value);
             yaw_min_ = (double) (yaw_value[0]);
             yaw_max_ = (double) (yaw_value[1]);

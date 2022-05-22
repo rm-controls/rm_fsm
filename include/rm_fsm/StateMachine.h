@@ -60,6 +60,23 @@ public:
 
     void rawShooter();
 
+    //referee
+    void chassisOutputOn();
+
+    void gimbalOutputOn();
+
+    void shooterOutputOn();
+
+    void checkReferee(const ros::Time &time);
+
+    //remote
+    //remote
+    void remoteControlTurnOff();
+
+    void remoteControlTurnOn();
+
+    void checkSwitch(const ros::Time &time);
+
     FsmData fsm_data_;
     ros::Time last_time_ = ros::Time::now();
     double rand_time_ = 0.8;
@@ -83,6 +100,10 @@ protected:
     double auto_linear_x_{};
     std::default_random_engine random_;
     std::uniform_real_distribution<double> generator_{0.5, 2.5};
+    //referee
+    bool chassis_output_, shooter_output_, gimbal_output_;
+    //remote
+    bool remote_is_open_;
 
     ros::Subscriber dbus_sub_;
     ros::Subscriber referee_sub_;
