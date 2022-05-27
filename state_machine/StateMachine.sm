@@ -72,6 +72,8 @@ Cruise
     dbusUpdate(data_dbus_: rm_msgs::DbusData)
         nil
         {
+            checkReferee();
+            checkSwitch();
             update(ros::Time::now());
             cruiseGimbal();
             cruiseShooter();

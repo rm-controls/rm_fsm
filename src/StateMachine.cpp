@@ -3,38 +3,42 @@
 //
 #include "rm_fsm/StateMachine.h"
 
-StateMachine::StateMachine(ros::NodeHandle &nh) : context_(*this), controller_manager_(nh) {
-    nh_ = ros::NodeHandle(nh);
+StateMachine::StateMachine(ros::NodeHandle &nh) : context_(*this), fsm_data_(nh), controller_manager_(nh) {
     try {
         XmlRpc::XmlRpcValue lower_trigger_rpc_value, lower_gimbal_rpc_value;
         nh.getParam("lower_trigger_calibration", lower_trigger_rpc_value);
         nh.getParam("lower_gimbal_calibration", lower_gimbal_rpc_value);
-        lower_trigger_calibration_ = new rm_common::CalibrationQueue(lower_trigger_rpc_value, nh_, controller_manager_);
-        lower_gimbal_calibration_ = new rm_common::CalibrationQueue(lower_gimbal_rpc_value, nh_, controller_manager_);
+        lower_trigger_calibration_ = new rm_common::CalibrationQueue(lower_trigger_rpc_value, nh, controller_manager_);
+        lower_gimbal_calibration_ = new rm_common::CalibrationQueue(lower_gimbal_rpc_value, nh, controller_manager_);
     } catch (XmlRpc::XmlRpcException &e) {
         ROS_ERROR("%s", e.getMessage().c_str());
     }
-    ros::NodeHandle chassis_nh(nh_, "chassis");
+    ros::NodeHandle chassis_nh(nh, "chassis");
     chassis_cmd_sender_ = new rm_common::ChassisCommandSender(chassis_nh, fsm_data_.referee_.referee_data_);
-    ros::NodeHandle vel_nh(nh_, "vel");
+    ros::NodeHandle vel_nh(nh, "vel");
     vel_2d_cmd_sender_ = new rm_common::Vel2DCommandSender(vel_nh);
-    ros::NodeHandle lower_nh(nh_, "lower");
+    ros::NodeHandle lower_nh(nh, "lower");
     lower_cmd_sender_ = new SideCommandSender(lower_nh, fsm_data_.referee_.referee_data_,
                                               fsm_data_.lower_track_data_array_,
                                               fsm_data_.lower_gimbal_des_error_, fsm_data_.lower_yaw_,
                                               fsm_data_.lower_pitch_);
-    dbus_sub_ = nh_.subscribe<rm_msgs::DbusData>("/dbus_data", 10, &StateMachine::dbusCB, this);
-    referee_sub_ = nh_.subscribe<rm_msgs::Referee>("/referee", 10, &StateMachine::refereeCB, this);
-    left_radar_sub_ = nh_.subscribe<rm_msgs::TfRadarData>("/controllers/tf_radar_controller/left_tf_radar/data",
-                                                          10, &StateMachine::leftRadarCB, this);
-    right_radar_sub_ = nh_.subscribe<rm_msgs::TfRadarData>("/controllers/tf_radar_controller/right_tf_radar/data",
-                                                           10, &StateMachine::rightRadarCB, this);
+    ros::NodeHandle auto_nh(nh, "auto");
+    if (!auto_nh.getParam("auto_linear_x", auto_linear_x_)) {
+        ROS_ERROR("Can not find auto_linear_x");
+    }
+    dbus_sub_ = nh.subscribe<rm_msgs::DbusData>("/dbus_data", 10, &StateMachine::dbusCB, this);
+    referee_sub_ = nh.subscribe<rm_msgs::Referee>("/referee", 10, &StateMachine::refereeCB, this);
+    left_radar_sub_ = nh.subscribe<rm_msgs::TfRadarData>("/controllers/tf_radar_controller/left_tf_radar/data",
+                                                         10, &StateMachine::leftRadarCB, this);
+    right_radar_sub_ = nh.subscribe<rm_msgs::TfRadarData>("/controllers/tf_radar_controller/right_tf_radar/data",
+                                                          10, &StateMachine::rightRadarCB, this);
 
+    controller_manager_.startStateControllers();
     context_.enterStartState();
 }
 
 void StateMachine::update(const ros::Time &time) {
-    fsm_data_.updatePosX(time);
+    fsm_data_.update(time);
     ros::Time begin_time = ros::Time::now();
     if ((begin_time - last_time_).toSec() >= rand_time_) {
         changeVel();
@@ -51,10 +55,6 @@ void StateMachine::initRaw() {
 
 void StateMachine::initCruise() {
     ROS_INFO("Enter Cruise");
-    ros::NodeHandle auto_nh(nh_, "auto");
-    if (!auto_nh.getParam("auto_linear_x", auto_linear_x_)) {
-        ROS_ERROR("Can not find auto_linear_x");
-    }
 }
 
 void StateMachine::sendRawCommand(const ros::Time &time) {
@@ -158,11 +158,22 @@ void StateMachine::checkSwitch(const ros::Time &time) {
     }
 }
 
+void StateMachine::chassisOutputOn() {
+    ROS_INFO("Chassis output ON");
+    chassis_cmd_sender_->power_limit_->updateState(rm_common::PowerLimit::CHARGE);
+}
+
+void StateMachine::shooterOutputOn() {
+    ROS_INFO("Shooter output ON");
+    lower_cmd_sender_->shooter_cmd_sender_->setMode(rm_msgs::ShootCmd::STOP);
+    lower_trigger_calibration_->reset();
+}
+
 void StateMachine::remoteControlTurnOff() {
     controller_manager_.stopMainControllers();
-    controller_manager_.stopCalibrationControllers();
 }
 
 void StateMachine::remoteControlTurnOn() {
+    lower_trigger_calibration_->stopController();
     controller_manager_.startMainControllers();
 }

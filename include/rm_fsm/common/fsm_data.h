@@ -31,18 +31,32 @@ private:
     ros::Subscriber joint_state_sub_;
     ros::Subscriber dbus_sub_;
     ros::Subscriber lower_track_sub_;
-    ros::NodeHandle nh_;
+    serial::Serial serial_;
 
 public:
-    FsmData();
+    explicit FsmData(ros::NodeHandle &nh);
 
     ~FsmData() = default;
 
-    void updatePosX(const ros::Time &time);
+    void update(const ros::Time &time);
 
     void lowerTrackCallback(const rm_msgs::TrackDataArray::ConstPtr &data) { lower_track_data_array_ = *data; }
 
     void lowerGimbalDesErrorCallback(const rm_msgs::GimbalDesError::ConstPtr &data) { lower_gimbal_des_error_ = *data; }
+
+    void initSerial() {
+        serial::Timeout timeout = serial::Timeout::simpleTimeout(50);
+        serial_.setPort("/dev/usbReferee");
+        serial_.setBaudrate(115200);
+        serial_.setTimeout(timeout);
+        if (serial_.isOpen()) return;
+        try {
+            serial_.open();
+        }
+        catch (serial::IOException &e) {
+            ROS_ERROR("Cannot open referee port");
+        }
+    }
 
     sensor_msgs::JointState joint_state_;
     rm_msgs::DbusData dbus_data_;
@@ -54,6 +68,7 @@ public:
     rm_msgs::TrackDataArray lower_track_data_array_;
     rm_msgs::GimbalDesError lower_gimbal_des_error_;
     rm_common::Referee referee_;
+    rm_msgs::Referee receive_referee_;
 
 };
 

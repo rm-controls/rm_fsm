@@ -77,31 +77,26 @@ public:
 
     void checkSwitch(const ros::Time &time);
 
-    FsmData fsm_data_;
     ros::Time last_time_ = ros::Time::now();
     double rand_time_ = 0.8;
 
 protected:
     StateMachineContext context_;
     rm_msgs::DbusData dbus_;
+    FsmData fsm_data_;
 
     rm_common::CalibrationQueue *lower_trigger_calibration_{}, *lower_gimbal_calibration_{};
     rm_common::ControllerManager controller_manager_;
-    ros::NodeHandle nh_;
     //calibrate
-    tf2_ros::StaticTransformBroadcaster static_tf_broadcaster_;
-    tf2_ros::TransformBroadcaster tf_broadcaster_;
-    ros::Time init_time_ = ros::Time::now();
     rm_common::ChassisCommandSender *chassis_cmd_sender_;
     rm_common::Vel2DCommandSender *vel_2d_cmd_sender_;
     SideCommandSender *lower_cmd_sender_;
     //cruise
-    ros::Time last_send_ = ros::Time::now();
     double auto_linear_x_{};
     std::default_random_engine random_;
     std::uniform_real_distribution<double> generator_{0.5, 2.5};
     //referee
-    bool chassis_output_, shooter_output_, gimbal_output_;
+    bool chassis_output_{}, shooter_output_{}, gimbal_output_{};
     //remote
     bool remote_is_open_;
 
