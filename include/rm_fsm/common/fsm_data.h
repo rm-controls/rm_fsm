@@ -32,9 +32,10 @@ private:
     ros::Subscriber dbus_sub_;
     ros::Subscriber lower_track_sub_;
     serial::Serial serial_;
+    ros::NodeHandle nh_;
 
 public:
-    explicit FsmData(ros::NodeHandle &nh);
+    explicit FsmData();
 
     ~FsmData() = default;
 

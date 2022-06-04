@@ -3,7 +3,7 @@
 //
 #include "rm_fsm/StateMachine.h"
 
-StateMachine::StateMachine(ros::NodeHandle &nh) : context_(*this), fsm_data_(nh), controller_manager_(nh) {
+StateMachine::StateMachine(ros::NodeHandle &nh) : context_(*this), controller_manager_(nh) {
     try {
         XmlRpc::XmlRpcValue lower_trigger_rpc_value, lower_gimbal_rpc_value;
         nh.getParam("lower_trigger_calibration", lower_trigger_rpc_value);
@@ -27,7 +27,6 @@ StateMachine::StateMachine(ros::NodeHandle &nh) : context_(*this), fsm_data_(nh)
         ROS_ERROR("Can not find auto_linear_x");
     }
     dbus_sub_ = nh.subscribe<rm_msgs::DbusData>("/dbus_data", 10, &StateMachine::dbusCB, this);
-    referee_sub_ = nh.subscribe<rm_msgs::Referee>("/referee", 10, &StateMachine::refereeCB, this);
     left_radar_sub_ = nh.subscribe<rm_msgs::TfRadarData>("/controllers/tf_radar_controller/left_tf_radar/data",
                                                          10, &StateMachine::leftRadarCB, this);
     right_radar_sub_ = nh.subscribe<rm_msgs::TfRadarData>("/controllers/tf_radar_controller/right_tf_radar/data",
@@ -38,7 +37,6 @@ StateMachine::StateMachine(ros::NodeHandle &nh) : context_(*this), fsm_data_(nh)
 }
 
 void StateMachine::update(const ros::Time &time) {
-    fsm_data_.update(time);
     ros::Time begin_time = ros::Time::now();
     if ((begin_time - last_time_).toSec() >= rand_time_) {
         changeVel();
@@ -58,8 +56,7 @@ void StateMachine::initCruise() {
 }
 
 void StateMachine::sendRawCommand(const ros::Time &time) {
-    chassis_cmd_sender_->sendCommand(time);
-    vel_2d_cmd_sender_->setLinearXVel(dbus_.ch_r_y);
+    vel_2d_cmd_sender_->setLinearXVel(dbus_.ch_r_x);
     vel_2d_cmd_sender_->sendCommand(time);
     lower_cmd_sender_->gimbal_cmd_sender_->sendCommand(time);
     lower_cmd_sender_->shooter_cmd_sender_->sendCommand(time);
@@ -94,6 +91,7 @@ void StateMachine::cruiseShooter() {
 
 void StateMachine::rawChassis() {
     chassis_cmd_sender_->setMode(rm_msgs::ChassisCmd::RAW);
+    chassis_cmd_sender_->sendCommand(ros::Time::now());
 }
 
 void StateMachine::rawGimbal() {
@@ -146,12 +144,12 @@ void StateMachine::checkReferee(const ros::Time &time) {
 }
 
 void StateMachine::checkSwitch(const ros::Time &time) {
-    if (remote_is_open_ && (time - fsm_data_.dbus_data_.stamp).toSec() > 0.1) {
+    if (remote_is_open_ && (time - fsm_data_.dbus_data_.stamp).toSec() > 0.3) {
         ROS_INFO("Remote controller OFF");
         remoteControlTurnOff();
         remote_is_open_ = false;
     }
-    if (!remote_is_open_ && (time - fsm_data_.dbus_data_.stamp).toSec() < 0.1) {
+    if (!remote_is_open_ && (time - fsm_data_.dbus_data_.stamp).toSec() < 0.3) {
         ROS_INFO("Remote controller ON");
         remoteControlTurnOn();
         remote_is_open_ = true;
@@ -174,6 +172,27 @@ void StateMachine::remoteControlTurnOff() {
 }
 
 void StateMachine::remoteControlTurnOn() {
-    lower_trigger_calibration_->stopController();
     controller_manager_.startMainControllers();
+    lower_trigger_calibration_->stopController();
+}
+
+void StateMachine::cruiseRun() {
+    fsm_data_.update(ros::Time::now());
+    checkReferee(ros::Time::now());
+    checkSwitch(ros::Time::now());
+    update(ros::Time::now());
+    cruiseGimbal();
+    cruiseShooter();
+    sendCruiseCommand(ros::Time::now());
+    controller_manager_.update();
+}
+
+void StateMachine::rawRun() {
+    fsm_data_.update(ros::Time::now());
+    checkReferee(ros::Time::now());
+    checkSwitch(ros::Time::now());
+    rawGimbal();
+    rawShooter();
+    sendRawCommand(ros::Time::now());
+    controller_manager_.update();
 }

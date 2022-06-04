@@ -27,11 +27,6 @@ void StateMachineState::radarUpdate(StateMachineContext& context)
 
 void StateMachineState::Default(StateMachineContext& context)
 {
-    throw (
-        TransitionUndefinedException(
-            (context.getState()).getName(),
-            context.getTransition()));
-
 }
 
 void StateMachineMap_Idle::dbusUpdate(StateMachineContext& context, rm_msgs::DbusData data_dbus_)
@@ -109,9 +104,7 @@ void StateMachineMap_Raw::dbusUpdate(StateMachineContext& context, rm_msgs::Dbus
         context.clearState();
         try
         {
-            ctxt.rawShooter();
-            ctxt.rawGimbal();
-            ctxt.sendRawCommand(ros::Time::now());
+            ctxt.rawRun();
             context.setState(endState);
         }
         catch (...)
@@ -158,10 +151,7 @@ void StateMachineMap_Cruise::dbusUpdate(StateMachineContext& context, rm_msgs::D
         context.clearState();
         try
         {
-            ctxt.update(ros::Time::now());
-            ctxt.cruiseShooter();
-            ctxt.cruiseGimbal();
-            ctxt.sendCruiseCommand(ros::Time::now());
+            ctxt.cruiseRun();
             context.setState(endState);
         }
         catch (...)

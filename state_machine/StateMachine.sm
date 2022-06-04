@@ -47,9 +47,7 @@ Raw
     dbusUpdate(data_dbus_: rm_msgs::DbusData)
         nil
         {
-            rawShooter();
-            rawGimbal();
-            sendRawCommand(ros::Time::now());
+            rawRun();
         }
 }
 
@@ -72,12 +70,7 @@ Cruise
     dbusUpdate(data_dbus_: rm_msgs::DbusData)
         nil
         {
-            checkReferee();
-            checkSwitch();
-            update(ros::Time::now());
-            cruiseGimbal();
-            cruiseShooter();
-            sendCruiseCommand(ros::Time::now());
+            cruiseRun();
         }
 }
 
