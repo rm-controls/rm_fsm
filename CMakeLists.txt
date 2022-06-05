@@ -10,7 +10,6 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 add_definitions(-Wall -Werror -Wno-address-of-packed-member)
 
 ## Find catkin macros and libraries
-find_package(serial REQUIRED)
 
 find_package(catkin REQUIRED
         COMPONENTS
@@ -22,7 +21,6 @@ find_package(catkin REQUIRED
         nav_msgs
         rm_common
         tf
-        serial
         dynamic_reconfigure
         controller_manager
         )
@@ -43,7 +41,6 @@ catkin_package(
         INCLUDE_DIRS
         include
         LIBRARIES
-        ${PROJECT_NAME}
         CATKIN_DEPENDS
         roscpp
         sensor_msgs

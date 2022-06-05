@@ -51,4 +51,15 @@ rm_fsm:
     main_controllers:
       - controllers/chassis_controller
       - controllers/tf_radar_controller
-      - controller/lower_gimbal_controller
+      - controllers/lower_gimbal_controller
+  lower_trigger_calibration:
+    - start_controller: controllers/lower_trigger_calibration_controller
+      stop_controller: controllers/lower_shooter_controller
+      service_name: /controllers/lower_trigger_calibration_controller/is_calibrated
+  lower_gimbal_calibration:
+    - start_controller: controllers/lower_yaw_calibration_controller
+      stop_controller: controllers/lower_gimbal_controller
+      service_name: /controllers/lower_yaw_calibration_controller/is_calibrated
+    - start_controller: controllers/lower_pitch_calibration_controller
+      stop_controller: controllers/lower_gimbal_controller
+      service_name: /controllers/lower_pitch_calibration_controller/is_calibrated

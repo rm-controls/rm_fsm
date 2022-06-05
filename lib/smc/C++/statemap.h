@@ -452,7 +452,7 @@ namespace statemap
         }
 
     protected:
-        
+
         State(const char *name, int stateId)
         : _name(NULL),
           _stateId(stateId)
