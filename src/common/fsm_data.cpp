@@ -10,9 +10,15 @@ FsmData::FsmData() {
     lower_track_sub_ =
             nh_.subscribe<rm_msgs::TrackDataArray>("/controllers/lower_gimbal_controller/track", 10,
                                                    &FsmData::lowerTrackCallback, this);
+    upper_track_sub_ =
+        nh_.subscribe<rm_msgs::TrackDataArray>("/controllers/upper_gimbal_controller/track", 10,
+                                               &FsmData::upperTrackCallback, this);
     lower_gimbal_des_error_sub_ =
             nh_.subscribe<rm_msgs::GimbalDesError>("/controllers/lower_gimbal_controller/error_des", 10,
                                                    &FsmData::lowerGimbalDesErrorCallback, this);
+    upper_gimbal_des_error_sub_ =
+        nh_.subscribe<rm_msgs::GimbalDesError>("/controllers/upper_gimbal_controller/error_des", 10,
+                                               &FsmData::upperGimbalDesErrorCallback, this);
     ros::NodeHandle root_nh;
     referee_sub_ = nh_.subscribe<rm_msgs::Referee>("/referee", 10, &FsmData::refereeCB, this);
 }

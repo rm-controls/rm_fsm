@@ -24,6 +24,8 @@ private:
     if (!joint_state_.position.empty()) {
       lower_yaw_ = joint_state_.position[6];
       lower_pitch_ = joint_state_.position[3];
+      upper_yaw_ = joint_state_.position[11];
+      upper_pitch_ = joint_state_.position[8];
     }
   }
 
@@ -37,7 +39,7 @@ private:
 
   ros::Subscriber joint_state_sub_;
   ros::Subscriber dbus_sub_;
-  ros::Subscriber lower_track_sub_;
+  ros::Subscriber lower_track_sub_, upper_track_sub_;
   ros::Subscriber referee_sub_;
   ros::NodeHandle nh_;
 
@@ -52,21 +54,30 @@ public:
     lower_track_data_array_ = *data;
   }
 
+  void upperTrackCallback(const rm_msgs::TrackDataArray::ConstPtr &data) {
+    upper_track_data_array_ = *data;
+  }
+
   void
   lowerGimbalDesErrorCallback(const rm_msgs::GimbalDesError::ConstPtr &data) {
     lower_gimbal_des_error_ = *data;
+  }
+
+  void
+  upperGimbalDesErrorCallback(const rm_msgs::GimbalDesError::ConstPtr &data) {
+    upper_gimbal_des_error_ = *data;
   }
 
   void refereeCB(const rm_msgs::RefereeConstPtr &data) {}
 
   sensor_msgs::JointState joint_state_;
   rm_msgs::DbusData dbus_data_;
-  ros::Subscriber lower_gimbal_des_error_sub_;
+  ros::Subscriber lower_gimbal_des_error_sub_, upper_gimbal_des_error_sub_;
   double pos_x_{};
-  double lower_yaw_{}, lower_pitch_{};
+  double lower_yaw_{}, lower_pitch_{}, upper_yaw_{}, upper_pitch_{};
   tf2_ros::Buffer tf_buffer_;
-  rm_msgs::TrackDataArray lower_track_data_array_;
-  rm_msgs::GimbalDesError lower_gimbal_des_error_;
+  rm_msgs::TrackDataArray lower_track_data_array_, upper_track_data_array_;
+  rm_msgs::GimbalDesError lower_gimbal_des_error_, upper_gimbal_des_error_;
   rm_common::Referee referee_;
   rm_msgs::GameRobotStatus game_robot_status_;
 };

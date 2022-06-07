@@ -6,9 +6,9 @@
 
 #include "StateMachine_sm.h"
 #include "rm_fsm/common/fsm_data.h"
+#include <math.h>
 #include <realtime_tools/realtime_buffer.h>
 #include <rm_common/decision/calibration_queue.h>
-#include <rm_common/decision/command_sender.h>
 #include <rm_common/decision/controller_manager.h>
 #include <rm_common/ros_utilities.h>
 #include <tf2_ros/static_transform_broadcaster.h>
@@ -46,9 +46,10 @@ public:
 
   void cruiseChassis();
 
-  void cruiseShooter();
+  void cruiseShooter(SideCommandSender *);
 
-  void cruiseGimbal();
+  void cruiseGimbal(SideCommandSender *side_command_sender,
+                    double yaw_direction, double pitch_direction);
 
   void setTrack(SideCommandSender *side_cmd_sender);
 
@@ -87,12 +88,12 @@ protected:
   FsmData fsm_data_;
 
   rm_common::CalibrationQueue *lower_trigger_calibration_{},
-      *lower_gimbal_calibration_{};
+      *lower_gimbal_calibration_{}, *upper_gimbal_calibration_{};
   rm_common::ControllerManager controller_manager_;
   // calibrate
   rm_common::ChassisCommandSender *chassis_cmd_sender_;
   rm_common::Vel2DCommandSender *vel_2d_cmd_sender_;
-  SideCommandSender *lower_cmd_sender_;
+  SideCommandSender *lower_cmd_sender_, *upper_cmd_sender_;
   // cruise
 
   double auto_linear_x_{};
