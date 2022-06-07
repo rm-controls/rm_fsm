@@ -67,7 +67,7 @@ rm_fsm:
         safe_shoot_frequency: 5
         heat_coeff: 8.0
         type: "ID1_17MM"
-    auto: { pitch: [ 0.02, 0.40 ], yaw: [ -2.1, 2.1 ] }
+    auto: { pitch: [ 0.02, 0.40 ], yaw: [ -2.5, 2.2 ] }
   controllers_list:
     state_controllers:
       - controllers/robot_state_controller
