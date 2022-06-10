@@ -11,9 +11,10 @@
 #include <rm_msgs/GameRobotStatus.h>
 #include <rm_msgs/GimbalDesError.h>
 #include <rm_msgs/TfRadarData.h>
-#include <rm_msgs/TrackDataArray.h>
+#include <rm_msgs/TrackData.h>
 #include <ros/ros.h>
 #include <sensor_msgs/JointState.h>
+#include <serial/serial.h>
 #include <tf2_ros/transform_listener.h>
 
 class FsmData {
@@ -50,12 +51,12 @@ public:
 
   void update(const ros::Time &time);
 
-  void lowerTrackCallback(const rm_msgs::TrackDataArray::ConstPtr &data) {
-    lower_track_data_array_ = *data;
+  void lowerTrackCallback(const rm_msgs::TrackData::ConstPtr &data) {
+    lower_track_data_ = *data;
   }
 
-  void upperTrackCallback(const rm_msgs::TrackDataArray::ConstPtr &data) {
-    upper_track_data_array_ = *data;
+  void upperTrackCallback(const rm_msgs::TrackData::ConstPtr &data) {
+    upper_track_data_ = *data;
   }
 
   void
@@ -70,26 +71,40 @@ public:
 
   void refereeCB(const rm_msgs::RefereeConstPtr &data) {}
 
+  void initSerial() {
+    serial::Timeout timeout = serial::Timeout::simpleTimeout(50);
+    serial_.setPort("/dev/usbReferee");
+    serial_.setBaudrate(115200);
+    serial_.setTimeout(timeout);
+    if (serial_.isOpen())
+      return;
+    try {
+      serial_.open();
+    } catch (serial::IOException &e) {
+      ROS_ERROR("Cannot open referee port");
+    }
+  }
+
   sensor_msgs::JointState joint_state_;
   rm_msgs::DbusData dbus_data_;
   ros::Subscriber lower_gimbal_des_error_sub_, upper_gimbal_des_error_sub_;
   double pos_x_{};
   double lower_yaw_{}, lower_pitch_{}, upper_yaw_{}, upper_pitch_{};
   tf2_ros::Buffer tf_buffer_;
-  rm_msgs::TrackDataArray lower_track_data_array_, upper_track_data_array_;
+  rm_msgs::TrackData lower_track_data_, upper_track_data_;
   rm_msgs::GimbalDesError lower_gimbal_des_error_, upper_gimbal_des_error_;
   rm_common::Referee referee_;
   rm_msgs::GameRobotStatus game_robot_status_;
+  serial::Serial serial_;
 };
 
 class SideCommandSender {
 public:
   SideCommandSender(ros::NodeHandle &nh, rm_common::RefereeData &referee_data,
-                    rm_msgs::TrackDataArray &track_data,
                     rm_msgs::GimbalDesError &gimbal_des_error, double &pos_yaw,
                     double &pos_pitch)
-      : track_data_(track_data), gimbal_des_error_(gimbal_des_error),
-        pos_yaw_(pos_yaw), pos_pitch_(pos_pitch) {
+      : gimbal_des_error_(gimbal_des_error), pos_yaw_(pos_yaw),
+        pos_pitch_(pos_pitch) {
     ros::NodeHandle gimbal_nh(nh, "gimbal");
     gimbal_cmd_sender_ =
         new rm_common::GimbalCommandSender(gimbal_nh, referee_data);
@@ -111,7 +126,6 @@ public:
   };
   rm_common::GimbalCommandSender *gimbal_cmd_sender_;
   rm_common::ShooterCommandSender *shooter_cmd_sender_;
-  rm_msgs::TrackDataArray &track_data_;
   rm_msgs::GimbalDesError &gimbal_des_error_;
   double pitch_min_{}, pitch_max_{}, yaw_min_{}, yaw_max_{};
   double &pos_yaw_, &pos_pitch_;

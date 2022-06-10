@@ -76,6 +76,22 @@ Cruise
 
 Default
 {
+    radarUpdate()
+        nil
+        {
+            changeVel();
+        }
+    dbusUpdate(data_dbus_: rm_msgs::DbusData)
+        [ ctxt.isCruise(data_dbus_) == true ]
+        Cruise
+        {
+            initCruise();
+        }
+    dbusUpdate(data_dbus_: rm_msgs::DbusData)
+        [ ctxt.isRaw(data_dbus_) == true ]
+        Raw
+        {
+            initRaw();
+        }
 }
-
 %%

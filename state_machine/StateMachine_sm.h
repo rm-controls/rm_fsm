@@ -63,6 +63,8 @@ public:
     : StateMachineState(name, stateId)
     {};
 
+    virtual void radarUpdate(StateMachineContext& context);
+    virtual void dbusUpdate(StateMachineContext& context, rm_msgs::DbusData data_dbus_);
 };
 
 class StateMachineMap_Idle :

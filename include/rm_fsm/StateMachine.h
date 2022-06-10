@@ -6,7 +6,6 @@
 
 #include "StateMachine_sm.h"
 #include "rm_fsm/common/fsm_data.h"
-#include <math.h>
 #include <realtime_tools/realtime_buffer.h>
 #include <rm_common/decision/calibration_queue.h>
 #include <rm_common/decision/controller_manager.h>
@@ -55,7 +54,7 @@ public:
 
   void rawChassis();
 
-  void rawGimbal();
+  void rawGimbal(SideCommandSender *side_command_sender);
 
   void rawShooter();
 
@@ -78,6 +77,7 @@ public:
   void rawRun();
 
   void checkSwitch(const ros::Time &time);
+  void readReferee();
 
   ros::Time last_time_ = ros::Time::now();
   double rand_time_ = 0.8;
@@ -88,17 +88,18 @@ protected:
   FsmData fsm_data_;
 
   rm_common::CalibrationQueue *lower_trigger_calibration_{},
-      *lower_gimbal_calibration_{}, *upper_gimbal_calibration_{};
+      *lower_gimbal_calibration_{}, *upper_gimbal_calibration_{},
+      *catapult_calibration_{};
   rm_common::ControllerManager controller_manager_;
   // calibrate
   rm_common::ChassisCommandSender *chassis_cmd_sender_;
   rm_common::Vel2DCommandSender *vel_2d_cmd_sender_;
   SideCommandSender *lower_cmd_sender_, *upper_cmd_sender_;
   // cruise
-
   double auto_linear_x_{};
+  double safety_distance_{};
   std::default_random_engine random_;
-  std::uniform_real_distribution<double> generator_{1, 2.5};
+  std::uniform_real_distribution<double> generator_{1.0, 2.5};
   // referee
   bool chassis_output_{}, shooter_output_{}, gimbal_output_{};
   // remote
@@ -114,7 +115,7 @@ protected:
   }
 
   void leftRadarCB(const rm_msgs::TfRadarDataConstPtr &radar_data) {
-    if (radar_data->distance < 0.8 &&
+    if (radar_data->distance < 1.0 &&
         vel_2d_cmd_sender_->getMsg()->linear.x > 0) {
       last_time_ = ros::Time::now();
       rand_time_ = generator_(random_);
@@ -123,7 +124,7 @@ protected:
   }
 
   void rightRadarCB(const rm_msgs::TfRadarDataConstPtr &radar_data) {
-    if (radar_data->distance < 0.8 &&
+    if (radar_data->distance < 1.0 &&
         vel_2d_cmd_sender_->getMsg()->linear.x < 0) {
       last_time_ = ros::Time::now();
       rand_time_ = generator_(random_);

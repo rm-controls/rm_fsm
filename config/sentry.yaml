@@ -2,19 +2,26 @@ rm_fsm:
   robot_type: "sentry"
   chassis:
     topic: "/controllers/chassis_controller/command"
-    accel_x: 9999.0
-    accel_y: 0.0
-    accel_z: 0.0
+    accel_x:
+      - [ 30.0,999.0 ]
+    accel_y:
+      - [ 30.0,0.0 ]
+    accel_z:
+      - [ 30.0,0.0 ]
     safety_power: 30.0
     capacitor_threshold: 0.1
-    charge_power: 20
-    extra_power: 30
-    burst_power: 200
+    charge_power: 20.0
+    extra_power: 30.0
+    burst_power: 200.0
+    safety_distance: 1.0
   vel:
     topic: "/cmd_vel"
-    max_linear_x: 3.0
-    max_linear_y: 0.0
-    max_angular_z: 0.0
+    max_linear_x:
+      - [ 30.0,3.0 ]
+    max_linear_y:
+      - [ 30.0,0.0 ]
+    max_angular_z:
+      - [ 30.0,0.0 ]
   auto:
     auto_linear_x: 1.0
     move_distance: 2.7
@@ -43,7 +50,7 @@ rm_fsm:
         safe_shoot_frequency: 5
         heat_coeff: 8.0
         type: "ID1_17MM"
-    auto: { pitch: [ 0.119, 0.89 ], yaw: [ -3.06, 1.34 ] }
+    auto: { pitch: [ -0.098, 0.56 ], yaw: [ 0.0, 4.4 ] }
   upper:
     gimbal:
       topic: "/controllers/upper_gimbal_controller/command"
@@ -77,15 +84,41 @@ rm_fsm:
       - controllers/tf_radar_controller
       - controllers/lower_gimbal_controller
       - controllers/upper_gimbal_controller
+      - controllers/lower_shooter_controller
+    calibration_controllers:
+      - controllers/upper_pitch_calibration_controller
+      - controllers/lower_trigger_calibration_controller
+      - controllers/lower_pitch_calibration_controller
+      - controllers/catapult_calibration_controller
+      - controllers/lower_yaw_calibration_controller
+      - controllers/upper_yaw_calibration_controller
   lower_trigger_calibration:
-    - start_controller: controllers/lower_trigger_calibration_controller
-      stop_controller: controllers/lower_shooter_controller
-      service_name: /controllers/lower_trigger_calibration_controller/is_calibrated
+    - start_controllers:
+        - controllers/lower_trigger_calibration_controller
+      stop_controllers:
+        - controllers/lower_shooter_controller
+      services_name:
+        - /controllers/lower_trigger_calibration_controller/is_calibrated
   lower_gimbal_calibration:
-    - start_controller: controllers/lower_pitch_calibration_controller
-      stop_controller: controllers/lower_gimbal_controller
-      service_name: /controllers/lower_pitch_calibration_controller/is_calibrated
+    - start_controllers:
+        - controllers/lower_pitch_calibration_controller
+        - controllers/lower_yaw_calibration_controller
+      stop_controllers:
+        - controllers/lower_gimbal_controller
+      services_name:
+        - /controllers/lower_pitch_calibration_controller/is_calibrated
+        - /controllers/lower_yaw_calibration_controller/is_calibrated
   upper_gimbal_calibration:
-    - start_controller: controllers/upper_pitch_calibration_controller
-      stop_controller: controllers/upper_gimbal_controller
-      service_name: /controllers/upper_pitch_calibration_controller/is_calibrated
+    - start_controllers:
+        - controllers/upper_pitch_calibration_controller
+      stop_controllers:
+        - controllers/upper_gimbal_controller
+      services_name:
+        - /controllers/upper_pitch_calibration_controller/is_calibrated
+  catapult_calibration:
+    - start_controllers:
+        - controllers/catapult_calibration_controller
+      stop_controllers:
+        - controllers/chassis_controller
+      services_name:
+        - /controllers/catapult_calibration_controller/is_calibrated
