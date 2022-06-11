@@ -85,6 +85,8 @@ public:
 protected:
   StateMachineContext context_;
   rm_msgs::DbusData dbus_;
+  rm_msgs::TfRadarData left_radar_;
+  rm_msgs::TfRadarData right_radar_;
   FsmData fsm_data_;
 
   rm_common::CalibrationQueue *lower_trigger_calibration_{},
@@ -115,20 +117,20 @@ protected:
   }
 
   void leftRadarCB(const rm_msgs::TfRadarDataConstPtr &radar_data) {
-    if (radar_data->distance < 1.0 &&
-        vel_2d_cmd_sender_->getMsg()->linear.x > 0) {
+    left_radar_ = *radar_data;
+    if (radar_data->distance < 1.0 && auto_linear_x_ > 0) {
+      context_.radarUpdate();
       last_time_ = ros::Time::now();
       rand_time_ = generator_(random_);
-      context_.radarUpdate();
     }
   }
 
   void rightRadarCB(const rm_msgs::TfRadarDataConstPtr &radar_data) {
-    if (radar_data->distance < 1.0 &&
-        vel_2d_cmd_sender_->getMsg()->linear.x < 0) {
+    right_radar_ = *radar_data;
+    if (radar_data->distance < 1.0 && auto_linear_x_ < 0) {
+      context_.radarUpdate();
       last_time_ = ros::Time::now();
       rand_time_ = generator_(random_);
-      context_.radarUpdate();
     }
   }
 };

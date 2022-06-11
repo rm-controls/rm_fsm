@@ -10,7 +10,6 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 add_definitions(-Wall -Werror -Wno-address-of-packed-member)
 
 ## Find catkin macros and libraries
-find_package(serial REQUIRED)
 
 find_package(catkin REQUIRED
         COMPONENTS
@@ -21,7 +20,6 @@ find_package(catkin REQUIRED
         std_msgs
         nav_msgs
         rm_common
-        serial
         tf
         dynamic_reconfigure
         controller_manager

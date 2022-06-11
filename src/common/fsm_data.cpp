@@ -21,10 +21,9 @@ FsmData::FsmData() {
   upper_gimbal_des_error_sub_ = nh_.subscribe<rm_msgs::GimbalDesError>(
       "/controllers/upper_gimbal_controller/error_des", 10,
       &FsmData::upperGimbalDesErrorCallback, this);
-  ros::NodeHandle root_nh;
-  referee_.referee_pub_ = root_nh.advertise<rm_msgs::Referee>("/referee", 1);
-  referee_.super_capacitor_pub_ = root_nh.advertise<rm_msgs::SuperCapacitor>("/super_capacitor", 1);
-  initSerial();
+  game_robot_status_sub_ = nh_.subscribe<rm_msgs::GameRobotStatus>(
+      "/game_robot_status", 10,
+      &FsmData::robotGameStatusCallback, this);
 }
 
 void FsmData::update(const ros::Time &time) {}

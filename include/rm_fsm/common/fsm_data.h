@@ -14,7 +14,6 @@
 #include <rm_msgs/TrackData.h>
 #include <ros/ros.h>
 #include <sensor_msgs/JointState.h>
-#include <serial/serial.h>
 #include <tf2_ros/transform_listener.h>
 
 class FsmData {
@@ -40,7 +39,7 @@ private:
 
   ros::Subscriber joint_state_sub_;
   ros::Subscriber dbus_sub_;
-  ros::Subscriber lower_track_sub_, upper_track_sub_;
+  ros::Subscriber lower_track_sub_, upper_track_sub_, game_robot_status_sub_;
   ros::Subscriber referee_sub_;
   ros::NodeHandle nh_;
 
@@ -64,26 +63,16 @@ public:
     lower_gimbal_des_error_ = *data;
   }
 
+  void robotGameStatusCallback(const rm_msgs::GameRobotStatus::ConstPtr &data) {
+    game_robot_status_ = *data;
+  }
+
   void
   upperGimbalDesErrorCallback(const rm_msgs::GimbalDesError::ConstPtr &data) {
     upper_gimbal_des_error_ = *data;
   }
 
   void refereeCB(const rm_msgs::RefereeConstPtr &data) {}
-
-  void initSerial() {
-    serial::Timeout timeout = serial::Timeout::simpleTimeout(50);
-    serial_.setPort("/dev/usbReferee");
-    serial_.setBaudrate(115200);
-    serial_.setTimeout(timeout);
-    if (serial_.isOpen())
-      return;
-    try {
-      serial_.open();
-    } catch (serial::IOException &e) {
-      ROS_ERROR("Cannot open referee port");
-    }
-  }
 
   sensor_msgs::JointState joint_state_;
   rm_msgs::DbusData dbus_data_;
@@ -95,7 +84,6 @@ public:
   rm_msgs::GimbalDesError lower_gimbal_des_error_, upper_gimbal_des_error_;
   rm_common::Referee referee_;
   rm_msgs::GameRobotStatus game_robot_status_;
-  serial::Serial serial_;
 };
 
 class SideCommandSender {

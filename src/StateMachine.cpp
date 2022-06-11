@@ -159,36 +159,30 @@ void StateMachine::setTrack(SideCommandSender *side_cmd_sender) {
 }
 
 void StateMachine::checkReferee(const ros::Time &time) {
-  if (fsm_data_.referee_.referee_data_.game_robot_status_
-          .mains_power_chassis_output_ &&
+  if (fsm_data_.game_robot_status_.mains_power_chassis_output_ &&
       !chassis_output_) {
     ROS_INFO("Chassis output ON");
     chassisOutputOn();
   }
-  if (fsm_data_.referee_.referee_data_.game_robot_status_
-          .mains_power_gimbal_output_ &&
+  if (fsm_data_.game_robot_status_.mains_power_gimbal_output_ &&
       !gimbal_output_) {
     ROS_INFO("Gimbal output ON");
     gimbalOutputOn();
   }
-  if (fsm_data_.referee_.referee_data_.game_robot_status_
-          .mains_power_shooter_output_ &&
+  if (fsm_data_.game_robot_status_.mains_power_shooter_output_ &&
       !shooter_output_) {
     ROS_INFO("Shooter output ON");
     shooterOutputOn();
   }
-  if (fsm_data_.referee_.referee_data_.game_robot_status_
-          .mains_power_chassis_output_)
+  if (fsm_data_.game_robot_status_.mains_power_chassis_output_)
     chassis_output_ = true;
   else
     chassis_output_ = false;
-  if (fsm_data_.referee_.referee_data_.game_robot_status_
-          .mains_power_gimbal_output_)
+  if (fsm_data_.game_robot_status_.mains_power_gimbal_output_)
     gimbal_output_ = true;
   else
     gimbal_output_ = false;
-  if (fsm_data_.referee_.referee_data_.game_robot_status_
-          .mains_power_shooter_output_)
+  if (fsm_data_.game_robot_status_.mains_power_shooter_output_)
     shooter_output_ = true;
   else
     shooter_output_ = false;
@@ -209,16 +203,12 @@ void StateMachine::checkSwitch(const ros::Time &time) {
 
 void StateMachine::chassisOutputOn() {
   ROS_INFO("Chassis output ON");
-  chassis_cmd_sender_->power_limit_->updateState(rm_common::PowerLimit::CHARGE);
+  catapult_calibration_->reset();
 }
 
 void StateMachine::gimbalOutputOn() { ROS_INFO("Gimbal output ON"); }
 
-void StateMachine::shooterOutputOn() {
-  ROS_INFO("Shooter output ON");
-  lower_trigger_calibration_->reset();
-  lower_cmd_sender_->shooter_cmd_sender_->setMode(rm_msgs::ShootCmd::STOP);
-}
+void StateMachine::shooterOutputOn() { ROS_INFO("Shooter output ON"); }
 
 void StateMachine::remoteControlTurnOff() {
   controller_manager_.stopMainControllers();
@@ -227,21 +217,11 @@ void StateMachine::remoteControlTurnOff() {
 
 void StateMachine::remoteControlTurnOn() {
   controller_manager_.startMainControllers();
-  catapult_calibration_->reset();
   lower_gimbal_calibration_->reset();
   upper_gimbal_calibration_->reset();
 }
 
 void StateMachine::cruiseRun() {
-  try {
-    if (fsm_data_.serial_.available()) {
-      fsm_data_.referee_.rx_len_ = (int)fsm_data_.serial_.available();
-      fsm_data_.serial_.read(fsm_data_.referee_.rx_buffer_,
-                             fsm_data_.referee_.rx_len_);
-    }
-  } catch (serial::IOException &e) {
-  }
-  fsm_data_.referee_.read();
   checkReferee(ros::Time::now());
   checkSwitch(ros::Time::now());
   update(ros::Time::now());
@@ -250,12 +230,6 @@ void StateMachine::cruiseRun() {
   cruiseShooter(lower_cmd_sender_);
   cruiseShooter(upper_cmd_sender_);
   sendCruiseCommand(ros::Time::now());
-  try {
-    fsm_data_.serial_.write(fsm_data_.referee_.tx_buffer_,
-                            fsm_data_.referee_.tx_len_);
-  } catch (serial::PortNotOpenedException &e) {
-  }
-  fsm_data_.referee_.clearBuffer();
   lower_trigger_calibration_->reset();
   catapult_calibration_->update(ros::Time::now());
   lower_gimbal_calibration_->update(ros::Time::now());
@@ -263,27 +237,12 @@ void StateMachine::cruiseRun() {
 }
 
 void StateMachine::rawRun() {
-  try {
-    if (fsm_data_.serial_.available()) {
-      fsm_data_.referee_.rx_len_ = (int)fsm_data_.serial_.available();
-      fsm_data_.serial_.read(fsm_data_.referee_.rx_buffer_,
-                             fsm_data_.referee_.rx_len_);
-    }
-  } catch (serial::IOException &e) {
-  }
-  fsm_data_.referee_.read();
   checkReferee(ros::Time::now());
   checkSwitch(ros::Time::now());
   rawGimbal(lower_cmd_sender_);
   rawGimbal(upper_cmd_sender_);
   rawShooter();
   sendRawCommand(ros::Time::now());
-  try {
-    fsm_data_.serial_.write(fsm_data_.referee_.tx_buffer_,
-                            fsm_data_.referee_.tx_len_);
-  } catch (serial::PortNotOpenedException &e) {
-  }
-  fsm_data_.referee_.clearBuffer();
   lower_trigger_calibration_->reset();
   catapult_calibration_->update(ros::Time::now());
   lower_gimbal_calibration_->update(ros::Time::now());

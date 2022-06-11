@@ -24,9 +24,6 @@ rm_fsm:
       - [ 30.0,0.0 ]
   auto:
     auto_linear_x: 1.0
-    move_distance: 2.7
-    stop_distance: 0.5
-    collision_effort: 0.8
   lower:
     gimbal:
       topic: "/controllers/lower_gimbal_controller/command"
@@ -50,7 +47,7 @@ rm_fsm:
         safe_shoot_frequency: 5
         heat_coeff: 8.0
         type: "ID1_17MM"
-    auto: { pitch: [ -0.098, 0.56 ], yaw: [ 0.0, 4.4 ] }
+    auto: { pitch: [ 0.03, 0.75 ], yaw: [ -2.75, 1.2 ] }
   upper:
     gimbal:
       topic: "/controllers/upper_gimbal_controller/command"
@@ -74,7 +71,7 @@ rm_fsm:
         safe_shoot_frequency: 5
         heat_coeff: 8.0
         type: "ID1_17MM"
-    auto: { pitch: [ 0.02, 0.40 ], yaw: [ -2.5, 2.2 ] }
+    auto: { pitch: [ -0.012, 0.46 ], yaw: [ -2.2, 2.1 ] }
   controllers_list:
     state_controllers:
       - controllers/robot_state_controller
@@ -111,10 +108,12 @@ rm_fsm:
   upper_gimbal_calibration:
     - start_controllers:
         - controllers/upper_pitch_calibration_controller
+        - controllers/upper_yaw_calibration_controller
       stop_controllers:
         - controllers/upper_gimbal_controller
       services_name:
         - /controllers/upper_pitch_calibration_controller/is_calibrated
+        - /controllers/upper_yaw_calibration_controller/is_calibrated
   catapult_calibration:
     - start_controllers:
         - controllers/catapult_calibration_controller
