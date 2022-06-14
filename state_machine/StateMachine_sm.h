@@ -39,6 +39,7 @@ public:
 
     virtual void dbusUpdate(StateMachineContext& context, rm_msgs::DbusData data_dbus_);
     virtual void radarUpdate(StateMachineContext& context);
+    virtual void waitForUpdate(StateMachineContext& context);
 
 protected:
 
@@ -63,8 +64,8 @@ public:
     : StateMachineState(name, stateId)
     {};
 
-    virtual void radarUpdate(StateMachineContext& context);
     virtual void dbusUpdate(StateMachineContext& context, rm_msgs::DbusData data_dbus_);
+    virtual void radarUpdate(StateMachineContext& context);
 };
 
 class StateMachineMap_Idle :
@@ -76,6 +77,7 @@ public:
     {};
 
     virtual void dbusUpdate(StateMachineContext& context, rm_msgs::DbusData data_dbus_);
+    virtual void waitForUpdate(StateMachineContext& context);
 };
 
 class StateMachineMap_Raw :
@@ -88,6 +90,7 @@ public:
 
     virtual void Entry(StateMachineContext&);
     virtual void dbusUpdate(StateMachineContext& context, rm_msgs::DbusData data_dbus_);
+    virtual void waitForUpdate(StateMachineContext& context);
 };
 
 class StateMachineMap_Cruise :
@@ -101,6 +104,7 @@ public:
     virtual void Entry(StateMachineContext&);
     virtual void dbusUpdate(StateMachineContext& context, rm_msgs::DbusData data_dbus_);
     virtual void radarUpdate(StateMachineContext& context);
+    virtual void waitForUpdate(StateMachineContext& context);
 };
 
 class StateMachineContext :
@@ -147,6 +151,11 @@ public:
     inline void radarUpdate()
     {
         getState().radarUpdate(*this);
+    };
+
+    inline void waitForUpdate()
+    {
+        getState().waitForUpdate(*this);
     };
 
 private:

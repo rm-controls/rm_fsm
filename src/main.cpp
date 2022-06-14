@@ -18,10 +18,11 @@ int main(int argc, char **argv) {
   }
   StateMachine sm(fsm_nh);
   ROS_INFO("Enter sentry robot.");
-  ros::Rate loop_rate(150);
+  ros::Rate loop_rate(100);
   while (ros::ok()) {
     ros::spinOnce();
     loop_rate.sleep();
+    sm.waitForUpdate();
   }
   return 0;
 }

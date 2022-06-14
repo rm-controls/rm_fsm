@@ -31,11 +31,13 @@ public:
       return false;
   }
 
+  void waitForUpdate() { context_.waitForUpdate(); }
+
   void changeVel() { auto_linear_x_ *= -1.; }
 
   void initRaw();
 
-  void update(const ros::Time &time);
+  void updateRandom(const ros::Time &time);
 
   void initCruise();
 
@@ -56,7 +58,7 @@ public:
 
   void rawGimbal(SideCommandSender *side_command_sender);
 
-  void rawShooter();
+  void rawShooter(SideCommandSender *side_command_sender);
 
   // referee
   void chassisOutputOn();
@@ -77,7 +79,6 @@ public:
   void rawRun();
 
   void checkSwitch(const ros::Time &time);
-  void readReferee();
 
   ros::Time last_time_ = ros::Time::now();
   double rand_time_ = 0.8;
@@ -91,7 +92,7 @@ protected:
 
   rm_common::CalibrationQueue *lower_trigger_calibration_{},
       *lower_gimbal_calibration_{}, *upper_gimbal_calibration_{},
-      *catapult_calibration_{};
+      *catapult_calibration_{}, *upper_trigger_calibration_{};
   rm_common::ControllerManager controller_manager_;
   // calibrate
   rm_common::ChassisCommandSender *chassis_cmd_sender_;
@@ -117,8 +118,7 @@ protected:
   }
 
   void leftRadarCB(const rm_msgs::TfRadarDataConstPtr &radar_data) {
-    left_radar_ = *radar_data;
-    if (radar_data->distance < 1.0 && auto_linear_x_ > 0) {
+    if (radar_data->distance < 1.2 && auto_linear_x_ > 0) {
       context_.radarUpdate();
       last_time_ = ros::Time::now();
       rand_time_ = generator_(random_);
@@ -126,8 +126,7 @@ protected:
   }
 
   void rightRadarCB(const rm_msgs::TfRadarDataConstPtr &radar_data) {
-    right_radar_ = *radar_data;
-    if (radar_data->distance < 1.0 && auto_linear_x_ < 0) {
+    if (radar_data->distance < 1.2 && auto_linear_x_ < 0) {
       context_.radarUpdate();
       last_time_ = ros::Time::now();
       rand_time_ = generator_(random_);

@@ -12,13 +12,13 @@ digraph StateMachine {
         //
 
         "StateMachineMap::Idle"
-            [label="{Idle|dbusUpdate/\lradarUpdate/\l&nbsp;&nbsp;&nbsp;changeVel;\l}"];
+            [label="{Idle|waitForUpdate/\ldbusUpdate/\lradarUpdate/\l}"];
 
         "StateMachineMap::Raw"
-            [label="{Raw|Entry/\l&nbsp;&nbsp;&nbsp;rawChassis;\l|dbusUpdate/\l&nbsp;&nbsp;&nbsp;rawRun;\lradarUpdate/\l&nbsp;&nbsp;&nbsp;changeVel;\l}"];
+            [label="{Raw|Entry/\l&nbsp;&nbsp;&nbsp;rawChassis;\l|waitForUpdate/\l&nbsp;&nbsp;&nbsp;rawRun;\ldbusUpdate/\lradarUpdate/\l}"];
 
         "StateMachineMap::Cruise"
-            [label="{Cruise|Entry/\l&nbsp;&nbsp;&nbsp;cruiseChassis;\l|dbusUpdate/\l&nbsp;&nbsp;&nbsp;cruiseRun;\lradarUpdate/\l&nbsp;&nbsp;&nbsp;changeVel;\l}"];
+            [label="{Cruise|Entry/\l&nbsp;&nbsp;&nbsp;cruiseChassis;\l|radarUpdate/\l&nbsp;&nbsp;&nbsp;changeVel;\lwaitForUpdate/\l&nbsp;&nbsp;&nbsp;cruiseRun;\ldbusUpdate/\l}"];
 
         "%start"
             [label="" shape=circle style=filled fillcolor=black width=0.25];

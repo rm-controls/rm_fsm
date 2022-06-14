@@ -44,7 +44,7 @@ rm_fsm:
         expect_shoot_frequency_2: 8
         expect_shoot_frequency_3: 12
         burst_shoot_frequency: 20
-        safe_shoot_frequency: 5
+        safe_shoot_frequency: 20
         heat_coeff: 8.0
         type: "ID1_17MM"
     auto: { pitch: [ 0.03, 0.75 ], yaw: [ -2.75, 1.2 ] }
@@ -68,7 +68,7 @@ rm_fsm:
         expect_shoot_frequency_2: 8
         expect_shoot_frequency_3: 12
         burst_shoot_frequency: 20
-        safe_shoot_frequency: 5
+        safe_shoot_frequency: 20
         heat_coeff: 8.0
         type: "ID1_17MM"
     auto: { pitch: [ -0.012, 0.46 ], yaw: [ -2.2, 2.1 ] }
@@ -82,9 +82,11 @@ rm_fsm:
       - controllers/lower_gimbal_controller
       - controllers/upper_gimbal_controller
       - controllers/lower_shooter_controller
+      - controllers/upper_shooter_controller
     calibration_controllers:
       - controllers/upper_pitch_calibration_controller
       - controllers/lower_trigger_calibration_controller
+      - controllers/upper_trigger_calibration_controller
       - controllers/lower_pitch_calibration_controller
       - controllers/catapult_calibration_controller
       - controllers/lower_yaw_calibration_controller
@@ -96,6 +98,13 @@ rm_fsm:
         - controllers/lower_shooter_controller
       services_name:
         - /controllers/lower_trigger_calibration_controller/is_calibrated
+  upper_trigger_calibration:
+    - start_controllers:
+        - controllers/upper_trigger_calibration_controller
+      stop_controllers:
+        - controllers/upper_shooter_controller
+      services_name:
+        - /controllers/upper_trigger_calibration_controller/is_calibrated
   lower_gimbal_calibration:
     - start_controllers:
         - controllers/lower_pitch_calibration_controller

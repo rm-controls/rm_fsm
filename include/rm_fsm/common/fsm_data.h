@@ -8,7 +8,9 @@
 #include <rm_common/decision/command_sender.h>
 #include <rm_common/referee/referee.h>
 #include <rm_msgs/DbusData.h>
+#include <rm_msgs/EventData.h>
 #include <rm_msgs/GameRobotStatus.h>
+#include <rm_msgs/GameStatus.h>
 #include <rm_msgs/GimbalDesError.h>
 #include <rm_msgs/TfRadarData.h>
 #include <rm_msgs/TrackData.h>
@@ -63,13 +65,17 @@ public:
     lower_gimbal_des_error_ = *data;
   }
 
+  void
+  upperGimbalDesErrorCallback(const rm_msgs::GimbalDesError::ConstPtr &data) {
+    upper_gimbal_des_error_ = *data;
+  }
+
   void robotGameStatusCallback(const rm_msgs::GameRobotStatus::ConstPtr &data) {
     game_robot_status_ = *data;
   }
 
-  void
-  upperGimbalDesErrorCallback(const rm_msgs::GimbalDesError::ConstPtr &data) {
-    upper_gimbal_des_error_ = *data;
+  void gameStatusCallback(const rm_msgs::GameStatus::ConstPtr &data) {
+    game_status_ = *data;
   }
 
   void refereeCB(const rm_msgs::RefereeConstPtr &data) {}
@@ -84,6 +90,7 @@ public:
   rm_msgs::GimbalDesError lower_gimbal_des_error_, upper_gimbal_des_error_;
   rm_common::Referee referee_;
   rm_msgs::GameRobotStatus game_robot_status_;
+  rm_msgs::GameStatus game_status_;
 };
 
 class SideCommandSender {

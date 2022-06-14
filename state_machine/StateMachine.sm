@@ -29,7 +29,7 @@ Idle
         {
             initRaw();
         }
-    dbusUpdate(data_dbus_: rm_msgs::DbusData)
+    waitForUpdate()
         nil {}
 }
 
@@ -44,7 +44,7 @@ Raw
         {
             initCruise();
         }
-    dbusUpdate(data_dbus_: rm_msgs::DbusData)
+    waitForUpdate()
         nil
         {
             rawRun();
@@ -67,7 +67,7 @@ Cruise
         {
             changeVel();
         }
-    dbusUpdate(data_dbus_: rm_msgs::DbusData)
+    waitForUpdate()
         nil
         {
             cruiseRun();
@@ -76,22 +76,13 @@ Cruise
 
 Default
 {
+    dbusUpdate(data_dbus_: rm_msgs::DbusData)
+        nil
+        {
+        }
     radarUpdate()
         nil
         {
-            changeVel();
-        }
-    dbusUpdate(data_dbus_: rm_msgs::DbusData)
-        [ ctxt.isCruise(data_dbus_) == true ]
-        Cruise
-        {
-            initCruise();
-        }
-    dbusUpdate(data_dbus_: rm_msgs::DbusData)
-        [ ctxt.isRaw(data_dbus_) == true ]
-        Raw
-        {
-            initRaw();
         }
 }
 %%
