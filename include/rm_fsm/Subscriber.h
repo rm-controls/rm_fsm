@@ -21,9 +21,12 @@ public:
   explicit Subscriber(StateMachineContext &fsm_context)
       : context_(fsm_context) {
     ros::NodeHandle nh;
-    dbus_sub_ = nh.subscribe<rm_msgs::DbusData>("/dbus_data", 10,
-                                                &Subscriber::dbusUpdate, this);
-
+    dbus_sub_ = nh.subscribe<rm_msgs::DbusData>(
+        "/dbus_data", 10, &Subscriber::dbusCallback, this);
+    game_robot_status_sub_ = nh.subscribe<rm_msgs::GameRobotStatus>(
+        "/game_robot_status", 10, &Subscriber::robotGameStatusCallback, this);
+    game_status_sub_ = nh.subscribe<rm_msgs::GameStatus>(
+        "/game_status", 10, &Subscriber::gameStatusCallback, this);
     //    lower_track_sub_ = nh.subscribe<rm_msgs::TrackData>(
     //        "/controllers/lower_gimbal_controller/track", 10,
     //        &FsmData::lowerTrackCallback, this);
@@ -36,11 +39,7 @@ public:
     //    upper_gimbal_des_error_sub_ = nh.subscribe<rm_msgs::GimbalDesError>(
     //        "/controllers/upper_gimbal_controller/error_des", 10,
     //        &FsmData::upperGimbalDesErrorCallback, this);
-    //    game_robot_status_sub_ = nh.subscribe<rm_msgs::GameRobotStatus>(
-    //        "/game_robot_status", 10, &FsmData::robotGameStatusCallback,
-    //        this);
-    //    game_status_sub_ = nh.subscribe<rm_msgs::GameStatus>(
-    //        "/game_status", 10, &FsmData::gameStatusCallback, this);
+
     //    joint_state_sub_ = nh.subscribe<sensor_msgs::JointState>(
     //        "/joint_states", 10, &FsmData::jointStateCallback, this);
     //    left_radar_sub_ = nh.subscribe<rm_msgs::TfRadarData>(
@@ -55,8 +54,17 @@ public:
   rm_common::RefereeData referee_;
 
 private:
-  void dbusUpdate(const DbusData::ConstPtr &data) {
+  void dbusCallback(const DbusData::ConstPtr &data) {
     context_.dbusUpdate(*data);
+  }
+  void robotGameStatusCallback(const GameRobotStatus::ConstPtr &data) {
+    referee_.game_robot_status_.chassis_power_limit_ =
+        data->chassis_power_limit;
+    referee_.game_robot_status_.robot_id_ = data->robot_id;
+  }
+  void gameStatusCallback(const GameStatus::ConstPtr &data) {
+    referee_.game_status_.game_type_ = data->game_type;
+    referee_.game_status_.game_progress_ = data->game_progress;
   }
 
   StateMachineContext &context_;

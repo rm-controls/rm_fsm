@@ -4,12 +4,15 @@
 #include "rm_fsm/StateMachine.h"
 
 StateMachine::StateMachine(ros::NodeHandle &nh)
-    : context_(*this), subscriber_(context_), controller_manager_(nh) {
+    : controller_manager_(nh), context_(*this), subscriber_(context_) {
   try {
-    XmlRpc::XmlRpcValue calibrate_queue;
-    nh.getParam("calibrate_queue", calibrate_queue);
-    calibrate_queue_ = new rm_common::CalibrationQueue(calibrate_queue, nh,
-                                                       controller_manager_);
+    XmlRpc::XmlRpcValue gimbal_calibration, shooter_calibration;
+    nh.getParam("gimbal_calibration", gimbal_calibration);
+    gimbal_calibration_ = new rm_common::CalibrationQueue(
+        gimbal_calibration, nh, controller_manager_);
+    nh.getParam("shooter_calibration", shooter_calibration);
+    shooter_calibration_ = new rm_common::CalibrationQueue(
+        shooter_calibration, nh, controller_manager_);
   } catch (XmlRpc::XmlRpcException &e) {
     ROS_ERROR("%s", e.getMessage().c_str());
   }
@@ -23,49 +26,18 @@ StateMachine::StateMachine(ros::NodeHandle &nh)
   vel_2d_cmd_sender_ = new rm_common::Vel2DCommandSender(vel_nh);
 
   ros::NodeHandle auto_nh(nh, "auto");
-  if (!auto_nh.getParam("auto_linear_x", auto_linear_x_)) {
-    ROS_ERROR("Can not find auto_linear_x");
+  if (!auto_nh.getParam("auto_linear_vel", auto_linear_vel_)) {
+    ROS_ERROR("Can not find auto_linear_vel");
   }
 
   controller_manager_.startStateControllers();
   context_.enterStartState();
 }
 
-void StateMachine::checkSwitch(const ros::Time &time, rm_msgs::DbusData data) {
-  if (remote_is_open_ && (time - data.stamp).toSec() > 0.3) {
-    ROS_INFO("Remote controller OFF");
-    remoteControlTurnOff();
-    remote_is_open_ = false;
-  }
-  if (!remote_is_open_ && (time - data.stamp).toSec() < 0.3) {
-    ROS_INFO("Remote controller ON");
-    remoteControlTurnOn();
-    remote_is_open_ = true;
-  }
-}
-
-// void StateMachine::chassisOutputOn() {
-//   ROS_INFO("Chassis output ON");
-//   catapult_calibration_->reset();
-// }
-//
-// void StateMachine::gimbalOutputOn() {
-//   ROS_INFO("Gimbal output ON");
-//   lower_gimbal_calibration_->reset();
-//   upper_gimbal_calibration_->reset();
-// }
-//
-// void StateMachine::shooterOutputOn() {
-//   ROS_INFO("Shooter output ON");
-//   lower_trigger_calibration_->reset();
-//   upper_trigger_calibration_->reset();
-// }
-
-void StateMachine::remoteControlTurnOff() {
-  controller_manager_.stopMainControllers();
-  controller_manager_.stopCalibrationControllers();
-}
-
-void StateMachine::remoteControlTurnOn() {
-  controller_manager_.startMainControllers();
+void StateMachine::sendManualCmd(const DbusData &data) {
+  ros::Time time = ros::Time::now();
+  chassis_cmd_sender_->setMode(rm_msgs::ChassisCmd::RAW);
+  chassis_cmd_sender_->sendCommand(time);
+  vel_2d_cmd_sender_->setLinearXVel(data.ch_r_x);
+  vel_2d_cmd_sender_->sendCommand(time);
 }

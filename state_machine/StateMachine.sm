@@ -9,6 +9,7 @@
 %import rm_msgs
 
 %declare #include <rm_msgs/DbusData.h>
+%declare #include <rm_common/referee/data.h>
 
 %declare using namespace rm_msgs;
 
@@ -29,6 +30,8 @@
 Stop
     Entry {
     info("Stop state entered");
+    controller_manager_.stopMainControllers();
+    controller_manager_.stopCalibrationControllers();
     }
 {
     dbusUpdate(data: const DbusData &)
@@ -44,26 +47,54 @@ Idle
 {
     dbusUpdate(data: const DbusData &)
         [ data.s_r == DbusData::MID ]
-        Raw
+        Manual
         {
         }
 }
 
-Raw
+Manual
     Entry {
     info("Raw state entered");
     }
 {
     dbusUpdate(data: const DbusData &)
         [ data.s_r == DbusData::DOWN ]
-        Raw
+        Idle
+        {
+        }
+    dbusUpdate(data: const DbusData &)
+        [ data.s_r == DbusData::UP ]
+        Idle
+        {
+        }
+    dbusUpdate(data: const DbusData &)
+        nil
+        {
+            sendManualCmd(data);
+        }
+}
+
+Cruise
+    Entry {
+            info("Cruise state entered");
+    }
+{
+    dbusUpdate(data: const DbusData &)
+        [ data.s_r == DbusData::MID ]
+        Manual
         {
         }
 }
 
 Default
 {
-
-
+    dbusUpdate(data: const DbusData &)
+        nil
+        {
+        }
+    refereeUpdate(data: const rm_common::RefereeData &)
+        nil
+        {
+        }
 }
 %%

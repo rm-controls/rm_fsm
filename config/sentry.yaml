@@ -23,7 +23,7 @@ rm_fsm:
     max_angular_z:
       - [ 30.0,0.0 ]
   auto:
-    auto_linear_x: 1.0
+    auto_linear_vel: 1.0
   lower:
     gimbal:
       topic: "/controllers/lower_gimbal_controller/command"
@@ -93,21 +93,17 @@ rm_fsm:
       - controllers/catapult_calibration_controller
       - controllers/lower_yaw_calibration_controller
       - controllers/upper_yaw_calibration_controller
-  lower_trigger_calibration:
+  shooter_calibration:
     - start_controllers:
         - controllers/lower_trigger_calibration_controller
-      stop_controllers:
-        - controllers/lower_shooter_controller
-      services_name:
-        - /controllers/lower_trigger_calibration_controller/is_calibrated
-  upper_trigger_calibration:
-    - start_controllers:
         - controllers/upper_trigger_calibration_controller
       stop_controllers:
+        - controllers/lower_shooter_controller
         - controllers/upper_shooter_controller
       services_name:
+        - /controllers/lower_trigger_calibration_controller/is_calibrated
         - /controllers/upper_trigger_calibration_controller/is_calibrated
-  lower_gimbal_calibration:
+  gimbal_calibration:
     - start_controllers:
         - controllers/lower_pitch_calibration_controller
         - controllers/lower_yaw_calibration_controller
