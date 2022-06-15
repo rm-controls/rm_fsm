@@ -1,7 +1,18 @@
-
-%start StateMachineMap::Idle
 %class StateMachine
 %header rm_fsm/StateMachine.h
+
+%include <rm_msgs/DbusData.h>
+%include <rm_msgs/TofRadarData.h>
+%include <rm_msgs/GameRobotStatus.h>
+%include <rm_msgs/GameStatus.h>
+%include <sensor_msgs/JointState.h>
+%import rm_msgs
+
+%declare #include <rm_msgs/DbusData.h>
+
+%declare using namespace rm_msgs;
+
+%start StateMachineMap::Stop
 
 %map StateMachineMap
 %%
@@ -15,74 +26,44 @@
 //      {Action}
 // }
 
-Idle
+Stop
+    Entry {
+    info("Stop state entered");
+    }
 {
-    dbusUpdate(data_dbus_: rm_msgs::DbusData)
-        [ ctxt.isCruise(data_dbus_) == true ]
-        Cruise
+    dbusUpdate(data: const DbusData &)
+        Idle
         {
-            initCruise();
         }
-    dbusUpdate(data_dbus_: rm_msgs::DbusData)
-        [ ctxt.isRaw(data_dbus_) == true ]
+}
+
+Idle
+    Entry {
+    info("Idle state entered");
+    }
+{
+    dbusUpdate(data: const DbusData &)
+        [ data.s_r == DbusData::MID ]
         Raw
         {
-            initRaw();
         }
-    waitForUpdate()
-        nil {}
 }
 
 Raw
     Entry {
-            rawChassis();
+    info("Raw state entered");
     }
 {
-    dbusUpdate(data_dbus_: rm_msgs::DbusData)
-        [ ctxt.isCruise(data_dbus_) == true ]
-        Cruise
-        {
-            initCruise();
-        }
-    waitForUpdate()
-        nil
-        {
-            rawRun();
-        }
-}
-
-Cruise
-    Entry {
-            cruiseChassis();
-    }
-{
-    dbusUpdate(data_dbus_: rm_msgs::DbusData)
-        [ ctxt.isRaw(data_dbus_) == true ]
+    dbusUpdate(data: const DbusData &)
+        [ data.s_r == DbusData::DOWN ]
         Raw
         {
-            initRaw();
-        }
-    radarUpdate()
-        nil
-        {
-            changeVel();
-        }
-    waitForUpdate()
-        nil
-        {
-            cruiseRun();
         }
 }
 
 Default
 {
-    dbusUpdate(data_dbus_: rm_msgs::DbusData)
-        nil
-        {
-        }
-    radarUpdate()
-        nil
-        {
-        }
+
+
 }
 %%

@@ -75,7 +75,7 @@ include_directories(
 
 
 ## Declare cpp executables
-FILE(GLOB ALL_SOURCES "src/*.cpp" "src/common/*.cpp" "src/referee/*.cpp" "state_machine/*.cpp")
+FILE(GLOB ALL_SOURCES "src/*.cpp" "state_machine/*.cpp")
 add_executable(${PROJECT_NAME} ${ALL_SOURCES})
 
 ## Add dependencies to exported targets, like ROS msgs or srvs

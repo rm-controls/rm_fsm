@@ -3,7 +3,6 @@
 //
 
 #include "rm_fsm/StateMachine.h"
-#include "rm_fsm/common/fsm_data.h"
 
 int main(int argc, char **argv) {
   std::string robot;
@@ -18,11 +17,6 @@ int main(int argc, char **argv) {
   }
   StateMachine sm(fsm_nh);
   ROS_INFO("Enter sentry robot.");
-  ros::Rate loop_rate(100);
-  while (ros::ok()) {
-    ros::spinOnce();
-    loop_rate.sleep();
-    sm.waitForUpdate();
-  }
+  ros::spin();
   return 0;
 }
