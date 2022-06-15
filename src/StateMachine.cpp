@@ -34,10 +34,13 @@ StateMachine::StateMachine(ros::NodeHandle &nh)
   context_.enterStartState();
 }
 
-void StateMachine::sendManualCmd(const DbusData &data) {
+void StateMachine::sendChassisCmd(bool is_auto, const DbusData &data) {
   ros::Time time = ros::Time::now();
   chassis_cmd_sender_->setMode(rm_msgs::ChassisCmd::RAW);
   chassis_cmd_sender_->sendCommand(time);
-  vel_2d_cmd_sender_->setLinearXVel(data.ch_r_x);
+  if (is_auto)
+    vel_2d_cmd_sender_->setLinearXVel(auto_linear_vel_);
+  else
+    vel_2d_cmd_sender_->setLinearXVel(data.ch_r_x);
   vel_2d_cmd_sender_->sendCommand(time);
 }

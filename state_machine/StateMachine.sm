@@ -9,6 +9,7 @@
 %import rm_msgs
 
 %declare #include <rm_msgs/DbusData.h>
+%declare #include <rm_msgs/TofRadarData.h>
 %declare #include <rm_common/referee/data.h>
 
 %declare using namespace rm_msgs;
@@ -43,6 +44,7 @@ Stop
 Idle
     Entry {
     info("Idle state entered");
+    controller_manager_.startMainControllers();
     }
 {
     dbusUpdate(data: const DbusData &)
@@ -64,13 +66,13 @@ Manual
         }
     dbusUpdate(data: const DbusData &)
         [ data.s_r == DbusData::UP ]
-        Idle
+        Cruise
         {
         }
     dbusUpdate(data: const DbusData &)
         nil
         {
-            sendManualCmd(data);
+            sendChassisCmd(false, data);
         }
 }
 
@@ -84,6 +86,23 @@ Cruise
         Manual
         {
         }
+    dbusUpdate(data: const DbusData &)
+        nil
+        {
+            sendChassisCmd(true, data);
+        }
+    leftRadarCB(data: const TofRadarData &)
+        [ data.distance < ctxt.safety_distance_ && ctxt.auto_linear_vel_ > 0 ]
+        nil
+        {
+            catapult();
+        }
+    rightRadarCB(data: const TofRadarData &)
+        [ data.distance < ctxt.safety_distance_ && ctxt.auto_linear_vel_ < 0 ]
+        nil
+        {
+            catapult();
+        }
 }
 
 Default
@@ -93,6 +112,14 @@ Default
         {
         }
     refereeUpdate(data: const rm_common::RefereeData &)
+        nil
+        {
+        }
+    leftRadarCB(data: const TofRadarData &)
+        nil
+        {
+        }
+    rightRadarCB(data: const TofRadarData &)
         nil
         {
         }
