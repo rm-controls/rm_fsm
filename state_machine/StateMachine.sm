@@ -1,0 +1,88 @@
+
+%start StateMachineMap::Idle
+%class StateMachine
+%header rm_fsm/StateMachine.h
+
+%map StateMachineMap
+%%
+
+// Syntax:
+//
+// State {
+//  TransitionEvent
+//      [guard]
+//      NextState
+//      {Action}
+// }
+
+Idle
+{
+    dbusUpdate(data_dbus_: rm_msgs::DbusData)
+        [ ctxt.isCruise(data_dbus_) == true ]
+        Cruise
+        {
+            initCruise();
+        }
+    dbusUpdate(data_dbus_: rm_msgs::DbusData)
+        [ ctxt.isRaw(data_dbus_) == true ]
+        Raw
+        {
+            initRaw();
+        }
+    waitForUpdate()
+        nil {}
+}
+
+Raw
+    Entry {
+            rawChassis();
+    }
+{
+    dbusUpdate(data_dbus_: rm_msgs::DbusData)
+        [ ctxt.isCruise(data_dbus_) == true ]
+        Cruise
+        {
+            initCruise();
+        }
+    waitForUpdate()
+        nil
+        {
+            rawRun();
+        }
+}
+
+Cruise
+    Entry {
+            cruiseChassis();
+    }
+{
+    dbusUpdate(data_dbus_: rm_msgs::DbusData)
+        [ ctxt.isRaw(data_dbus_) == true ]
+        Raw
+        {
+            initRaw();
+        }
+    radarUpdate()
+        nil
+        {
+            changeVel();
+        }
+    waitForUpdate()
+        nil
+        {
+            cruiseRun();
+        }
+}
+
+Default
+{
+    dbusUpdate(data_dbus_: rm_msgs::DbusData)
+        nil
+        {
+        }
+    radarUpdate()
+        nil
+        {
+        }
+}
+%%
