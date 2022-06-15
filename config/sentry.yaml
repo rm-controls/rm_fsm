@@ -13,7 +13,7 @@ rm_fsm:
     charge_power: 20.0
     extra_power: 30.0
     burst_power: 200.0
-    safety_distance: 1.0
+    safety_distance: 1.2
   vel:
     topic: "/cmd_vel"
     max_linear_x:
@@ -79,7 +79,9 @@ rm_fsm:
     main_controllers:
       - controllers/chassis_controller
       - controllers/tf_radar_controller
+      - controllers/lower_orientation_controller
       - controllers/lower_gimbal_controller
+      - controllers/upper_orientation_controller
       - controllers/upper_gimbal_controller
       - controllers/lower_shooter_controller
       - controllers/upper_shooter_controller

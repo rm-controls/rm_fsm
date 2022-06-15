@@ -19,38 +19,10 @@
 #include <tf2_ros/transform_listener.h>
 
 class FsmData {
-private:
-  void
-  jointStateCallback(const sensor_msgs::JointState::ConstPtr &joint_state) {
-    joint_state_ = *joint_state;
-    if (!joint_state_.position.empty()) {
-      lower_yaw_ = joint_state_.position[6];
-      lower_pitch_ = joint_state_.position[3];
-      upper_yaw_ = joint_state_.position[11];
-      upper_pitch_ = joint_state_.position[8];
-    }
-  }
-
-  void dbusDataCallback(const rm_msgs::DbusData::ConstPtr &data) {
-    dbus_data_ = *data;
-  }
-
-  void robotStatusCallback(const rm_msgs::GameRobotStatusConstPtr &data) {
-    game_robot_status_ = *data;
-  }
-
-  ros::Subscriber joint_state_sub_;
-  ros::Subscriber dbus_sub_;
-  ros::Subscriber lower_track_sub_, upper_track_sub_, game_robot_status_sub_;
-  ros::Subscriber referee_sub_;
-  ros::NodeHandle nh_;
-
 public:
   explicit FsmData();
 
   ~FsmData() = default;
-
-  void update(const ros::Time &time);
 
   void lowerTrackCallback(const rm_msgs::TrackData::ConstPtr &data) {
     lower_track_data_ = *data;
@@ -70,15 +42,13 @@ public:
     upper_gimbal_des_error_ = *data;
   }
 
-  void robotGameStatusCallback(const rm_msgs::GameRobotStatus::ConstPtr &data) {
+  void robotStatusCallback(const rm_msgs::GameRobotStatusConstPtr &data) {
     game_robot_status_ = *data;
   }
 
   void gameStatusCallback(const rm_msgs::GameStatus::ConstPtr &data) {
     game_status_ = *data;
   }
-
-  void refereeCB(const rm_msgs::RefereeConstPtr &data) {}
 
   sensor_msgs::JointState joint_state_;
   rm_msgs::DbusData dbus_data_;
@@ -91,6 +61,29 @@ public:
   rm_common::Referee referee_;
   rm_msgs::GameRobotStatus game_robot_status_;
   rm_msgs::GameStatus game_status_;
+
+private:
+  void
+  jointStateCallback(const sensor_msgs::JointState::ConstPtr &joint_state) {
+    joint_state_ = *joint_state;
+    if (!joint_state_.position.empty()) {
+      lower_yaw_ = joint_state_.position[6];
+      lower_pitch_ = joint_state_.position[3];
+      upper_yaw_ = joint_state_.position[11];
+      upper_pitch_ = joint_state_.position[8];
+    }
+  }
+
+  void dbusDataCallback(const rm_msgs::DbusData::ConstPtr &data) {
+    dbus_data_ = *data;
+  }
+
+  ros::Subscriber joint_state_sub_;
+  ros::Subscriber dbus_sub_;
+  ros::Subscriber lower_track_sub_, upper_track_sub_, game_robot_status_sub_,
+      game_status_sub_;
+  ros::Subscriber referee_sub_;
+  ros::NodeHandle nh_;
 };
 
 class SideCommandSender {

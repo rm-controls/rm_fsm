@@ -7,11 +7,12 @@ StateMachine::StateMachine(ros::NodeHandle &nh)
     : context_(*this), controller_manager_(nh) {
   try {
     XmlRpc::XmlRpcValue lower_trigger_rpc_value, lower_gimbal_rpc_value,
-        upper_gimbal_rpc_value, catapult_rpc_value;
+        upper_gimbal_rpc_value, catapult_rpc_value, upper_trigger_rpc_value;
     nh.getParam("lower_trigger_calibration", lower_trigger_rpc_value);
     nh.getParam("lower_gimbal_calibration", lower_gimbal_rpc_value);
     nh.getParam("upper_gimbal_calibration", upper_gimbal_rpc_value);
     nh.getParam("catapult_calibration", catapult_rpc_value);
+    nh.getParam("upper_trigger_calibration", upper_trigger_rpc_value);
     lower_trigger_calibration_ = new rm_common::CalibrationQueue(
         lower_trigger_rpc_value, nh, controller_manager_);
     lower_gimbal_calibration_ = new rm_common::CalibrationQueue(
@@ -20,6 +21,8 @@ StateMachine::StateMachine(ros::NodeHandle &nh)
         upper_gimbal_rpc_value, nh, controller_manager_);
     catapult_calibration_ = new rm_common::CalibrationQueue(
         catapult_rpc_value, nh, controller_manager_);
+    upper_trigger_calibration_ = new rm_common::CalibrationQueue(
+        upper_trigger_rpc_value, nh, controller_manager_);
   } catch (XmlRpc::XmlRpcException &e) {
     ROS_ERROR("%s", e.getMessage().c_str());
   }
@@ -52,12 +55,11 @@ StateMachine::StateMachine(ros::NodeHandle &nh)
   right_radar_sub_ = nh.subscribe<rm_msgs::TfRadarData>(
       "/controllers/tf_radar_controller/right_tf_radar/data", 10,
       &StateMachine::rightRadarCB, this);
-
   controller_manager_.startStateControllers();
   context_.enterStartState();
 }
 
-void StateMachine::update(const ros::Time &time) {
+void StateMachine::updateRandom(const ros::Time &time) {
   ros::Time begin_time = ros::Time::now();
   if ((begin_time - last_time_).toSec() >= rand_time_) {
     changeVel();
@@ -83,6 +85,7 @@ void StateMachine::sendRawCommand(const ros::Time &time) {
   lower_cmd_sender_->gimbal_cmd_sender_->sendCommand(time);
   upper_cmd_sender_->gimbal_cmd_sender_->sendCommand(time);
   lower_cmd_sender_->shooter_cmd_sender_->sendCommand(time);
+  upper_cmd_sender_->shooter_cmd_sender_->sendCommand(time);
 }
 
 void StateMachine::sendCruiseCommand(const ros::Time &time) {
@@ -91,6 +94,7 @@ void StateMachine::sendCruiseCommand(const ros::Time &time) {
   lower_cmd_sender_->gimbal_cmd_sender_->sendCommand(time);
   upper_cmd_sender_->gimbal_cmd_sender_->sendCommand(time);
   lower_cmd_sender_->shooter_cmd_sender_->sendCommand(time);
+  upper_cmd_sender_->shooter_cmd_sender_->sendCommand(time);
 }
 
 void StateMachine::cruiseChassis() {
@@ -137,13 +141,13 @@ void StateMachine::rawGimbal(SideCommandSender *side_command_sender) {
   }
 }
 
-void StateMachine::rawShooter() {
+void StateMachine::rawShooter(SideCommandSender *side_command_sender) {
   if (fsm_data_.dbus_data_.s_l == rm_msgs::DbusData::UP) {
-    lower_cmd_sender_->shooter_cmd_sender_->setMode(rm_msgs::ShootCmd::PUSH);
+    side_command_sender->shooter_cmd_sender_->setMode(rm_msgs::ShootCmd::PUSH);
   } else if (fsm_data_.dbus_data_.s_l == rm_msgs::DbusData::MID)
-    lower_cmd_sender_->shooter_cmd_sender_->setMode(rm_msgs::ShootCmd::READY);
+    side_command_sender->shooter_cmd_sender_->setMode(rm_msgs::ShootCmd::READY);
   else
-    lower_cmd_sender_->shooter_cmd_sender_->setMode(rm_msgs::ShootCmd::STOP);
+    side_command_sender->shooter_cmd_sender_->setMode(rm_msgs::ShootCmd::STOP);
 }
 
 void StateMachine::setTrack(SideCommandSender *side_cmd_sender) {
@@ -206,9 +210,17 @@ void StateMachine::chassisOutputOn() {
   catapult_calibration_->reset();
 }
 
-void StateMachine::gimbalOutputOn() { ROS_INFO("Gimbal output ON"); }
+void StateMachine::gimbalOutputOn() {
+  ROS_INFO("Gimbal output ON");
+  lower_gimbal_calibration_->reset();
+  upper_gimbal_calibration_->reset();
+}
 
-void StateMachine::shooterOutputOn() { ROS_INFO("Shooter output ON"); }
+void StateMachine::shooterOutputOn() {
+  ROS_INFO("Shooter output ON");
+  lower_trigger_calibration_->reset();
+  upper_trigger_calibration_->reset();
+}
 
 void StateMachine::remoteControlTurnOff() {
   controller_manager_.stopMainControllers();
@@ -217,23 +229,23 @@ void StateMachine::remoteControlTurnOff() {
 
 void StateMachine::remoteControlTurnOn() {
   controller_manager_.startMainControllers();
-  lower_gimbal_calibration_->reset();
-  upper_gimbal_calibration_->reset();
 }
 
 void StateMachine::cruiseRun() {
   checkReferee(ros::Time::now());
   checkSwitch(ros::Time::now());
-  update(ros::Time::now());
+  updateRandom(ros::Time::now());
   cruiseGimbal(lower_cmd_sender_, 2.0, 2.0);
   cruiseGimbal(upper_cmd_sender_, 2.0, 2.0);
   cruiseShooter(lower_cmd_sender_);
   cruiseShooter(upper_cmd_sender_);
   sendCruiseCommand(ros::Time::now());
-  lower_trigger_calibration_->reset();
+  lower_trigger_calibration_->update(ros::Time::now());
+  upper_trigger_calibration_->update(ros::Time::now());
   catapult_calibration_->update(ros::Time::now());
   lower_gimbal_calibration_->update(ros::Time::now());
   upper_gimbal_calibration_->update(ros::Time::now());
+  controller_manager_.update();
 }
 
 void StateMachine::rawRun() {
@@ -241,9 +253,11 @@ void StateMachine::rawRun() {
   checkSwitch(ros::Time::now());
   rawGimbal(lower_cmd_sender_);
   rawGimbal(upper_cmd_sender_);
-  rawShooter();
+  rawShooter(lower_cmd_sender_);
+  rawShooter(upper_cmd_sender_);
   sendRawCommand(ros::Time::now());
-  lower_trigger_calibration_->reset();
+  lower_trigger_calibration_->update(ros::Time::now());
+  upper_trigger_calibration_->update(ros::Time::now());
   catapult_calibration_->update(ros::Time::now());
   lower_gimbal_calibration_->update(ros::Time::now());
   upper_gimbal_calibration_->update(ros::Time::now());

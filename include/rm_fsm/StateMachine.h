@@ -86,8 +86,6 @@ public:
 protected:
   StateMachineContext context_;
   rm_msgs::DbusData dbus_;
-  rm_msgs::TfRadarData left_radar_;
-  rm_msgs::TfRadarData right_radar_;
   FsmData fsm_data_;
 
   rm_common::CalibrationQueue *lower_trigger_calibration_{},
@@ -102,7 +100,7 @@ protected:
   double auto_linear_x_{};
   double safety_distance_{};
   std::default_random_engine random_;
-  std::uniform_real_distribution<double> generator_{1.0, 2.5};
+  std::uniform_real_distribution<double> generator_{1.5, 2.0};
   // referee
   bool chassis_output_{}, shooter_output_{}, gimbal_output_{};
   // remote
@@ -118,7 +116,7 @@ protected:
   }
 
   void leftRadarCB(const rm_msgs::TfRadarDataConstPtr &radar_data) {
-    if (radar_data->distance < 1.2 && auto_linear_x_ > 0) {
+    if (radar_data->distance < safety_distance_ && auto_linear_x_ > 0) {
       context_.radarUpdate();
       last_time_ = ros::Time::now();
       rand_time_ = generator_(random_);
@@ -126,7 +124,7 @@ protected:
   }
 
   void rightRadarCB(const rm_msgs::TfRadarDataConstPtr &radar_data) {
-    if (radar_data->distance < 1.2 && auto_linear_x_ < 0) {
+    if (radar_data->distance < safety_distance_ && auto_linear_x_ < 0) {
       context_.radarUpdate();
       last_time_ = ros::Time::now();
       rand_time_ = generator_(random_);
