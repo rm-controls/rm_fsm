@@ -10,7 +10,7 @@
 
 %declare #include <rm_msgs/DbusData.h>
 %declare #include <rm_msgs/TofRadarData.h>
-%declare #include <rm_common/referee/data.h>
+%declare #include <rm_msgs/GameRobotStatus.h>
 
 %declare using namespace rm_msgs;
 
@@ -107,14 +107,28 @@ Cruise
 
 Default
 {
+    robotStatusUpdate(data: const rm_msgs::GameRobotStatus &)
+        [ (data.mains_power_chassis_output == 1 && ctxt.subscriber_.referee_.game_robot_status_.mains_power_chassis_output_== 0) ||
+          (data.mains_power_gimbal_output == 1 && ctxt.subscriber_.referee_.game_robot_status_.mains_power_gimbal_output_== 0) ]
+        nil
+        {
+            info("Chassis and gimbal power on, calibrating");
+        }
+    robotStatusUpdate(data: const rm_msgs::GameRobotStatus &)
+        [ data.mains_power_shooter_output == 1 && ctxt.subscriber_.referee_.game_robot_status_.mains_power_shooter_output_== 0 ]
+        nil
+        {
+            info("Shooter power on, calibrating");
+        }
+    robotStatusUpdate(data: const rm_msgs::GameRobotStatus &)
+        nil
+        {
+        }
     dbusUpdate(data: const DbusData &)
         nil
         {
         }
-    refereeUpdate(data: const rm_common::RefereeData &)
-        nil
-        {
-        }
+
     leftRadarCB(data: const TofRadarData &)
         nil
         {

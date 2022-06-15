@@ -25,8 +25,8 @@ public:
         "/dbus_data", 10, &Subscriber::dbusCallback, this);
     game_robot_status_sub_ = nh.subscribe<rm_msgs::GameRobotStatus>(
         "/game_robot_status", 10, &Subscriber::robotGameStatusCallback, this);
-    game_status_sub_ = nh.subscribe<rm_msgs::GameStatus>(
-        "/game_status", 10, &Subscriber::gameStatusCallback, this);
+    //    game_status_sub_ = nh.subscribe<rm_msgs::GameStatus>(
+    //        "/game_status", 10, &Subscriber::gameStatusCallback, this);
     left_radar_sub_ = nh.subscribe<rm_msgs::TofRadarData>(
         "/controllers/tf_radar_controller/left_tf_radar/data", 10,
         &Subscriber::leftRadarCallback, this);
@@ -51,8 +51,9 @@ public:
     //        "/joint_states", 10, &FsmData::jointStateCallback, this);
   }
 
-  // Command sender needed;
-  rm_common::RefereeData referee_;
+  rm_common::RefereeData
+      referee_; // Only contains chassis power info for chassis sender;
+
   rm_msgs::DbusData dbus_;
 
 private:
@@ -60,16 +61,23 @@ private:
     context_.dbusUpdate(*data);
   }
   void robotGameStatusCallback(const GameRobotStatus::ConstPtr &data) {
+    context_.robotStatusUpdate(*data);
+    // Actually referee act as a buffer for the robot game status
+    // TODO: adding heat of shooter
+    referee_.game_robot_status_.mains_power_chassis_output_ =
+        data->mains_power_chassis_output;
+    referee_.game_robot_status_.mains_power_gimbal_output_ =
+        data->mains_power_gimbal_output;
+    referee_.game_robot_status_.mains_power_shooter_output_ =
+        data->mains_power_shooter_output;
+
     referee_.game_robot_status_.chassis_power_limit_ =
         data->chassis_power_limit;
     referee_.game_robot_status_.robot_id_ = data->robot_id;
-    context_.refereeUpdate(referee_);
   }
-  void gameStatusCallback(const GameStatus::ConstPtr &data) {
-    referee_.game_status_.game_type_ = data->game_type;
-    referee_.game_status_.game_progress_ = data->game_progress;
-    context_.refereeUpdate(referee_);
-  }
+  //  void gameStatusCallback(const GameStatus::ConstPtr &data) {
+  //    context_.refereeUpdate(*data);
+  //  }
   void leftRadarCallback(const TofRadarData::ConstPtr &data) {
     context_.leftRadarCB(*data);
   }

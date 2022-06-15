@@ -23,8 +23,10 @@ public:
   void sendChassisCmd(bool is_auto, const DbusData &data);
   void catapult() { auto_linear_vel_ *= -1; }
   void check();
-
-  rm_common::CalibrationQueue *gimbal_calibration_{}, *shooter_calibration_{};
+  void calibrateChassisGimbal() { chassis_gimbal_calibration_->reset(); }
+  void calibrateShooter() { shooter_calibration_->reset(); }
+  rm_common::CalibrationQueue *chassis_gimbal_calibration_{},
+      *shooter_calibration_{};
   rm_common::ControllerManager controller_manager_;
   rm_common::ChassisCommandSender *chassis_cmd_sender_;
   rm_common::Vel2DCommandSender *vel_2d_cmd_sender_;

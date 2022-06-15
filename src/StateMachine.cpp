@@ -6,10 +6,10 @@
 StateMachine::StateMachine(ros::NodeHandle &nh)
     : controller_manager_(nh), context_(*this), subscriber_(context_) {
   try {
-    XmlRpc::XmlRpcValue gimbal_calibration, shooter_calibration;
-    nh.getParam("gimbal_calibration", gimbal_calibration);
-    gimbal_calibration_ = new rm_common::CalibrationQueue(
-        gimbal_calibration, nh, controller_manager_);
+    XmlRpc::XmlRpcValue chassis_gimbal_calibration, shooter_calibration;
+    nh.getParam("gimbal_calibration", chassis_gimbal_calibration);
+    chassis_gimbal_calibration_ = new rm_common::CalibrationQueue(
+        chassis_gimbal_calibration, nh, controller_manager_);
     nh.getParam("shooter_calibration", shooter_calibration);
     shooter_calibration_ = new rm_common::CalibrationQueue(
         shooter_calibration, nh, controller_manager_);
