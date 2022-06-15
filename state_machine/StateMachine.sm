@@ -129,5 +129,9 @@ Default
         {
             info("Remote controller timeout");
         }
+    checkRc()
+        nil
+        {
+        }
 }
 %%
