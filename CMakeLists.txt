@@ -25,18 +25,6 @@ find_package(catkin REQUIRED
         controller_manager
         )
 
-## Find system libraries
-#find_package(Eigen3 REQUIRED)
-
-###################################
-## catkin specific configuration ##
-###################################
-## The catkin_package macro generates cmake config files for your package
-## Declare things to be passed to dependent projects
-## INCLUDE_DIRS: uncomment this if your package contains header files
-## LIBRARIES: libraries you create in this project that dependent projects also need
-## CATKIN_DEPENDS: catkin_packages dependent projects also need
-## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
         INCLUDE_DIRS
         include
@@ -85,11 +73,6 @@ include_directories(
         ${catkin_INCLUDE_DIRS}
 )
 
-## Declare a cpp library
-# add_library(${PROJECT_NAME}_core
-#     src/Algorithm.cpp
-#     )
-# target_compile_features(${PROJECT_NAME}_core INTERFACE cxx_std_11)
 
 ## Declare cpp executables
 FILE(GLOB ALL_SOURCES "src/*.cpp" "src/common/*.cpp" "src/referee/*.cpp" "state_machine/*.cpp")
@@ -129,22 +112,5 @@ install(
         DIRECTORY config launch
         DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
 )
-
-#############
-## Testing ##
-#############
-
-#if (${CATKIN_ENABLE_TESTING})
-#  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread")
-#  ## Add gtest based cpp test target and link libraries
-#  catkin_add_gtest(${PROJECT_NAME}-test
-#      test/test_ros_package_template.cpp
-#      test/AlgorithmTest.cpp)
-#  target_link_libraries(${PROJECT_NAME}-test ${PROJECT_NAME}_core)
-#endif ()
-
-##########################
-## Static code analysis ##
-##########################
 
 roslint_cpp()
