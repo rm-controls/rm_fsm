@@ -44,3 +44,5 @@ void StateMachine::sendChassisCmd(bool is_auto, const DbusData &data) {
     vel_2d_cmd_sender_->setLinearXVel(data.ch_r_x);
   vel_2d_cmd_sender_->sendCommand(time);
 }
+
+void StateMachine::check() { context_.checkRc(); }

@@ -27,6 +27,13 @@ public:
         "/game_robot_status", 10, &Subscriber::robotGameStatusCallback, this);
     game_status_sub_ = nh.subscribe<rm_msgs::GameStatus>(
         "/game_status", 10, &Subscriber::gameStatusCallback, this);
+    left_radar_sub_ = nh.subscribe<rm_msgs::TofRadarData>(
+        "/controllers/tf_radar_controller/left_tf_radar/data", 10,
+        &Subscriber::leftRadarCallback, this);
+    right_radar_sub_ = nh.subscribe<rm_msgs::TofRadarData>(
+        "/controllers/tf_radar_controller/right_tf_radar/data", 10,
+        &Subscriber::rightRadarCallback, this);
+
     //    lower_track_sub_ = nh.subscribe<rm_msgs::TrackData>(
     //        "/controllers/lower_gimbal_controller/track", 10,
     //        &FsmData::lowerTrackCallback, this);
@@ -42,16 +49,11 @@ public:
 
     //    joint_state_sub_ = nh.subscribe<sensor_msgs::JointState>(
     //        "/joint_states", 10, &FsmData::jointStateCallback, this);
-    //    left_radar_sub_ = nh.subscribe<rm_msgs::TfRadarData>(
-    //        "/controllers/tf_radar_controller/left_tf_radar/data", 10,
-    //        &StateMachine::leftRadarCB, this);
-    //    right_radar_sub_ = nh.subscribe<rm_msgs::TfRadarData>(
-    //        "/controllers/tf_radar_controller/right_tf_radar/data", 10,
-    //        &StateMachine::rightRadarCB, this);
   }
 
   // Command sender needed;
   rm_common::RefereeData referee_;
+  rm_msgs::DbusData dbus_;
 
 private:
   void dbusCallback(const DbusData::ConstPtr &data) {
@@ -61,10 +63,18 @@ private:
     referee_.game_robot_status_.chassis_power_limit_ =
         data->chassis_power_limit;
     referee_.game_robot_status_.robot_id_ = data->robot_id;
+    context_.refereeUpdate(referee_);
   }
   void gameStatusCallback(const GameStatus::ConstPtr &data) {
     referee_.game_status_.game_type_ = data->game_type;
     referee_.game_status_.game_progress_ = data->game_progress;
+    context_.refereeUpdate(referee_);
+  }
+  void leftRadarCallback(const TofRadarData::ConstPtr &data) {
+    context_.leftRadarCB(*data);
+  }
+  void rightRadarCallback(const TofRadarData::ConstPtr &data) {
+    context_.rightRadarCB(*data);
   }
 
   StateMachineContext &context_;

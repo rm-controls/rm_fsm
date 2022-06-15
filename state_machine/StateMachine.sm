@@ -123,5 +123,11 @@ Default
         nil
         {
         }
+    checkRc()
+        [ ros::Time::now() - ctxt.subscriber_.dbus_.stamp > ros::Duration(0.1) ]
+        Stop
+        {
+            info("Remote controller timeout");
+        }
 }
 %%

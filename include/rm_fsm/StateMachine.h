@@ -22,23 +22,17 @@ public:
   static void info(const std::string &string) { ROS_INFO_STREAM(string); }
   void sendChassisCmd(bool is_auto, const DbusData &data);
   void catapult() { auto_linear_vel_ *= -1; }
+  void check();
 
   rm_common::CalibrationQueue *gimbal_calibration_{}, *shooter_calibration_{};
   rm_common::ControllerManager controller_manager_;
   rm_common::ChassisCommandSender *chassis_cmd_sender_;
   rm_common::Vel2DCommandSender *vel_2d_cmd_sender_;
 
+  StateMachineContext context_;
+  Subscriber subscriber_;
   double auto_linear_vel_{}, safety_distance_{};
 
 protected:
-  StateMachineContext context_;
-  Subscriber subscriber_;
-
-  //  std::default_random_engine random_;
-  //  std::uniform_real_distribution<double> generator_{1.5, 2.0};
-
-  // referee
-  bool chassis_output_{}, shooter_output_{}, gimbal_output_{};
-
 private:
 };
