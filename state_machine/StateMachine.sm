@@ -36,6 +36,7 @@ Stop
     }
 {
     dbusUpdate(data: const DbusData &)
+        [ data.s_r == DbusData::DOWN ]
         Idle
         {
         }

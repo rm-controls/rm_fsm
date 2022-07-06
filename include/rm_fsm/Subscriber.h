@@ -28,10 +28,10 @@ public:
     game_status_sub_ = nh.subscribe<rm_msgs::GameStatus>(
         "/game_status", 10, &Subscriber::gameStatusCallback, this);
     left_radar_sub_ = nh.subscribe<rm_msgs::TofRadarData>(
-        "/controllers/tf_radar_controller/left_tf_radar/data", 10,
+        "/controllers/tof_radar_controller/left_tof_radar/data", 10,
         &Subscriber::leftRadarCallback, this);
     right_radar_sub_ = nh.subscribe<rm_msgs::TofRadarData>(
-        "/controllers/tf_radar_controller/right_tf_radar/data", 10,
+        "/controllers/tof_radar_controller/right_tof_radar/data", 10,
         &Subscriber::rightRadarCallback, this);
 
     //    lower_track_sub_ = nh.subscribe<rm_msgs::TrackData>(
@@ -57,6 +57,7 @@ public:
 
 private:
   void dbusCallback(const DbusData::ConstPtr &data) {
+    dbus_ = *data;
     context_.dbusUpdate(*data);
   }
   void robotGameStatusCallback(const GameRobotStatus::ConstPtr &data) {

@@ -34,7 +34,7 @@ StateMachine::StateMachine(ros::NodeHandle &nh)
   context_.enterStartState();
 }
 
-void StateMachine::sendChassisCmd(bool is_auto, const DbusData &data) {
+void StateMachine::sendChassisCmd(bool is_auto, const rm_msgs::DbusData &data) {
   ros::Time time = ros::Time::now();
   chassis_cmd_sender_->setMode(rm_msgs::ChassisCmd::RAW);
   chassis_cmd_sender_->sendCommand(time);
@@ -45,4 +45,7 @@ void StateMachine::sendChassisCmd(bool is_auto, const DbusData &data) {
   vel_2d_cmd_sender_->sendCommand(time);
 }
 
-void StateMachine::check() { context_.checkRc(); }
+void StateMachine::check() {
+  context_.checkRc();
+  controller_manager_.update();
+}
