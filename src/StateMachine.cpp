@@ -6,13 +6,17 @@
 StateMachine::StateMachine(ros::NodeHandle &nh)
     : controller_manager_(nh), context_(*this), subscriber_(context_) {
   try {
-    XmlRpc::XmlRpcValue gimbal_calibration, shooter_calibration;
+    XmlRpc::XmlRpcValue gimbal_calibration, shooter_calibration,
+        catapult_calibration;
     nh.getParam("gimbal_calibration", gimbal_calibration);
     gimbal_calibration_ = new rm_common::CalibrationQueue(
         gimbal_calibration, nh, controller_manager_);
     nh.getParam("shooter_calibration", shooter_calibration);
     shooter_calibration_ = new rm_common::CalibrationQueue(
         shooter_calibration, nh, controller_manager_);
+    nh.getParam("catapult_calibration", catapult_calibration);
+    catapult_calibration_ = new rm_common::CalibrationQueue(
+        catapult_calibration, nh, controller_manager_);
   } catch (XmlRpc::XmlRpcException &e) {
     ROS_ERROR("%s", e.getMessage().c_str());
   }
@@ -45,7 +49,21 @@ void StateMachine::sendChassisCmd(bool is_auto, const rm_msgs::DbusData &data) {
   vel_2d_cmd_sender_->sendCommand(time);
 }
 
+void StateMachine::calibrationReset() {
+  catapult_calibration_->reset();
+  gimbal_calibration_->reset();
+  shooter_calibration_->reset();
+}
+
+void StateMachine::update() {
+  ros::Time time = ros::Time::now();
+  catapult_calibration_->update(time);
+  gimbal_calibration_->update(time);
+  shooter_calibration_->update(time);
+  controller_manager_.update();
+}
+
 void StateMachine::check() {
   context_.checkRc();
-  controller_manager_.update();
+  update();
 }

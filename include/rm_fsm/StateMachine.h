@@ -22,9 +22,12 @@ public:
   static void info(const std::string &string) { ROS_INFO_STREAM(string); }
   void sendChassisCmd(bool is_auto, const DbusData &data);
   void catapult() { auto_linear_vel_ *= -1; }
+  void calibrationReset();
+  void update();
   void check();
 
-  rm_common::CalibrationQueue *gimbal_calibration_{}, *shooter_calibration_{};
+  rm_common::CalibrationQueue *gimbal_calibration_{}, *shooter_calibration_{},
+      *catapult_calibration_{};
   rm_common::ControllerManager controller_manager_;
   rm_common::ChassisCommandSender *chassis_cmd_sender_;
   rm_common::Vel2DCommandSender *vel_2d_cmd_sender_;

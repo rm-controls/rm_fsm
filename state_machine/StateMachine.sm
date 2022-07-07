@@ -46,6 +46,7 @@ Idle
     Entry {
     info("Idle state entered");
     controller_manager_.startMainControllers();
+    calibrationReset();
     }
 {
     dbusUpdate(data: const DbusData &)
