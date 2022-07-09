@@ -75,6 +75,7 @@ Manual
         nil
         {
             sendChassisCmd(false, data);
+            sendGimbalCmd(false, data, ctxt.lower_cmd_sender);
         }
 }
 
@@ -92,6 +93,7 @@ Cruise
         nil
         {
             sendChassisCmd(true, data);
+            sendGimbalCmd(true, data, ctxt.lower_cmd_sender);
         }
     leftRadarCB(data: const TofRadarData &)
         [ data.distance < ctxt.safety_distance_ && ctxt.auto_linear_vel_ > 0 ]

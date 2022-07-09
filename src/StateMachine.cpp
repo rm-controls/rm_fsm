@@ -28,6 +28,11 @@ StateMachine::StateMachine(ros::NodeHandle &nh)
       new rm_common::ChassisCommandSender(chassis_nh, subscriber_.referee_);
   ros::NodeHandle vel_nh(nh, "vel");
   vel_2d_cmd_sender_ = new rm_common::Vel2DCommandSender(vel_nh);
+  ros::NodeHandle lower_nh(nh, "lower");
+  lower_cmd_sender = new SideCommandSender(
+      lower_nh, subscriber_.referee_, subscriber_.lower_gimbal_des_error_,
+      subscriber_.pos_lower_yaw_, subscriber_.pos_lower_pitch_,
+      subscriber_.lower_track_data_);
 
   ros::NodeHandle auto_nh(nh, "auto");
   if (!auto_nh.getParam("auto_linear_vel", auto_linear_vel_)) {
@@ -38,7 +43,7 @@ StateMachine::StateMachine(ros::NodeHandle &nh)
   context_.enterStartState();
 }
 
-void StateMachine::sendChassisCmd(bool is_auto, const rm_msgs::DbusData &data) {
+void StateMachine::sendChassisCmd(bool is_auto, const DbusData &data) {
   ros::Time time = ros::Time::now();
   chassis_cmd_sender_->setMode(rm_msgs::ChassisCmd::RAW);
   chassis_cmd_sender_->sendCommand(time);
@@ -47,6 +52,27 @@ void StateMachine::sendChassisCmd(bool is_auto, const rm_msgs::DbusData &data) {
   else
     vel_2d_cmd_sender_->setLinearXVel(data.ch_r_x);
   vel_2d_cmd_sender_->sendCommand(time);
+}
+
+void StateMachine::sendGimbalCmd(bool is_auto, const DbusData &data,
+                                 SideCommandSender *side_command_sender) {
+  ros::Time time = ros::Time::now();
+  if (subscriber_.dbus_.s_l == rm_msgs::DbusData::DOWN) {
+    side_command_sender->gimbal_cmd_sender_->setMode(rm_msgs::GimbalCmd::RATE);
+  }
+  if (is_auto) {
+    if (side_command_sender->pos_yaw_ >= side_command_sender->yaw_max_)
+      side_command_sender->yaw_direct_ = -1.;
+    else if (side_command_sender->pos_yaw_ <= side_command_sender->yaw_min_)
+      side_command_sender->yaw_direct_ = 1.;
+    if (side_command_sender->pos_pitch_ >= side_command_sender->pitch_max_)
+      side_command_sender->pitch_direct_ = -1.;
+    else if (side_command_sender->pos_pitch_ <= side_command_sender->pitch_min_)
+      side_command_sender->pitch_direct_ = 1.;
+  } else
+    side_command_sender->gimbal_cmd_sender_->setRate(-subscriber_.dbus_.ch_l_x,
+                                                     -subscriber_.dbus_.ch_l_y);
+  side_command_sender->gimbal_cmd_sender_->sendCommand(time);
 }
 
 void StateMachine::calibrationReset() {

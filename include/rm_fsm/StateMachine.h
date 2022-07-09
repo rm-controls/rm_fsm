@@ -6,6 +6,7 @@
 
 #include "StateMachine_sm.h"
 #include "rm_fsm/Subscriber.h"
+#include "rm_fsm/side_command_sender.h"
 
 #include <realtime_tools/realtime_buffer.h>
 #include <rm_common/decision/calibration_queue.h>
@@ -21,6 +22,8 @@ public:
 
   static void info(const std::string &string) { ROS_INFO_STREAM(string); }
   void sendChassisCmd(bool is_auto, const DbusData &data);
+  void sendGimbalCmd(bool is_auto, const DbusData &data,
+                     SideCommandSender *side_command_sender);
   void catapult() { auto_linear_vel_ *= -1; }
   void calibrationReset();
   void update();
@@ -30,6 +33,7 @@ public:
       *catapult_calibration_{};
   rm_common::ControllerManager controller_manager_;
   rm_common::ChassisCommandSender *chassis_cmd_sender_;
+  SideCommandSender *lower_cmd_sender;
   rm_common::Vel2DCommandSender *vel_2d_cmd_sender_;
 
   StateMachineContext context_;
