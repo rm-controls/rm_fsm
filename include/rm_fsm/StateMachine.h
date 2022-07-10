@@ -34,7 +34,7 @@ public:
   rm_common::ControllerManager controller_manager_;
   rm_common::ChassisCommandSender *chassis_cmd_sender_;
   rm_common::Vel2DCommandSender *vel_2d_cmd_sender_;
-  SideCommandSender *lower_cmd_sender;
+  SideCommandSender *lower_cmd_sender_;
 
   StateMachineContext context_;
   Subscriber subscriber_;

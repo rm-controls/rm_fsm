@@ -25,7 +25,7 @@ StateMachine::StateMachine(ros::NodeHandle &nh)
   ros::NodeHandle vel_nh(nh, "vel");
   vel_2d_cmd_sender_ = new rm_common::Vel2DCommandSender(vel_nh);
   ros::NodeHandle lower_nh(nh, "lower");
-  lower_cmd_sender = new SideCommandSender(
+  lower_cmd_sender_ = new SideCommandSender(
       lower_nh, subscriber_.referee_, subscriber_.lower_gimbal_des_error_,
       subscriber_.pos_lower_yaw_, subscriber_.pos_lower_pitch_,
       subscriber_.lower_track_data_);
