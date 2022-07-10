@@ -5,6 +5,7 @@
 #pragma once
 
 #include "StateMachine_sm.h"
+#include "rm_fsm/SideComandSender.h"
 #include "rm_fsm/Subscriber.h"
 
 #include <realtime_tools/realtime_buffer.h>
@@ -21,7 +22,10 @@ public:
 
   static void info(const std::string &string) { ROS_INFO_STREAM(string); }
   void sendChassisCmd(bool is_auto, const DbusData &data);
+  void sendGimbalCmd(bool is_auto, const DbusData &data,
+                     SideCommandSender *side_command_sender);
   void catapult() { auto_linear_vel_ *= -1; }
+  void update();
   void check();
   void calibrateChassisGimbal() { chassis_gimbal_calibration_->reset(); }
   void calibrateShooter() { shooter_calibration_->reset(); }
@@ -30,6 +34,7 @@ public:
   rm_common::ControllerManager controller_manager_;
   rm_common::ChassisCommandSender *chassis_cmd_sender_;
   rm_common::Vel2DCommandSender *vel_2d_cmd_sender_;
+  SideCommandSender *lower_cmd_sender;
 
   StateMachineContext context_;
   Subscriber subscriber_;

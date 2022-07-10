@@ -36,6 +36,7 @@ Stop
     }
 {
     dbusUpdate(data: const DbusData &)
+        [ data.s_r == DbusData::DOWN ]
         Idle
         {
         }
@@ -45,6 +46,8 @@ Idle
     Entry {
     info("Idle state entered");
     controller_manager_.startMainControllers();
+    calibrateChassisGimbal();
+    calibrateShooter();
     }
 {
     dbusUpdate(data: const DbusData &)
