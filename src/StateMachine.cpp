@@ -89,7 +89,4 @@ void StateMachine::update() {
   controller_manager_.update();
 }
 
-void StateMachine::check() {
-  context_.checkRc();
-  update();
-}
+void StateMachine::check() { context_.checkRc(); }
