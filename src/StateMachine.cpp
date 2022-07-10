@@ -57,7 +57,7 @@ void StateMachine::sendChassisCmd(bool is_auto, const DbusData &data) {
 void StateMachine::sendGimbalCmd(bool is_auto, const DbusData &data,
                                  SideCommandSender *side_command_sender) {
   ros::Time time = ros::Time::now();
-  if (subscriber_.dbus_.s_l == rm_msgs::DbusData::DOWN) {
+  if (data.s_l == rm_msgs::DbusData::DOWN) {
     side_command_sender->gimbal_cmd_sender_->setMode(rm_msgs::GimbalCmd::RATE);
   }
   if (is_auto) {
@@ -70,8 +70,8 @@ void StateMachine::sendGimbalCmd(bool is_auto, const DbusData &data,
     else if (side_command_sender->pos_pitch_ <= side_command_sender->pitch_min_)
       side_command_sender->pitch_direct_ = 1.;
   } else
-    side_command_sender->gimbal_cmd_sender_->setRate(-subscriber_.dbus_.ch_l_x,
-                                                     -subscriber_.dbus_.ch_l_y);
+    side_command_sender->gimbal_cmd_sender_->setRate(-data.ch_l_x,
+                                                     -data.ch_l_y);
   side_command_sender->gimbal_cmd_sender_->sendCommand(time);
 }
 

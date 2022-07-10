@@ -59,7 +59,6 @@ public:
 
 private:
   void dbusCallback(const DbusData::ConstPtr &data) {
-    dbus_ = *data;
     context_.dbusUpdate(*data);
   }
   void robotGameStatusCallback(const GameRobotStatus::ConstPtr &data) {
