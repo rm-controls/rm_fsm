@@ -4,8 +4,6 @@
 
 #pragma once
 
-#pragma once
-
 #include <rm_common/decision/command_sender.h>
 #include <rm_common/referee/referee.h>
 #include <rm_msgs/GimbalDesError.h>
