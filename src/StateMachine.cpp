@@ -53,9 +53,7 @@ void StateMachine::sendChassisCmd(bool is_auto, const DbusData &data) {
 void StateMachine::sendGimbalCmd(bool is_auto, const DbusData &data,
                                  SideCommandSender *side_command_sender) {
   ros::Time time = ros::Time::now();
-  if (data.s_l == rm_msgs::DbusData::DOWN) {
-    side_command_sender->gimbal_cmd_sender_->setMode(rm_msgs::GimbalCmd::RATE);
-  }
+  side_command_sender->gimbal_cmd_sender_->setMode(rm_msgs::GimbalCmd::RATE);
   if (is_auto) {
     if (side_command_sender->pos_yaw_ >= side_command_sender->yaw_max_)
       side_command_sender->yaw_direct_ = -1.;
@@ -86,10 +84,10 @@ void StateMachine::sendShooterCmd(bool is_auto, const DbusData &data,
       side_command_sender->shooter_cmd_sender_->setMode(
           rm_msgs::ShootCmd::READY);
   } else {
-    if (subscriber_.dbus_.s_l == rm_msgs::DbusData::UP)
+    if (data.s_l == rm_msgs::DbusData::UP)
       side_command_sender->shooter_cmd_sender_->setMode(
           rm_msgs::ShootCmd::PUSH);
-    else if (subscriber_.dbus_.s_l == rm_msgs::DbusData::MID)
+    else if (data.s_l == rm_msgs::DbusData::MID)
       side_command_sender->shooter_cmd_sender_->setMode(
           rm_msgs::ShootCmd::READY);
     else
@@ -107,7 +105,6 @@ void StateMachine::setTrack(SideCommandSender *side_cmd_sender) {
     side_cmd_sender->gimbal_cmd_sender_->setMode(rm_msgs::GimbalCmd::TRACK);
     side_cmd_sender->gimbal_cmd_sender_->setBulletSpeed(
         side_cmd_sender->shooter_cmd_sender_->getSpeed());
-    side_cmd_sender->gimbal_cmd_sender_->setRate(0., 0.);
   }
 }
 
