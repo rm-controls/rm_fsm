@@ -72,8 +72,8 @@ void StateMachine::sendGimbalCmd(bool is_auto, const DbusData &data,
   side_command_sender->gimbal_cmd_sender_->sendCommand(time);
 }
 
-void StateMachine::sendSooterCmd(bool is_auto, const DbusData &data,
-                                 SideCommandSender *side_command_sender) {
+void StateMachine::sendShooterCmd(bool is_auto, const DbusData &data,
+                                  SideCommandSender *side_command_sender) {
   ros::Time time = ros::Time::now();
   if (is_auto) {
     if (side_command_sender->gimbal_cmd_sender_->getMsg()->mode ==

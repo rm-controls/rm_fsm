@@ -25,8 +25,8 @@ public:
   void sendChassisCmd(bool is_auto, const DbusData &data);
   void sendGimbalCmd(bool is_auto, const DbusData &data,
                      SideCommandSender *side_command_sender);
-  void sendSooterCmd(bool is_auto, const DbusData &data,
-                     SideCommandSender *side_command_sender);
+  void sendShooterCmd(bool is_auto, const DbusData &data,
+                      SideCommandSender *side_command_sender);
   void setTrack(SideCommandSender *side_cmd_sender);
   void catapult() { auto_linear_vel_ *= -1; }
   void random();
