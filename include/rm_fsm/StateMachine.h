@@ -8,6 +8,7 @@
 #include "rm_fsm/SideComandSender.h"
 #include "rm_fsm/Subscriber.h"
 
+#include <random>
 #include <realtime_tools/realtime_buffer.h>
 #include <rm_common/decision/calibration_queue.h>
 #include <rm_common/decision/command_sender.h>
@@ -24,7 +25,11 @@ public:
   void sendChassisCmd(bool is_auto, const DbusData &data);
   void sendGimbalCmd(bool is_auto, const DbusData &data,
                      SideCommandSender *side_command_sender);
+  void sendSooterCmd(bool is_auto, const DbusData &data,
+                     SideCommandSender *side_command_sender);
+  void setTrack(SideCommandSender *side_cmd_sender);
   void catapult() { auto_linear_vel_ *= -1; }
+  void random();
   void update();
   void check();
   void calibrateChassisGimbal() { chassis_gimbal_calibration_->reset(); }
@@ -39,6 +44,9 @@ public:
   StateMachineContext context_;
   Subscriber subscriber_;
   double auto_linear_vel_{}, safety_distance_{};
+  std::default_random_engine random_engine_;
+  std::uniform_real_distribution<double> random_generator_{0.5, 1.0};
+  double interval_time_{};
 
 protected:
 private:

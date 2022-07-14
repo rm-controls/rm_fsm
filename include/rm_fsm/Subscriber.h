@@ -47,8 +47,8 @@ public:
     //        "/controllers/upper_gimbal_controller/error_des", 10,
     //        &FsmData::upperGimbalDesErrorCallback, this);
 
-    //    joint_state_sub_ = nh.subscribe<sensor_msgs::JointState>(
-    //        "/joint_states", 10, &FsmData::jointStateCallback, this);
+    joint_state_sub_ = nh.subscribe<sensor_msgs::JointState>(
+        "/joint_states", 10, &Subscriber::jointStateCallback, this);
   }
 
   rm_common::RefereeData
@@ -57,6 +57,7 @@ public:
   rm_msgs::DbusData dbus_;
   rm_msgs::GimbalDesError lower_gimbal_des_error_;
   rm_msgs::TrackData lower_track_data_;
+  rm_msgs::TofRadarData left_radar_, right_radar_;
   double pos_lower_yaw_{}, pos_lower_pitch_{};
 
 private:
@@ -84,17 +85,21 @@ private:
   //  }
   void leftRadarCallback(const TofRadarData::ConstPtr &data) {
     context_.leftRadarCB(*data);
+    left_radar_ = *data;
   }
   void rightRadarCallback(const TofRadarData::ConstPtr &data) {
     context_.rightRadarCB(*data);
+    right_radar_ = *data;
   }
-
   void lowerGimbalDesErrorCallback(const GimbalDesError::ConstPtr &data) {
     lower_gimbal_des_error_ = *data;
   }
-
   void lowerTrackCallback(const TrackData::ConstPtr &data) {
     lower_track_data_ = *data;
+  }
+  void jointStateCallback(const sensor_msgs::JointState::ConstPtr &data) {
+    pos_lower_pitch_ = data->position[3];
+    pos_lower_yaw_ = data->position[6];
   }
 
   StateMachineContext &context_;

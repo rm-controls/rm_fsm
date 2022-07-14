@@ -65,10 +65,50 @@ void StateMachine::sendGimbalCmd(bool is_auto, const DbusData &data,
       side_command_sender->pitch_direct_ = -1.;
     else if (side_command_sender->pos_pitch_ <= side_command_sender->pitch_min_)
       side_command_sender->pitch_direct_ = 1.;
+    setTrack(side_command_sender);
   } else
     side_command_sender->gimbal_cmd_sender_->setRate(-data.ch_l_x,
                                                      -data.ch_l_y);
   side_command_sender->gimbal_cmd_sender_->sendCommand(time);
+}
+
+void StateMachine::sendSooterCmd(bool is_auto, const DbusData &data,
+                                 SideCommandSender *side_command_sender) {
+  ros::Time time = ros::Time::now();
+  if (is_auto) {
+    if (side_command_sender->gimbal_cmd_sender_->getMsg()->mode ==
+        rm_msgs::GimbalCmd::TRACK) {
+      side_command_sender->shooter_cmd_sender_->setMode(
+          rm_msgs::ShootCmd::PUSH);
+      side_command_sender->shooter_cmd_sender_->checkError(
+          side_command_sender->gimbal_des_error_, ros::Time::now());
+    } else
+      side_command_sender->shooter_cmd_sender_->setMode(
+          rm_msgs::ShootCmd::READY);
+  } else {
+    if (subscriber_.dbus_.s_l == rm_msgs::DbusData::UP)
+      side_command_sender->shooter_cmd_sender_->setMode(
+          rm_msgs::ShootCmd::PUSH);
+    else if (subscriber_.dbus_.s_l == rm_msgs::DbusData::MID)
+      side_command_sender->shooter_cmd_sender_->setMode(
+          rm_msgs::ShootCmd::READY);
+    else
+      side_command_sender->shooter_cmd_sender_->setMode(
+          rm_msgs::ShootCmd::STOP);
+  }
+  side_command_sender->shooter_cmd_sender_->sendCommand(time);
+}
+
+void StateMachine::setTrack(SideCommandSender *side_cmd_sender) {
+  if (subscriber_.lower_track_data_.id == 0) {
+    side_cmd_sender->gimbal_cmd_sender_->setRate(
+        side_cmd_sender->yaw_direct_, side_cmd_sender->pitch_direct_);
+  } else {
+    side_cmd_sender->gimbal_cmd_sender_->setMode(rm_msgs::GimbalCmd::TRACK);
+    side_cmd_sender->gimbal_cmd_sender_->setBulletSpeed(
+        side_cmd_sender->shooter_cmd_sender_->getSpeed());
+    side_cmd_sender->gimbal_cmd_sender_->setRate(0., 0.);
+  }
 }
 
 void StateMachine::update() {
@@ -76,6 +116,10 @@ void StateMachine::update() {
   chassis_gimbal_calibration_->update(time);
   shooter_calibration_->update(time);
   controller_manager_.update();
+}
+
+void StateMachine::random() {
+  interval_time_ = random_generator_(random_engine_);
 }
 
 void StateMachine::check() {
