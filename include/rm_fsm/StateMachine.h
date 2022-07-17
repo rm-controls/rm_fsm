@@ -22,18 +22,18 @@ public:
   explicit StateMachine(ros::NodeHandle &nh);
 
   static void info(const std::string &string) { ROS_INFO_STREAM(string); }
-  void sendChassisCmd(bool is_auto, const DbusData &data);
+  void sendChassisCmd(bool is_auto, const DbusData &data) const;
   void sendGimbalCmd(bool is_auto, const DbusData &data,
-                     SideCommandSender *side_command_sender);
-  void sendShooterCmd(bool is_auto, const DbusData &data,
-                      SideCommandSender *side_command_sender);
-  void setTrack(SideCommandSender *side_cmd_sender);
+                     SideCommandSender *side_command_sender) const;
+  static void sendShooterCmd(bool is_auto, const DbusData &data,
+                             SideCommandSender *side_command_sender);
+  void setTrack(SideCommandSender *side_cmd_sender) const;
   void catapult() { auto_linear_vel_ *= -1; }
   void random();
   void update();
   void check();
-  void calibrateChassisGimbal() { chassis_gimbal_calibration_->reset(); }
-  void calibrateShooter() { shooter_calibration_->reset(); }
+  void calibrateChassisGimbal() const { chassis_gimbal_calibration_->reset(); }
+  void calibrateShooter() const { shooter_calibration_->reset(); }
   rm_common::CalibrationQueue *chassis_gimbal_calibration_{},
       *shooter_calibration_{};
   rm_common::ControllerManager controller_manager_;

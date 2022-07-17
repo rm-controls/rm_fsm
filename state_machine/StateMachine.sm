@@ -4,8 +4,6 @@
 %include <rm_msgs/DbusData.h>
 %include <rm_msgs/TofRadarData.h>
 %include <rm_msgs/GameRobotStatus.h>
-%include <rm_msgs/GameStatus.h>
-%include <sensor_msgs/JointState.h>
 %import rm_msgs
 
 %declare #include <rm_msgs/DbusData.h>
@@ -98,14 +96,14 @@ Cruise
             sendGimbalCmd(true, data, ctxt.lower_cmd_sender_);
             sendShooterCmd(true, data, ctxt.lower_cmd_sender_);
         }
-    leftRadarCB(data: const TofRadarData &)
-        [ data.distance < ctxt.safety_distance_ && ctxt.auto_linear_vel_ > 0 ]
+    leftRadarCB(data: const TofRadarData::ConstPtr &)
+        [ data->distance < ctxt.safety_distance_ && ctxt.auto_linear_vel_ > 0 ]
         nil
         {
             catapult();
         }
-    rightRadarCB(data: const TofRadarData &)
-        [ data.distance < ctxt.safety_distance_ && ctxt.auto_linear_vel_ < 0 ]
+    rightRadarCB(data: const TofRadarData::ConstPtr &)
+        [ data->distance < ctxt.safety_distance_ && ctxt.auto_linear_vel_ < 0 ]
         nil
         {
             catapult();
@@ -136,11 +134,11 @@ Default
         {
         }
 
-    leftRadarCB(data: const TofRadarData &)
+    leftRadarCB(data: const TofRadarData::ConstPtr &)
         nil
         {
         }
-    rightRadarCB(data: const TofRadarData &)
+    rightRadarCB(data: const TofRadarData::ConstPtr &)
         nil
         {
         }

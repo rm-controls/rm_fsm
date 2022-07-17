@@ -39,7 +39,7 @@ StateMachine::StateMachine(ros::NodeHandle &nh)
   context_.enterStartState();
 }
 
-void StateMachine::sendChassisCmd(bool is_auto, const DbusData &data) {
+void StateMachine::sendChassisCmd(bool is_auto, const DbusData &data) const {
   ros::Time time = ros::Time::now();
   chassis_cmd_sender_->setMode(rm_msgs::ChassisCmd::RAW);
   chassis_cmd_sender_->sendCommand(time);
@@ -51,7 +51,7 @@ void StateMachine::sendChassisCmd(bool is_auto, const DbusData &data) {
 }
 
 void StateMachine::sendGimbalCmd(bool is_auto, const DbusData &data,
-                                 SideCommandSender *side_command_sender) {
+                                 SideCommandSender *side_command_sender) const {
   ros::Time time = ros::Time::now();
   side_command_sender->gimbal_cmd_sender_->setMode(rm_msgs::GimbalCmd::RATE);
   if (is_auto) {
@@ -97,7 +97,7 @@ void StateMachine::sendShooterCmd(bool is_auto, const DbusData &data,
   side_command_sender->shooter_cmd_sender_->sendCommand(time);
 }
 
-void StateMachine::setTrack(SideCommandSender *side_cmd_sender) {
+void StateMachine::setTrack(SideCommandSender *side_cmd_sender) const {
   if (subscriber_.lower_track_data_.id == 0) {
     side_cmd_sender->gimbal_cmd_sender_->setRate(
         side_cmd_sender->yaw_direct_, side_cmd_sender->pitch_direct_);
