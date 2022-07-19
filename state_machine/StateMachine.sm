@@ -73,7 +73,6 @@ Manual
     dbusUpdate(data: const DbusData &)
         nil
         {
-            reversal();
             sendChassisCmd(false, data);
             sendGimbalCmd(false, data, ctxt.lower_cmd_sender_);
             sendShooterCmd(false, data, ctxt.lower_cmd_sender_);
@@ -93,6 +92,7 @@ Cruise
     dbusUpdate(data: const DbusData &)
         nil
         {
+            reversal();
             sendChassisCmd(true, data);
             sendGimbalCmd(true, data, ctxt.lower_cmd_sender_);
             sendShooterCmd(true, data, ctxt.lower_cmd_sender_);
