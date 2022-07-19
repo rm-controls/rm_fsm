@@ -31,8 +31,9 @@ StateMachine::StateMachine(ros::NodeHandle &nh)
       subscriber_.lower_track_data_);
 
   ros::NodeHandle auto_nh(nh, "auto");
-  if (!auto_nh.getParam("auto_linear_vel", auto_linear_vel_)) {
-    ROS_ERROR("Can not find auto_linear_vel");
+  if (!auto_nh.getParam("auto_linear_vel", auto_linear_vel_) ||
+      !auto_nh.getParam("enable_random_reversal", enable_random_reversal_)) {
+    ROS_ERROR("Can not find auto_linear_vel or enable_random_reversal");
   }
 
   controller_manager_.startStateControllers();
@@ -115,12 +116,14 @@ void StateMachine::update() {
   controller_manager_.update();
 }
 
-void StateMachine::reversal() {
-  ros::Time time = ros::Time::now();
-  if ((time - begin_time_).toSec() >= interval_time_) {
-    catapult();
-    begin_time_ = ros::Time::now();
-    interval_time_ = random_generator_(random_engine_);
+void StateMachine::reversal(bool enable) {
+  if (enable) {
+    ros::Time time = ros::Time::now();
+    if ((time - begin_time_).toSec() >= interval_time_) {
+      catapult();
+      begin_time_ = ros::Time::now();
+      interval_time_ = random_generator_(random_engine_);
+    }
   }
 }
 
