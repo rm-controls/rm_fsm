@@ -115,8 +115,13 @@ void StateMachine::update() {
   controller_manager_.update();
 }
 
-void StateMachine::random() {
-  interval_time_ = random_generator_(random_engine_);
+void StateMachine::reversal() {
+  ros::Time time = ros::Time::now();
+  if ((time - begin_time_).toSec() >= interval_time_) {
+    catapult();
+    begin_time_ = ros::Time::now();
+    interval_time_ = random_generator_(random_engine_);
+  }
 }
 
 void StateMachine::check() {

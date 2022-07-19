@@ -29,7 +29,7 @@ public:
                              SideCommandSender *side_command_sender);
   void setTrack(SideCommandSender *side_cmd_sender) const;
   void catapult() { auto_linear_vel_ *= -1; }
-  void random();
+  void reversal();
   void update();
   void check();
   void calibrateChassisGimbal() const { chassis_gimbal_calibration_->reset(); }
@@ -46,6 +46,7 @@ public:
   double auto_linear_vel_{}, safety_distance_{};
   std::default_random_engine random_engine_;
   std::uniform_real_distribution<double> random_generator_{0.5, 1.0};
+  ros::Time begin_time_{ros::Time::now()};
   double interval_time_{};
 
 protected:
