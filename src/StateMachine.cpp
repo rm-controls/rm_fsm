@@ -116,12 +116,18 @@ void StateMachine::update() {
   controller_manager_.update();
 }
 
+void StateMachine::catapult() {
+  auto_linear_vel_ *= -1;
+  begin_time_ = ros::Time::now();
+}
+
 void StateMachine::reversal(bool enable) {
-  if (enable) {
+  if (enable && subscriber_.left_radar_.distance > safety_distance_ &&
+      subscriber_.right_radar_.distance > safety_distance_) {
     ros::Time time = ros::Time::now();
     if ((time - begin_time_).toSec() >= interval_time_) {
+      ROS_INFO("Interval_time is %f", interval_time_);
       catapult();
-      begin_time_ = ros::Time::now();
       interval_time_ = random_generator_(random_engine_);
     }
   }

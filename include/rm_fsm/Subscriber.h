@@ -27,10 +27,10 @@ public:
         "/game_robot_status", 10, &Subscriber::robotGameStatusCallback, this);
     left_radar_sub_ = nh.subscribe<rm_msgs::TofRadarData>(
         "/controllers/tof_radar_controller/left_tof_radar/data", 10,
-        &StateMachineContext::leftRadarCB, &context_);
+        &Subscriber::leftRadarCallback, this);
     right_radar_sub_ = nh.subscribe<rm_msgs::TofRadarData>(
         "/controllers/tof_radar_controller/right_tof_radar/data", 10,
-        &StateMachineContext::rightRadarCB, &context_);
+        &Subscriber::rightRadarCallback, this);
     lower_track_sub_ = nh.subscribe<rm_msgs::TrackData>(
         "/controllers/lower_gimbal_controller/track", 10,
         &Subscriber::lowerTrackCallback, this);
@@ -46,6 +46,7 @@ public:
 
   rm_msgs::DbusData dbus_;
   rm_msgs::GimbalDesError lower_gimbal_des_error_;
+  rm_msgs::TofRadarData left_radar_, right_radar_;
   rm_msgs::TrackData lower_track_data_;
   double pos_lower_yaw_{}, pos_lower_pitch_{};
 
@@ -77,6 +78,14 @@ private:
   void jointStateCallback(const sensor_msgs::JointState::ConstPtr &data) {
     pos_lower_pitch_ = data->position[3];
     pos_lower_yaw_ = data->position[6];
+  }
+  void leftRadarCallback(const TofRadarData::ConstPtr &data) {
+    context_.leftRadarCB(*data);
+    left_radar_ = *data;
+  }
+  void rightRadarCallback(const TofRadarData::ConstPtr &data) {
+    context_.rightRadarCB(*data);
+    right_radar_ = *data;
   }
 
   StateMachineContext &context_;

@@ -28,7 +28,7 @@ public:
   static void sendShooterCmd(bool is_auto, const DbusData &data,
                              SideCommandSender *side_command_sender);
   void setTrack(SideCommandSender *side_cmd_sender) const;
-  void catapult() { auto_linear_vel_ *= -1; }
+  void catapult();
   void reversal(bool enable);
   void update();
   void check();
@@ -45,7 +45,7 @@ public:
   Subscriber subscriber_;
   double auto_linear_vel_{}, safety_distance_{};
   std::default_random_engine random_engine_;
-  std::uniform_real_distribution<double> random_generator_{0.5, 1.0};
+  std::uniform_real_distribution<double> random_generator_{0.8, 1.5};
   ros::Time begin_time_{ros::Time::now()};
   double interval_time_{};
   bool enable_random_reversal_{};
