@@ -118,7 +118,7 @@ void StateMachine::update() {
 
 void StateMachine::catapult() {
   auto_linear_vel_ *= -1;
-  begin_time_ = ros::Time::now();
+  begin_time_ = ros::Time::now(); // Reset time-keeping start time.
 }
 
 void StateMachine::reversal(bool enable) {
