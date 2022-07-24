@@ -45,7 +45,7 @@ public:
   Subscriber subscriber_;
   double auto_linear_vel_{}, safety_distance_{};
   std::default_random_engine random_engine_;
-  std::uniform_real_distribution<double> random_generator_{0.8, 1.5};
+  std::uniform_real_distribution<double> *random_generator_{};
   ros::Time begin_time_{ros::Time::now()};
   double interval_time_{};
   bool enable_random_reversal_{};

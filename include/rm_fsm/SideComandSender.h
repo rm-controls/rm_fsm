@@ -10,19 +10,21 @@
 #include <rm_msgs/TrackData.h>
 #include <ros/ros.h>
 
+using namespace rm_common;
+
 class SideCommandSender {
 public:
-  SideCommandSender(ros::NodeHandle &nh, rm_common::RefereeData &referee_data,
+  SideCommandSender(ros::NodeHandle &nh, const RefereeData &referee_data,
+                    const rm_msgs::TrackData &track_data,
                     rm_msgs::GimbalDesError &gimbal_des_error, double &pos_yaw,
-                    double &pos_pitch, rm_msgs::TrackData &track_data)
+                    double &pos_pitch)
       : gimbal_des_error_(gimbal_des_error), pos_yaw_(pos_yaw),
         pos_pitch_(pos_pitch) {
     ros::NodeHandle gimbal_nh(nh, "gimbal");
-    gimbal_cmd_sender_ =
-        new rm_common::GimbalCommandSender(gimbal_nh, referee_data);
+    gimbal_cmd_sender_ = new GimbalCommandSender(gimbal_nh, referee_data);
     ros::NodeHandle shooter_nh(nh, "shooter");
-    shooter_cmd_sender_ = new rm_common::ShooterCommandSender(
-        shooter_nh, referee_data, track_data);
+    shooter_cmd_sender_ =
+        new ShooterCommandSender(shooter_nh, referee_data, track_data);
     ros::NodeHandle auto_nh(nh, "auto");
     XmlRpc::XmlRpcValue pitch_value, yaw_value;
     try {
@@ -36,8 +38,8 @@ public:
       ROS_ERROR("%s", e.getMessage().c_str());
     }
   };
-  rm_common::GimbalCommandSender *gimbal_cmd_sender_;
-  rm_common::ShooterCommandSender *shooter_cmd_sender_;
+  GimbalCommandSender *gimbal_cmd_sender_;
+  ShooterCommandSender *shooter_cmd_sender_;
   rm_msgs::GimbalDesError &gimbal_des_error_;
   double pitch_min_{}, pitch_max_{}, yaw_min_{}, yaw_max_{};
   double &pos_yaw_, &pos_pitch_;

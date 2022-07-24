@@ -26,15 +26,24 @@ StateMachine::StateMachine(ros::NodeHandle &nh)
   vel_2d_cmd_sender_ = new rm_common::Vel2DCommandSender(vel_nh);
   ros::NodeHandle lower_nh(nh, "lower");
   lower_cmd_sender_ = new SideCommandSender(
-      lower_nh, subscriber_.referee_, subscriber_.lower_gimbal_des_error_,
-      subscriber_.pos_lower_yaw_, subscriber_.pos_lower_pitch_,
-      subscriber_.lower_track_data_);
+      lower_nh, subscriber_.referee_, subscriber_.lower_track_data_,
+      subscriber_.lower_gimbal_des_error_, subscriber_.pos_lower_yaw_,
+      subscriber_.pos_lower_pitch_);
 
   ros::NodeHandle auto_nh(nh, "auto");
   if (!auto_nh.getParam("auto_linear_vel", auto_linear_vel_) ||
-      !auto_nh.getParam("enable_random_reversal", enable_random_reversal_)) {
+      !auto_nh.getParam("enable_random_reversal", enable_random_reversal_))
     ROS_ERROR("Can not find auto_linear_vel or enable_random_reversal");
+
+  XmlRpc::XmlRpcValue min_interval, max_interval;
+  try {
+    auto_nh.getParam("min_interval_time", min_interval);
+    auto_nh.getParam("max_interval_time", max_interval);
+  } catch (XmlRpc::XmlRpcException &e) {
+    ROS_ERROR("%s", e.getMessage().c_str());
   }
+  random_generator_ =
+      new std::uniform_real_distribution<double>(min_interval, max_interval);
 
   controller_manager_.startStateControllers();
   context_.enterStartState();
@@ -57,13 +66,13 @@ void StateMachine::sendGimbalCmd(bool is_auto, const DbusData &data,
   side_command_sender->gimbal_cmd_sender_->setMode(rm_msgs::GimbalCmd::RATE);
   if (is_auto) {
     if (side_command_sender->pos_yaw_ >= side_command_sender->yaw_max_)
-      side_command_sender->yaw_direct_ = -1.;
+      side_command_sender->yaw_direct_ = -1.5;
     else if (side_command_sender->pos_yaw_ <= side_command_sender->yaw_min_)
-      side_command_sender->yaw_direct_ = 1.;
+      side_command_sender->yaw_direct_ = 1.5;
     if (side_command_sender->pos_pitch_ >= side_command_sender->pitch_max_)
-      side_command_sender->pitch_direct_ = -1.;
+      side_command_sender->pitch_direct_ = -1.5;
     else if (side_command_sender->pos_pitch_ <= side_command_sender->pitch_min_)
-      side_command_sender->pitch_direct_ = 1.;
+      side_command_sender->pitch_direct_ = 1.5;
     setTrack(side_command_sender);
   } else
     side_command_sender->gimbal_cmd_sender_->setRate(-data.ch_l_x,
@@ -128,7 +137,7 @@ void StateMachine::reversal(bool enable) {
     if ((time - begin_time_).toSec() >= interval_time_) {
       ROS_INFO("Interval_time is %f", interval_time_);
       catapult();
-      interval_time_ = random_generator_(random_engine_);
+      interval_time_ = random_generator_->operator()(random_engine_);
     }
   }
 }
