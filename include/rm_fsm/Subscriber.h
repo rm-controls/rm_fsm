@@ -33,10 +33,9 @@ public:
         "/controllers/tof_radar_controller/right_tof_radar/data", 10,
         &Subscriber::rightRadarCallback, this);
     lower_track_sub_ = nh.subscribe<rm_msgs::TrackData>(
-        "/controllers/lower_gimbal_controller/track", 10,
-        &Subscriber::lowerTrackCallback, this);
+        "/track", 10, &Subscriber::lowerTrackCallback, this);
     lower_gimbal_des_error_sub_ = nh.subscribe<rm_msgs::GimbalDesError>(
-        "/controllers/lower_gimbal_controller/error_des", 10,
+        "/controllers/lower_gimbal_controller/error", 10,
         &Subscriber::lowerGimbalDesErrorCallback, this);
     joint_state_sub_ = nh.subscribe<sensor_msgs::JointState>(
         "/joint_states", 10, &Subscriber::jointStateCallback, this);

@@ -63,16 +63,15 @@ void StateMachine::sendChassisCmd(bool is_auto, const DbusData &data) const {
 void StateMachine::sendGimbalCmd(bool is_auto, const DbusData &data,
                                  SideCommandSender *side_command_sender) const {
   ros::Time time = ros::Time::now();
-  side_command_sender->gimbal_cmd_sender_->setMode(rm_msgs::GimbalCmd::RATE);
   if (is_auto) {
     if (side_command_sender->pos_yaw_ >= side_command_sender->yaw_max_)
-      side_command_sender->yaw_direct_ = -1.5;
+      side_command_sender->yaw_direct_ = -1.;
     else if (side_command_sender->pos_yaw_ <= side_command_sender->yaw_min_)
-      side_command_sender->yaw_direct_ = 1.5;
+      side_command_sender->yaw_direct_ = 1.;
     if (side_command_sender->pos_pitch_ >= side_command_sender->pitch_max_)
-      side_command_sender->pitch_direct_ = -1.5;
+      side_command_sender->pitch_direct_ = -1.;
     else if (side_command_sender->pos_pitch_ <= side_command_sender->pitch_min_)
-      side_command_sender->pitch_direct_ = 1.5;
+      side_command_sender->pitch_direct_ = 1.;
     setTrack(side_command_sender);
   } else
     side_command_sender->gimbal_cmd_sender_->setRate(-data.ch_l_x,
@@ -109,6 +108,7 @@ void StateMachine::sendShooterCmd(bool is_auto, const DbusData &data,
 
 void StateMachine::setTrack(SideCommandSender *side_cmd_sender) const {
   if (subscriber_.lower_track_data_.id == 0) {
+    side_cmd_sender->gimbal_cmd_sender_->setMode(rm_msgs::GimbalCmd::RATE);
     side_cmd_sender->gimbal_cmd_sender_->setRate(
         side_cmd_sender->yaw_direct_, side_cmd_sender->pitch_direct_);
   } else {
@@ -118,7 +118,7 @@ void StateMachine::setTrack(SideCommandSender *side_cmd_sender) const {
   }
 }
 
-void StateMachine::update() {
+void StateMachine::controllerUpdate() {
   ros::Time time = ros::Time::now();
   chassis_gimbal_calibration_->update(time);
   shooter_calibration_->update(time);
@@ -142,7 +142,7 @@ void StateMachine::reversal(bool enable) {
   }
 }
 
-void StateMachine::check() {
+void StateMachine::update() {
   context_.checkRc();
-  update();
+  controllerUpdate();
 }

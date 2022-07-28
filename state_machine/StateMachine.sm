@@ -118,13 +118,13 @@ Default
           (data.mains_power_gimbal_output == 1 && ctxt.subscriber_.referee_.game_robot_status_.mains_power_gimbal_output_== 0) ]
         nil
         {
-            info("Chassis and gimbal power on, calibrating");
+            info("Chassis and gimbal power on");
         }
     robotStatusUpdate(data: const rm_msgs::GameRobotStatus &)
         [ data.mains_power_shooter_output == 1 && ctxt.subscriber_.referee_.game_robot_status_.mains_power_shooter_output_== 0 ]
         nil
         {
-            info("Shooter power on, calibrating");
+            info("Shooter power on");
         }
     robotStatusUpdate(data: const rm_msgs::GameRobotStatus &)
         nil

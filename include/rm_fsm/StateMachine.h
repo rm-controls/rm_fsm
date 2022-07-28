@@ -27,13 +27,13 @@ public:
                      SideCommandSender *side_command_sender) const;
   static void sendShooterCmd(bool is_auto, const DbusData &data,
                              SideCommandSender *side_command_sender);
-  void setTrack(SideCommandSender *side_cmd_sender) const;
-  void catapult();
-  void reversal(bool enable);
-  void update();
-  void check();
   void calibrateChassisGimbal() const { chassis_gimbal_calibration_->reset(); }
   void calibrateShooter() const { shooter_calibration_->reset(); }
+  void setTrack(SideCommandSender *side_cmd_sender) const;
+  void reversal(bool enable);
+  void catapult();
+  void controllerUpdate();
+  void update();
   rm_common::CalibrationQueue *chassis_gimbal_calibration_{},
       *shooter_calibration_{};
   rm_common::ControllerManager controller_manager_;
@@ -43,10 +43,10 @@ public:
 
   StateMachineContext context_;
   Subscriber subscriber_;
-  double auto_linear_vel_{}, safety_distance_{};
   std::default_random_engine random_engine_;
   std::uniform_real_distribution<double> *random_generator_{};
   ros::Time begin_time_{ros::Time::now()};
+  double auto_linear_vel_{}, safety_distance_{};
   double interval_time_{};
   bool enable_random_reversal_{};
 

@@ -15,7 +15,7 @@ using namespace rm_common;
 class SideCommandSender {
 public:
   SideCommandSender(ros::NodeHandle &nh, const RefereeData &referee_data,
-                    const rm_msgs::TrackData &track_data,
+                    rm_msgs::TrackData &track_data,
                     rm_msgs::GimbalDesError &gimbal_des_error, double &pos_yaw,
                     double &pos_pitch)
       : gimbal_des_error_(gimbal_des_error), pos_yaw_(pos_yaw),
