@@ -23,9 +23,6 @@ public:
     ros::NodeHandle nh;
     dbus_sub_ = nh.subscribe<rm_msgs::DbusData>(
         "/dbus_data", 10, &Subscriber::dbusCallback, this);
-    //    game_robot_status_sub_ = nh.subscribe<rm_msgs::GameRobotStatus>(
-    //        "/game_robot_status", 10, &Subscriber::robotGameStatusCallback,
-    //        this);
     left_radar_sub_ = nh.subscribe<rm_msgs::TofRadarData>(
         "/controllers/tof_radar_controller/left_tof_radar/data", 10,
         &Subscriber::leftRadarCallback, this);
@@ -55,20 +52,6 @@ private:
     dbus_ = *data;
     context_.dbusUpdate(*data);
   }
-  //  void robotGameStatusCallback(const GameRobotStatus::ConstPtr &data) {
-  //    context_.robotStatusUpdate(*data);
-  //    // Actually referee act as a buffer for the robot game status
-  //    // TODO: adding heat of shooter
-  //    referee_.game_robot_status_.mains_power_chassis_output_ =
-  //        data->mains_power_chassis_output;
-  //    referee_.game_robot_status_.mains_power_gimbal_output_ =
-  //        data->mains_power_gimbal_output;
-  //    referee_.game_robot_status_.mains_power_shooter_output_ =
-  //        data->mains_power_shooter_output;
-  //    referee_.game_robot_status_.chassis_power_limit_ =
-  //        data->chassis_power_limit;
-  //    referee_.game_robot_status_.robot_id_ = data->robot_id;
-  //  }
   void lowerGimbalDesErrorCallback(const GimbalDesError::ConstPtr &data) {
     lower_gimbal_des_error_ = *data;
   }
