@@ -19,7 +19,7 @@ int main(int argc, char **argv) {
   ROS_INFO("Enter sentry robot.");
   ros::Rate loop_rate(100);
   while (ros::ok()) {
-    sm.check();
+    sm.update();
     ros::spinOnce();
     loop_rate.sleep();
   }

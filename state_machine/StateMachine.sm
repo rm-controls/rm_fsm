@@ -4,8 +4,6 @@
 %include <rm_msgs/DbusData.h>
 %include <rm_msgs/TofRadarData.h>
 %include <rm_msgs/GameRobotStatus.h>
-%include <rm_msgs/GameStatus.h>
-%include <sensor_msgs/JointState.h>
 %import rm_msgs
 
 %declare #include <rm_msgs/DbusData.h>
@@ -36,6 +34,7 @@ Stop
     }
 {
     dbusUpdate(data: const DbusData &)
+        [ data.s_r == DbusData::DOWN ]
         Idle
         {
         }
@@ -45,6 +44,8 @@ Idle
     Entry {
     info("Idle state entered");
     controller_manager_.startMainControllers();
+    calibrateChassisGimbal();
+    calibrateShooter();
     }
 {
     dbusUpdate(data: const DbusData &)
@@ -73,6 +74,8 @@ Manual
         nil
         {
             sendChassisCmd(false, data);
+            sendGimbalCmd(false, data, ctxt.lower_cmd_sender_);
+            sendShooterCmd(false, data, ctxt.lower_cmd_sender_);
         }
 }
 
@@ -89,7 +92,10 @@ Cruise
     dbusUpdate(data: const DbusData &)
         nil
         {
+            reversal(ctxt.enable_random_reversal_);
             sendChassisCmd(true, data);
+            sendGimbalCmd(true, data, ctxt.lower_cmd_sender_);
+            sendShooterCmd(true, data, ctxt.lower_cmd_sender_);
         }
     leftRadarCB(data: const TofRadarData &)
         [ data.distance < ctxt.safety_distance_ && ctxt.auto_linear_vel_ > 0 ]
@@ -112,13 +118,13 @@ Default
           (data.mains_power_gimbal_output == 1 && ctxt.subscriber_.referee_.game_robot_status_.mains_power_gimbal_output_== 0) ]
         nil
         {
-            info("Chassis and gimbal power on, calibrating");
+            info("Chassis and gimbal power on");
         }
     robotStatusUpdate(data: const rm_msgs::GameRobotStatus &)
         [ data.mains_power_shooter_output == 1 && ctxt.subscriber_.referee_.game_robot_status_.mains_power_shooter_output_== 0 ]
         nil
         {
-            info("Shooter power on, calibrating");
+            info("Shooter power on");
         }
     robotStatusUpdate(data: const rm_msgs::GameRobotStatus &)
         nil
